@@ -50,7 +50,7 @@ pip install rpalite-0.1.tar.gz
 
 ### 使用示例
 
-你可以使用Python或者Robot Framework使用ARP。下面部分是一些示例：
+你可以使用Python或者Robot Framework使用RPALite。下面部分是一些示例：
 
 #### Python示例
 

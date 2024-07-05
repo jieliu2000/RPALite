@@ -60,7 +60,7 @@ pip install rpalite-0.1.tar.gz
 
 ### Usage Examples
 
-You can use ARP with Python or Robot Framework, the following section shows some examples:
+You can use RPALite with Python or Robot Framework, the following section shows some examples:
 
 #### Python example
 

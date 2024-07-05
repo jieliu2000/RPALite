@@ -1,0 +1,12 @@
+easyocr==1.7.1
+numpy==1.26.4
+opencv-contrib-python==4.6.0.66
+opencv-python==4.6.0.66
+opencv-python-headless==4.9.0.80
+pillow==10.3.0
+PyAutoGUI==0.9.54
+pywinauto==0.6.8
+robotframework==7.0
+pytest>=6.2.5
+build==1.2.1
+uiautomation==2.0.18

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "RPALite"
+authors = [{ name = "Liu Jie", email = "jieliu2000@live.com" }]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = ["License :: OSI Approved :: Apache Software License"]
+version = "0.0.2"
+description = "An open source RPA (Robotic Process Automation) library"
+
+[project.urls]
+Home = "https://github.com/jieliu2000/RPALite"

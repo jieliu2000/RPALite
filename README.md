@@ -51,11 +51,11 @@ Perform a project build:
 python -m build
 ```
 
-After that use pip to install:
+After that use pip to install. Below command line is an example. Please make sure to replace the xxx to the actual version number:
 
 ```
 cd dist
-pip install rpalite-0.1.tar.gz
+pip install rpalite-xxx.tar.gz
 ```
 
 ### Usage Examples

@@ -42,10 +42,10 @@ pip install -r requirements.txt
 ```
 python -m build
 ```
-之后使用pip进行安装：
+之后使用pip进行安装。以下代码为一个示例，实际使用时请把XXX改成对应的实际版本号。
 ```
 cd dist
-pip install rpalite-0.1.tar.gz
+pip install rpalite-XXX.tar.gz
 ```
 
 ### 使用示例

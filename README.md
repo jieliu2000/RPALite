@@ -1,4 +1,4 @@
-# RPALite - open source RPA (Robotic Process Automation) library
+# RPALite - Open Source RPA (Robotic Process Automation) Library for Python and Robot Framework
 
 | [English](README.md) | [中文](README-zh.md) |
 

@@ -1,4 +1,4 @@
-# rpalite - 开源的RPA(Robotic Process Automation，机器人流程自动化)库
+# rpalite - 开源的用于Python和Robot Framework的RPA(Robotic Process Automation，机器人流程自动化)编程库
 
 | [English](README.md) |  [中文](README-zh.md) |
 

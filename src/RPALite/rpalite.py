@@ -68,7 +68,8 @@ class RPALite:
         
         
     def sleep(self, seconds = 0):
-        '''Sleeps for specified seconds.
+        '''
+        Sleeps for specified seconds.
            
         Parameters
         ----------
@@ -97,7 +98,8 @@ class RPALite:
 
 
     def find_windows_by_title(self, title, image=None):
-        '''Finds windows by a title string. This function will return all the matched windows if it exists, otherwise it will return None. A "matched window" refers to a window which are outside the text. If there are multiple windows outside the text, all windows will be returned.
+        '''
+        Finds windows by a title string. This function will return all the matched windows if it exists, otherwise it will return None. A "matched window" refers to a window which are outside the text. If there are multiple windows outside the text, all windows will be returned.
 
         The "window" or "control" in RPALite refers to a rectangle region which can be located on the system screen. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle.
       
@@ -137,8 +139,9 @@ class RPALite:
         Returns
         -------
         tuple
-            A tuple of the control that match the title. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle. Returns None if no control is found.
+            A tuple of the control that matches the title. The returned tuple represents the rectangle of the control. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle. Returns None if no control is found.
         '''
+
         img = self.take_screenshot()
         location = self.image_handler.find_text_in_image(img, text)
         if(location is None):
@@ -147,8 +150,30 @@ class RPALite:
             return self.image_handler.find_control_near_position(img, location[0])
     
 
-    def find_control(self, app, class_name=None, title=None, automate_id=None, visible_only=None):
-        '''Find a control by the parameters. This function use pywinauto.findwindows.find_elements and returns the client rect of the element'''
+    def find_control(self, app, class_name=None, title=None, automate_id=None):
+        '''
+        Finds a control by the parameters. This function uses uiautomation module (https://github.com/yinkaisheng/Python-UIAutomation-for-Windows) to find the control and returns the client rect of the element
+        You can use ClassName, Title, AutomationID to search for a control. You can use Windows' Inspect tool (https://learn.microsoft.com/en-us/windows/win32/winauto/inspect-objects) or Accessibility Insights (https://accessibilityinsights.io/) to get these properties of Apps.
+        In the parameters, app is mandatory. You can get the app object using 
+
+        Parameters
+        ----------
+        app : 
+            The application. It can be obtained by the "find_application" function.
+        class_name : str
+            The class name of the control. Use Windows Inspect tool or Accessibility Insights to find the class name of the control. 
+        title: str  
+            The title of the control. Use Windows Inspect tool or Accessibility Insights to find the title of the control.
+        automate_id : str
+            The automation ID of the control. Use Windows Inspect tool or Accessibility Insights to find the automation ID of the control.
+
+        
+        Returns
+        -------
+        tuple
+            A tuple of the control that matches the criterias. The returned tuple represents the rectangle of the control. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle. Returns None if no control is found.
+        '''
+
         if app is None:
             return None
         app_control = self.find_control_by_process(app.process)
@@ -171,6 +196,20 @@ class RPALite:
 
     @not_keyword
     def find_control_by_process(self, process_id):
+        '''
+        Finds an uiautomation control by the parameters. This function uses uiautomation module (https://github.com/yinkaisheng/Python-UIAutomation-for-Windows) to find the top level control based on the process_id parameter.
+        Please note that the "control" here is not the control we talked about in other functions. The "control" here is the top level uiautomation control. This method is NOT a Robot Framework method. It is used by other methods which may need uiautomation library.
+        
+        Parameters
+        ----------
+        process_id : int
+            The process id of the application. You can get the process id of an application with Windows Task Monitor
+        
+        Returns
+        -------
+        uiautomation control that matches the process id. Returns None if no control is found.
+        
+        '''
         for win in auto.GetRootControl().GetChildren():
             if win.ProcessId == process_id:
                 return win
@@ -193,14 +232,54 @@ class RPALite:
         return params
     
     def take_screenshot(self, all_screens = True, filename = None):
-        '''Take a screenshot and save it to a file. If the filename parameter is not specified, the screenshot will be saved to a file with a random name.'''
+        '''Take a screenshot and save it to a file. If the filename parameter is not specified, the screenshot will be saved to a file with a random name.
+        
+        Parameters
+        ----------
+        all_screens : bool
+            Whether to take screenshots of all screens. If set to False, only the current screen will be taken.
+        filename : str
+            The filename to save the screenshot to. If not specified, this method will not save the screenshot to a file.
+        
+        Returns
+        -------
+        PIL.Image
+            The screenshot image.
+        '''
+
         img = PIL.ImageGrab.grab(all_screens=True)
         if filename is not None:
             img.save(filename)
         return img
 
     def wait_until_text_exists(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
-        '''Wait until a specific text exists in the current screen. This function will return the location if the text exists, otherwise it will return None.'''
+        '''
+        Wait until a specific text exists in the current screen. This function will return the location if the text exists, otherwise it will return None.
+        
+        Parameters
+        ----------
+        text : str
+            The text to wait for.
+            
+        filter_args_in_parent : dict
+            The filter arguments to filter the parent control. This is used to find the parent control of the text. If not specified, the parent control will be considered during search.
+        
+        parent_control : uiautomation control
+            The parent control to search in. If not specified, the function will search all controls.
+        
+        search_in_image : PIL.Image
+            The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
+        
+        timeout : int
+            The timeout in seconds. If the text is not found within the timeout, an AssertionError will be raised.
+
+        Returns
+        -------
+        tuple
+            The location of the text in the screen. The location is a tuple of (x, y, width, height).
+
+        '''
+
         start_time = datetime.now()
         while(True):
             location = self.validate_text_exists(text, filter_args_in_parent, parent_control, search_in_image)
@@ -333,30 +412,55 @@ class RPALite:
         self.sleep()
 
     def send_keys(self, keys):
-        '''Simulate the keyboard action to send keys. It uses pywinauto's send_keys method. See https://pywinauto.readthedocs.io/en/latest/code/pywinauto.keyboard.html for details.
+        '''
+        Simulate the keyboard action to send keys. It uses pywinauto's send_keys method. See https://pywinauto.readthedocs.io/en/latest/code/pywinauto.keyboard.html for details.
 
-You can use any Unicode characters (on Windows) and some special keys listed below. The module is also available on Linux.
+        You can use any Unicode characters (on Windows) and some special keys listed below. The module is also available on Linux.
 
-Available key codes: 
+        Available key codes: 
 
-{SCROLLLOCK}, {VK_SPACE}, {VK_LSHIFT}, {VK_PAUSE}, {VK_MODECHANGE},{BACK}, {VK_HOME}, {F23}, {F22}, {F21}, {F20}, {VK_HANGEUL}, {VK_KANJI},{VK_RIGHT}, {BS}, {HOME}, {VK_F4}, {VK_ACCEPT}, {VK_F18}, {VK_SNAPSHOT},{VK_PA1}, {VK_NONAME}, {VK_LCONTROL}, {ZOOM}, {VK_ATTN}, {VK_F10}, {VK_F22},{VK_F23}, {VK_F20}, {VK_F21}, {VK_SCROLL}, {TAB}, {VK_F11}, {VK_END},{LEFT}, {VK_UP}, {NUMLOCK}, {VK_APPS}, {PGUP}, {VK_F8}, {VK_CONTROL},{VK_LEFT}, {PRTSC}, {VK_NUMPAD4}, {CAPSLOCK}, {VK_CONVERT}, {VK_PROCESSKEY},{ENTER}, {VK_SEPARATOR}, {VK_RWIN}, {VK_LMENU}, {VK_NEXT}, {F1}, {F2},{F3}, {F4}, {F5}, {F6}, {F7}, {F8}, {F9}, {VK_ADD}, {VK_RCONTROL},{VK_RETURN}, {BREAK}, {VK_NUMPAD9}, {VK_NUMPAD8}, {RWIN}, {VK_KANA},{PGDN}, {VK_NUMPAD3}, {DEL}, {VK_NUMPAD1}, {VK_NUMPAD0}, {VK_NUMPAD7},{VK_NUMPAD6}, {VK_NUMPAD5}, {DELETE}, {VK_PRIOR}, {VK_SUBTRACT}, {HELP},{VK_PRINT}, {VK_BACK}, {CAP}, {VK_RBUTTON}, {VK_RSHIFT}, {VK_LWIN}, {DOWN},{VK_HELP}, {VK_NONCONVERT}, {BACKSPACE}, {VK_SELECT}, {VK_TAB}, {VK_HANJA},{VK_NUMPAD2}, {INSERT}, {VK_F9}, {VK_DECIMAL}, {VK_FINAL}, {VK_EXSEL},{RMENU}, {VK_F3}, {VK_F2}, {VK_F1}, {VK_F7}, {VK_F6}, {VK_F5}, {VK_CRSEL},{VK_SHIFT}, {VK_EREOF}, {VK_CANCEL}, {VK_DELETE}, {VK_HANGUL}, {VK_MBUTTON},{VK_NUMLOCK}, {VK_CLEAR}, {END}, {VK_MENU}, {SPACE}, {BKSP}, {VK_INSERT},{F18}, {F19}, {ESC}, {VK_MULTIPLY}, {F12}, {F13}, {F10}, {F11}, {F16},{F17}, {F14}, {F15}, {F24}, {RIGHT}, {VK_F24}, {VK_CAPITAL}, {VK_LBUTTON},{VK_OEM_CLEAR}, {VK_ESCAPE}, {UP}, {VK_DIVIDE}, {INS}, {VK_JUNJA},{VK_F19}, {VK_EXECUTE}, {VK_PLAY}, {VK_RMENU}, {VK_F13}, {VK_F12}, {LWIN},{VK_DOWN}, {VK_F17}, {VK_F16}, {VK_F15}, {VK_F14}
-~ is a shorter alias for {ENTER}
+        {SCROLLLOCK}, {VK_SPACE}, {VK_LSHIFT}, {VK_PAUSE}, {VK_MODECHANGE},{BACK}, {VK_HOME}, {F23}, {F22}, {F21}, {F20}, {VK_HANGEUL}, {VK_KANJI},{VK_RIGHT}, {BS}, {HOME}, {VK_F4}, {VK_ACCEPT}, {VK_F18}, {VK_SNAPSHOT},{VK_PA1}, {VK_NONAME}, {VK_LCONTROL}, {ZOOM}, {VK_ATTN}, {VK_F10}, {VK_F22},{VK_F23}, {VK_F20}, {VK_F21}, {VK_SCROLL}, {TAB}, {VK_F11}, {VK_END},{LEFT}, {VK_UP}, {NUMLOCK}, {VK_APPS}, {PGUP}, {VK_F8}, {VK_CONTROL},{VK_LEFT}, {PRTSC}, {VK_NUMPAD4}, {CAPSLOCK}, {VK_CONVERT}, {VK_PROCESSKEY},{ENTER}, {VK_SEPARATOR}, {VK_RWIN}, {VK_LMENU}, {VK_NEXT}, {F1}, {F2},{F3}, {F4}, {F5}, {F6}, {F7}, {F8}, {F9}, {VK_ADD}, {VK_RCONTROL},{VK_RETURN}, {BREAK}, {VK_NUMPAD9}, {VK_NUMPAD8}, {RWIN}, {VK_KANA},{PGDN}, {VK_NUMPAD3}, {DEL}, {VK_NUMPAD1}, {VK_NUMPAD0}, {VK_NUMPAD7},{VK_NUMPAD6}, {VK_NUMPAD5}, {DELETE}, {VK_PRIOR}, {VK_SUBTRACT}, {HELP},{VK_PRINT}, {VK_BACK}, {CAP}, {VK_RBUTTON}, {VK_RSHIFT}, {VK_LWIN}, {DOWN},{VK_HELP}, {VK_NONCONVERT}, {BACKSPACE}, {VK_SELECT}, {VK_TAB}, {VK_HANJA},{VK_NUMPAD2}, {INSERT}, {VK_F9}, {VK_DECIMAL}, {VK_FINAL}, {VK_EXSEL},{RMENU}, {VK_F3}, {VK_F2}, {VK_F1}, {VK_F7}, {VK_F6}, {VK_F5}, {VK_CRSEL},{VK_SHIFT}, {VK_EREOF}, {VK_CANCEL}, {VK_DELETE}, {VK_HANGUL}, {VK_MBUTTON},{VK_NUMLOCK}, {VK_CLEAR}, {END}, {VK_MENU}, {SPACE}, {BKSP}, {VK_INSERT},{F18}, {F19}, {ESC}, {VK_MULTIPLY}, {F12}, {F13}, {F10}, {F11}, {F16},{F17}, {F14}, {F15}, {F24}, {RIGHT}, {VK_F24}, {VK_CAPITAL}, {VK_LBUTTON},{VK_OEM_CLEAR}, {VK_ESCAPE}, {UP}, {VK_DIVIDE}, {INS}, {VK_JUNJA},{VK_F19}, {VK_EXECUTE}, {VK_PLAY}, {VK_RMENU}, {VK_F13}, {VK_F12}, {LWIN},{VK_DOWN}, {VK_F17}, {VK_F16}, {VK_F15}, {VK_F14}
+        ~ is a shorter alias for {ENTER}
 
-Modifiers:
+        Modifiers:
 
-* '+': {VK_SHIFT}
-* '^': {VK_CONTROL}
-* '%': {VK_MENU} a.k.a. Alt key
+        * '+': {VK_SHIFT}
+        * '^': {VK_CONTROL}
+        * '%': {VK_MENU} a.k.a. Alt key
         '''
         keyboard.send_keys(keys)
         self.sleep()
 
 
     def input_text(self, text):
-        keyboard.send_keys(text)
+        '''
+        Types text at the current active position.
+        This function is an automation method and will not return any value.
+
+        Parameters
+        ----------
+        text : str
+            Text to type
+
+        '''
+
+        pyautogui.write(text, interval=0.2)
         self.sleep()
 
     def enter_in_field(self, field_name, text):
+        '''
+        Enters text in a field identified by field_name paramete.
+        This function is an automation method and will not return any value.
+
+        Parameters
+        ----------
+        field_name : str
+            Label or name of the field to enter text in
+        
+        text : str
+            Text to enter in the field
+    
+        '''
         img = self.take_screenshot()
         location = self.wait_until_text_exists(field_name)
         if(location is None):

@@ -306,7 +306,7 @@ class RPALite:
 
 
     def find_application(self, title=None, class_name = None):
-        '''Find an application by its title keyword.'''
+        '''Find an application by its title or ClassName.'''
         params = self.build_element_params(title, class_name)
     
         windows = findwindows.find_elements(**params)

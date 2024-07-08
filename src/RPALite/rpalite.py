@@ -23,7 +23,7 @@ class RPALite:
     ----------
     debug_mode : bool
         Indicates whether the debug mode is enabled. If it is enabled, the library will output more detailed information and show some images for debugging.
-    step_pause_interval : int
+    step_pause_interval : float
         The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
     '''
 
@@ -73,7 +73,7 @@ class RPALite:
            
         Parameters
         ----------
-        seconds : int
+        seconds : float
             The seconds to sleep. If it is 0, the default pause interval will be used. If it is less than 0, the function will not sleep and return immediately.
         
         '''
@@ -411,16 +411,52 @@ class RPALite:
         self.sleep()
 
     def click_by_text(self, text, button='left', double_click=False, filter_args_in_parent=None):
-        '''Click the positon of a string on screen. '''
+        '''
+        Clicks the positon of a string on screen. 
+        '''
         logger.debug('Click by text:', text)
         location = self.wait_until_text_exists(text, filter_args_in_parent)
         if(location is not None and location[0]):
             self.click_by_position(int(location[0]), int(location[1]), button, double_click)
         self.sleep()
 
-      
+    def scroll(self, times = 1, sleep = None):
+        '''
+        Scrolls the mouse wheel. 
+        
+        Parameters:
+        ----------
+        times: int
+            The number of times to scroll the wheel. Default is 1. This parameter also indicates the scroll direction. Positive value means scrolling down, and negative value means scrolling up. 
+            Negative value means scrolling up.
+        sleep: float
+            The time to sleep after scrolling. If this parameter is 
+        '''
+        
+        pyautogui.scroll(clicks=times)
+
+        sleep_seconds = sleep if sleep is not None else self.step_pause_interval
+        self.sleep(sleep_seconds)
+        pass
+
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
-        '''Click the positon based on the coordinates. '''
+        '''
+        Clicks the positon based on the coordinates. Please note that this function will perform these steps:
+        1. Move the mouse to the position
+        2. Wait for 1 second
+        3. Click the mouse
+
+        Parameters:
+        ----------
+        x: int
+            The x coordinate of the position to be clicked
+        y: int
+            The y coordinate of the position to be clicked
+        button: str
+            The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'
+        double_click: bool
+            Whether to perform a double click. Default is False.
+        '''
         logger.debug('Click by position: {}, {}, {}, {}'.format(x, y, type(x), type(y)))
         mouse.move((x, y))
         self.sleep(1)

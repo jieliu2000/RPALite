@@ -28,7 +28,13 @@ class TestRPALite:
         
         app = self.rpalite.run_command('mspaint')
         app = self.rpalite.find_application(class_name= "MSPaintApp")
-        self.rpalite.click("automateId:RotateDropdown", app = app)
+        self.rpalite.click('automateId:RotateDropdown', app = app)
+        
+        location = self.rpalite.validate_text_exists('Rotate 180°')
+        assert location is not None, "Text not found"
+        
+        self.rpalite.close_app(app)
+
 
     def test_find_window_by_title(self):
         image = PIL.Image.open('./tests/unit/text_and_window2.png')

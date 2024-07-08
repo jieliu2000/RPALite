@@ -24,8 +24,20 @@ class TestRPALite:
             pass
         self.rpalite.click("image:./tests/unit/start.png")
 
+    def test_scroll(self):
+        app = self.open_app()
+        self.rpalite.maximize_window(app)
+        text = "Sample text for testing scroll:\n"
+        for i in range(0, 50):
+            text += "Line " + str(i) + "\n"
+        self.rpalite.click()
+        self.rpalite.scroll(20)
+        self.rpalite.scroll(-20)
+
+        pass
+
+
     def test_click_automate_id(self):
-        
         app = self.rpalite.run_command('mspaint')
         app = self.rpalite.find_application(class_name= "MSPaintApp")
         self.rpalite.click('automateId:RotateDropdown', app = app)

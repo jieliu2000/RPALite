@@ -420,6 +420,14 @@ class RPALite:
             self.click_by_position(int(location[0]), int(location[1]), button, double_click)
         self.sleep()
 
+
+    def mouse_press(self, button='left'):
+
+        mouse.press(button)
+
+    def mouse_release(self, button='left'):
+        mouse.release(button)
+
     def scroll(self, times = 1, sleep = None):
         '''
         Scrolls the mouse wheel. 
@@ -432,8 +440,11 @@ class RPALite:
         sleep: float
             The time to sleep after scrolling. If this parameter is 
         '''
-        
-        pyautogui.scroll(clicks=times)
+        self.mouse_press('wheel')
+        self.sleep()
+        mouse.scroll(times)
+        self.sleep(1)
+        self.mouse_release('wheel')
 
         sleep_seconds = sleep if sleep is not None else self.step_pause_interval
         self.sleep(sleep_seconds)

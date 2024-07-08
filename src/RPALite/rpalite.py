@@ -355,7 +355,7 @@ class RPALite:
                 path = locator.split('image:')[1]
                 img = PIL.Image.open(path)
                 if parent_image is None:
-                    parent_image = self.get_screenshot()
+                    parent_image = self.take_screenshot()
                 return self.image_handler.find_image_location(img, parent_image)
             
             if locator.startswith('automateId:'):
@@ -364,7 +364,7 @@ class RPALite:
                 if app is None:
                     logger.error('App is not specified. Return None')
                     return None
-                position = self.find_control(app, automate_id=automate_id, visible_only=True)
+                position = self.find_control(app, automate_id=automate_id)
                 return position
         
     def click(self, locator=None,  button='left', double_click= False, app = None):

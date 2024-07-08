@@ -348,7 +348,25 @@ class RPALite:
             wrapper.maximize()
             self.sleep()
             
-
+    def locate(self, locator, parent_image = None, app = None):
+        '''Find a control by its locator.'''
+        if(isinstance(locator, str)):
+            if locator.startswith('image:'):
+                path = locator.split('image:')[1]
+                img = PIL.Image.open(path)
+                if parent_image is None:
+                    parent_image = self.get_screenshot()
+                return self.image_handler.find_image_location(img, parent_image)
+            
+            if locator.startswith('automateId:'):
+                automate_id = locator.split('automateId:')[1]
+                logger.debug('Clicking by automate id:', automate_id)
+                if app is None:
+                    logger.error('App is not specified. Return None')
+                    return None
+                position = self.find_control(app, automate_id=automate_id, visible_only=True)
+                return position
+        
     def click(self, locator=None,  button='left', double_click= False, app = None):
         '''Click on a control. The parameter could be a locator or the control's text (like the button text or the field name)'''
         if locator is None:
@@ -356,17 +374,18 @@ class RPALite:
             self.click_by_position(position[0], position[1], button, double_click)
 
         if(isinstance(locator, str)):
-            if locator.startswith('image:'):
-                path = locator.split('image:')[1]
-                logger.debug('Clicking image:', path)
-                self.click_by_image(path, button, double_click)
+            position = self.locate(locator, app=app)
+
+            if position is None:
+                return
             
             if locator.startswith('automateId:'):
-                automate_id = locator.split('automateId:')[1]
-                logger.debug('Clicking by automate id:', automate_id)
-                position = self.find_control(app, automate_id=automate_id, visible_only=True)
-                if(position is not None):
-                    self.click_by_position(position[0] + int(position[2]/2), position[1] + int(position[3]/2), button, double_click)          
+                if(app is None):
+                    logger.error('App is not specified for automateId click. Cancel clicking')
+                    raise AssertionError('App is not specified for automateId click. Cancel clicking')
+                
+            self.click_by_position(position[0] + int(position[2]/2), position[1] + int(position[3]/2), button, double_click)          
+         
         pass
 
     def click_by_image(self, image_path, button='left', double_click= False):

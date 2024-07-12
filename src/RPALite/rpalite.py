@@ -353,18 +353,18 @@ class RPALite:
             wrapper.maximize()
             self.sleep()
             
-    def locate(self, locator, parent_image = None, app = None):
+    def locate(self, location_description, parent_image = None, app = None):
         '''Find a control by its locator.'''
-        if(isinstance(locator, str)):
-            if locator.startswith('image:'):
-                path = locator.split('image:')[1]
+        if(isinstance(location_description, str)):
+            if location_description.startswith('image:'):
+                path = location_description.split('image:')[1]
                 img = PIL.Image.open(path)
                 if parent_image is None:
                     parent_image = self.take_screenshot()
                 return self.image_handler.find_image_location(img, parent_image)
             
-            if locator.startswith('automateId:'):
-                automate_id = locator.split('automateId:')[1]
+            if location_description.startswith('automateId:'):
+                automate_id = location_description.split('automateId:')[1]
                 logger.debug('Clicking by automate id:', automate_id)
                 if app is None:
                     logger.error('App is not specified. Return None')
@@ -372,6 +372,10 @@ class RPALite:
                 position = self.find_control(app, automate_id=automate_id)
                 return position
         
+            if location_description.startswith('ocr:'):
+                return self.find_text_in_window(location_description.split('text:')[1], app=app)
+            
+
     def click(self, locator=None,  button='left', double_click= False, app = None):
         '''Click on a control. The parameter could be a locator or the control's text (like the button text or the field name)'''
         if locator is None:

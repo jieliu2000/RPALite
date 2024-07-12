@@ -86,7 +86,7 @@ class ImageHandler:
         Returns the location information list, format is ((top_x, top_y, width, height), text) of the text in the image.
         '''
         if rects == None:
-            return self.find_text_in_image(image, text, filter_args_in_parent)
+            return self.find_texts_in_image(image, text, filter_args_in_parent)
         if type(rects) == list and len(rects) > 0:
             
             arr = self.reader.readtext(np.array(image))
@@ -95,7 +95,7 @@ class ImageHandler:
                 if loc is not None:
                     return loc  
         else:
-            return self.find_text_in_image(image, text, filter_args_in_parent, rects)
+            return self.find_texts_in_image(image, text, filter_args_in_parent, rects)
   
       
         

@@ -81,11 +81,9 @@ class ImageHandler:
         return False
 
 
-
-  
-    def find_text_in_rects(self, image, text, filter_args_in_parent=None, rects=None):
+    def find_texts_in_rects(self, image, text, filter_args_in_parent=None, rects=None):
         '''
-        Returns the location information, format is (top_x, top_y, width, height) of the text in the image.
+        Returns the location information list, format is ((top_x, top_y, width, height), text) of the text in the image.
         '''
         if rects == None:
             return self.find_text_in_image(image, text, filter_args_in_parent)
@@ -93,16 +91,19 @@ class ImageHandler:
             
             arr = self.reader.readtext(np.array(image))
             for rect in rects:
-                loc = self.find_text_in_array_and_rect(text, arr, image, filter_args_in_parent, rect)
+                loc = self.find_texts_in_array_and_rect(text, arr, image, filter_args_in_parent, rect)
                 if loc is not None:
                     return loc  
         else:
-            return self.find_text_in_image(image, text, filter_args_in_parent, rects)      
+            return self.find_text_in_image(image, text, filter_args_in_parent, rects)
+  
+      
         
-    def find_text_in_array_and_rect(self, text, text_arr, image, filter_args_in_parent=None, rect = None):
+    def find_texts_in_array_and_rect(self, text, text_arr, image, filter_args_in_parent=None, rect = None):
         '''
-        Returns the location information, format is (top_x, top_y, width, height) of the text in the image.
+        Returns the location information, format is (top_x, top_y, width, height, ratio) of the text in the image.
         '''
+        results = []
         (position, target_text, best_ratio) = None, None, 0
         for r in text_arr:  
             ratio = SequenceMatcher(None, r[1], text).ratio()
@@ -110,22 +111,27 @@ class ImageHandler:
                 if ((rect is not None and self.check_point_inide_rect(r[0][0], rect)) or rect is None) and self.check_text_and_filter_in_window(image, text_arr, r[0], r[1], filter_args_in_parent, rect): 
                     position = r[0]
                     target_text = r[1]
-                    break
+                    location = position[0][0], position[0][1], position[1][0]-position[0][0], position[3][1]-position[0][1]
+
+                    results.append( (location, target_text, 1))
 
             elif ratio > best_ratio and ratio > 0.6 and ((rect is not None and self.check_point_inide_rect(r[0][0], rect)) or rect is None) and self.check_text_and_filter_in_window(image, text_arr, r[0], r[1], filter_args_in_parent, rect):
                 best_ratio = ratio
                 target_text = r[1]
                 position = r[0]
+                
+                location = position[0][0], position[0][1], position[1][0]-position[0][0], position[3][1]-position[0][1]
+
+                results.append((location, target_text, ratio))
         #cv2.destroyAllWindows()
 
-        if target_text is None:
+        if len(results) == 0:
             return None
-        
-        (x, y, w, h) = position[0][0], position[0][1], position[1][0]-position[0][0], position[3][1]-position[0][1]
-        return (x,y,w,h)
+    
+        return results
 
 
-    def find_text_in_image(self, image, text, filter_args_in_parent=None, rect=None):
+    def find_texts_in_image(self, image, text, filter_args_in_parent=None, rect=None):
         '''
         Returns the location information, format is (top_x, top_y, width, height) of the text in the image.
         If the text is not found, returns None.
@@ -136,7 +142,7 @@ class ImageHandler:
         
         arr = self.reader.readtext(np.array(image))
         
-        return self.find_text_in_array_and_rect(text, arr, image, filter_args_in_parent, rect)
+        return self.find_texts_in_array_and_rect(text, arr, image, filter_args_in_parent, rect)
 
 
     def validate_inside(self, outside, inside):

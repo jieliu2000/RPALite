@@ -14,41 +14,45 @@ class TestImageHandler:
 
     def test_find_text_in_image(self):
         image = PIL.Image.open('./tests/unit/text_and_window.png')
-        location = self.handler.find_text_in_image(image, "Welcome")
-        assert location is not None, "Welcome text not found in the image"
+        locations = self.handler.find_texts_in_image(image, "Welcome")
+        assert locations is not None and len(locations) > 0, "Welcome text not found in the image"
+        location = locations[0][0]
         assert location[0] > 0 and location[1] > 0 and location[2]>0 and location[3] > 0, "Coordinates of Welcome text are not valid"
 
-        location = self.handler.find_text_in_image(image, "Welcome", ["dummy_text"])
-        assert location is None, "Welcome with dummy_text should not be found in the image"
+        locations = self.handler.find_texts_in_image(image, "Welcome", ["dummy_text"])
+        assert locations is None, "Welcome with dummy_text should not be found in the image"
 
-        location = self.handler.find_text_in_image(image, "Text File")
-        assert location is not None, "Text File text not found in the image"
+        locations = self.handler.find_texts_in_image(image, "Text File")
+        assert locations is not None and len(locations) > 0, "Text File text not found in the image"
 
-        location = self.handler.find_text_in_image(image, "Text File", ["Built-In"])
-        assert location is not None, "'Text File' with 'Built-In' should be found in the image"
+        locations = self.handler.find_texts_in_image(image, "Text File", ["Built-In"])
+        assert location is not None and len(locations) > 0, "'Text File' with 'Built-In' should be found in the image"
 
-        location = self.handler.find_text_in_image(image, "Text File", ["dummy_text"])
-        assert location is None, "'Text File' with 'dummy_text' should not be found in the image"
+        locations = self.handler.find_texts_in_image(image, "Text File", ["dummy_text"])
+        assert locations is None, "'Text File' with 'dummy_text' should not be found in the image"
 
     def test_find_window_outside_position(self):
         image = PIL.Image.open('./tests/unit/text_and_window.png')
         
-        location = self.handler.find_text_in_image(image, "Welcome")
-        logger.debug(f"Welcome text found at {location}")
-        window = self.handler.find_window_outside_position(image, location)
+        locations = self.handler.find_texts_in_image(image, "Welcome")
+        assert locations is not None and len(locations) > 0, "Welcome text not found in the image"
+        logger.debug(f"Welcome text found at {locations[0][0]}")
+        window = self.handler.find_window_outside_position(image, locations[0][0])
         assert window is None, "The window should not be found"
 
-        location = self.handler.find_text_in_image(image, "Learn the Fundamentals")
-        window = self.handler.find_window_outside_position(image, location)
+        locations = self.handler.find_texts_in_image(image, "Learn the Fundamentals")
+        assert locations is not None and len(locations) > 0, "Learn the Fundamentals text not found in the image"
+
+        window = self.handler.find_window_outside_position(image, locations[0][0])
         assert window is not None, "The window should be found"
 
     def test_find_control_near_position(self):
         image = PIL.Image.open('./tests/unit/text_and_window.png')
-        location = self.handler.find_text_in_image(image, "Welcome")
-        logger.debug(f"Welcome text found at {location}")
-        assert location is not None, "Welcome text not found in the image"
+        locations = self.handler.find_texts_in_image(image, "Welcome")
+        logger.debug(f"Welcome text found at {locations[0][0]}")
+        assert locations is not None, "Welcome text not found in the image"
 
-        control = self.handler.find_control_near_position(image, location)
+        control = self.handler.find_control_near_position(image, locations[0][0])
         logger.debug(f"Control found at {control}")
 
 

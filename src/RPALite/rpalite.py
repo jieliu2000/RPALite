@@ -23,7 +23,7 @@ class RPALite:
     ----------
     debug_mode : bool
         Indicates whether the debug mode is enabled. If it is enabled, the library will output more detailed information and show some images for debugging.
-    step_pause_interval : int
+    step_pause_interval : float
         The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
     '''
 
@@ -73,7 +73,7 @@ class RPALite:
            
         Parameters
         ----------
-        seconds : int
+        seconds : float
             The seconds to sleep. If it is 0, the default pause interval will be used. If it is less than 0, the function will not sleep and return immediately.
         
         '''
@@ -119,11 +119,15 @@ class RPALite:
 
         if image is None:
             image = self.take_screenshot()
-        text_location = self.image_handler.find_text_in_image(image, title)
-        if(text_location is None):
+        text_locations = self.image_handler.find_texts_in_image(image, title)
+        if text_locations is None or len(text_locations) == 0:
             return None
         else:
-            rects = self.image_handler.find_rects_outside_position(image, text_location)
+            rects =  []
+            
+            for text_location in text_locations:
+                   rects += self.image_handler.find_rects_outside_position(image, text_location[0])
+
             return rects
 
 
@@ -298,11 +302,12 @@ class RPALite:
         if img is None:
             img = self.take_screenshot()
         
-        location = self.image_handler.find_text_in_rects(img, text, filter_args_in_parent, parent_control)
-        if(location is None or location[0] is None or location[1] is None):
+        locations = self.image_handler.find_texts_in_rects(img, text, filter_args_in_parent, parent_control)
+        if(locations is None or len(locations) == 0):
             return None
         else:
-            return location
+            location = locations[0]
+            return location[0]
 
 
     def find_application(self, title=None, class_name = None):
@@ -348,6 +353,28 @@ class RPALite:
             wrapper.maximize()
             self.sleep()
             
+    def locate(self, location_description, parent_image = None, app = None):
+        '''Find a control by its locator.'''
+        if(isinstance(location_description, str)):
+            if location_description.startswith('image:'):
+                path = location_description.split('image:')[1]
+                img = PIL.Image.open(path)
+                if parent_image is None:
+                    parent_image = self.take_screenshot()
+                return self.image_handler.find_image_location(img, parent_image)
+            
+            if location_description.startswith('automateId:'):
+                automate_id = location_description.split('automateId:')[1]
+                logger.debug('Clicking by automate id:', automate_id)
+                if app is None:
+                    logger.error('App is not specified. Return None')
+                    return None
+                position = self.find_control(app, automate_id=automate_id)
+                return position
+        
+            if location_description.startswith('ocr:'):
+                return self.find_text_in_window(location_description.split('text:')[1], app=app)
+            
 
     def click(self, locator=None,  button='left', double_click= False, app = None):
         '''Click on a control. The parameter could be a locator or the control's text (like the button text or the field name)'''
@@ -356,17 +383,18 @@ class RPALite:
             self.click_by_position(position[0], position[1], button, double_click)
 
         if(isinstance(locator, str)):
-            if locator.startswith('image:'):
-                path = locator.split('image:')[1]
-                logger.debug('Clicking image:', path)
-                self.click_by_image(path, button, double_click)
+            position = self.locate(locator, app=app)
+
+            if position is None:
+                return
             
             if locator.startswith('automateId:'):
-                automate_id = locator.split('automateId:')[1]
-                logger.debug('Clicking by automate id:', automate_id)
-                position = self.find_control(app, automate_id=automate_id, visible_only=True)
-                if(position is not None):
-                    self.click_by_position(position[0] + int(position[2]/2), position[1] + int(position[3]/2), button, double_click)          
+                if(app is None):
+                    logger.error('App is not specified for automateId click. Cancel clicking')
+                    raise AssertionError('App is not specified for automateId click. Cancel clicking')
+                
+            self.click_by_position(position[0] + int(position[2]/2), position[1] + int(position[3]/2), button, double_click)          
+         
         pass
 
     def click_by_image(self, image_path, button='left', double_click= False):
@@ -392,16 +420,63 @@ class RPALite:
         self.sleep()
 
     def click_by_text(self, text, button='left', double_click=False, filter_args_in_parent=None):
-        '''Click the positon of a string on screen. '''
+        '''
+        Clicks the positon of a string on screen. 
+        '''
         logger.debug('Click by text:', text)
         location = self.wait_until_text_exists(text, filter_args_in_parent)
         if(location is not None and location[0]):
             self.click_by_position(int(location[0]), int(location[1]), button, double_click)
         self.sleep()
 
-      
+
+    def mouse_press(self, button='left'):
+
+        mouse.press(button)
+
+    def mouse_release(self, button='left'):
+        mouse.release(button)
+
+    def scroll(self, times = 1, sleep = None):
+        '''
+        Scrolls the mouse wheel. 
+        
+        Parameters:
+        ----------
+        times: int
+            The number of times to scroll the wheel. Default is 1. This parameter also indicates the scroll direction. Positive value means scrolling down, and negative value means scrolling up. 
+            Negative value means scrolling up.
+        sleep: float
+            The time to sleep after scrolling. If this parameter is 
+        '''
+        self.mouse_press('wheel')
+        self.sleep()
+        mouse.scroll(times)
+        self.sleep(1)
+        self.mouse_release('wheel')
+
+        sleep_seconds = sleep if sleep is not None else self.step_pause_interval
+        self.sleep(sleep_seconds)
+        pass
+
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
-        '''Click the positon based on the coordinates. '''
+        '''
+        Clicks the positon based on the coordinates. Please note that this function will perform these steps:
+        1. Move the mouse to the position
+        2. Wait for 1 second
+        3. Click the mouse
+
+        Parameters:
+        ----------
+        x: int
+            The x coordinate of the position to be clicked
+        y: int
+            The y coordinate of the position to be clicked
+        button: str
+            The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'
+        double_click: bool
+            Whether to perform a double click. Default is False.
+        '''
         logger.debug('Click by position: {}, {}, {}, {}'.format(x, y, type(x), type(y)))
         mouse.move((x, y))
         self.sleep(1)

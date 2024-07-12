@@ -119,11 +119,15 @@ class RPALite:
 
         if image is None:
             image = self.take_screenshot()
-        text_location = self.image_handler.find_text_in_image(image, title)
-        if(text_location is None):
+        text_locations = self.image_handler.find_texts_in_image(image, title)
+        if text_locations is None or len(text_locations) == 0:
             return None
         else:
-            rects = self.image_handler.find_rects_outside_position(image, text_location)
+            rects =  []
+            
+            for text_location in text_locations:
+                   rects += self.image_handler.find_rects_outside_position(image, text_location[0])
+
             return rects
 
 
@@ -298,11 +302,12 @@ class RPALite:
         if img is None:
             img = self.take_screenshot()
         
-        location = self.image_handler.find_text_in_rects(img, text, filter_args_in_parent, parent_control)
-        if(location is None or location[0] is None or location[1] is None):
+        locations = self.image_handler.find_texts_in_rects(img, text, filter_args_in_parent, parent_control)
+        if(locations is None or len(locations) == 0):
             return None
         else:
-            return location
+            location = locations[0]
+            return location[0]
 
 
     def find_application(self, title=None, class_name = None):

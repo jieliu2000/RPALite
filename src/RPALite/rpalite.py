@@ -4,6 +4,7 @@ from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
 import uiautomation as auto
 import PIL
+import mouse as mouselib
 from pywinauto import mouse, keyboard, findwindows, Application
 import time
 import platform
@@ -449,12 +450,7 @@ class RPALite:
         sleep: float
             The time to sleep after scrolling. If this parameter is 
         '''
-        self.mouse_press('wheel')
-        self.sleep()
-        mouse.scroll(times)
-        self.sleep(1)
-        self.mouse_release('wheel')
-
+        mouselib.wheel(times)
         sleep_seconds = sleep if sleep is not None else self.step_pause_interval
         self.sleep(sleep_seconds)
         pass

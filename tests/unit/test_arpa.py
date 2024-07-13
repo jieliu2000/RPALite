@@ -35,7 +35,8 @@ class TestRPALite:
         self.rpalite.click_by_position(100, 300)
         self.rpalite.scroll(20)
         self.rpalite.scroll(-20)
-        pass
+
+        self.close_app()
 
 
     def test_click_automate_id(self):

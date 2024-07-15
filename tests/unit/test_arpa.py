@@ -30,8 +30,7 @@ class TestRPALite:
         text = "Sample text for testing scroll:\n"
         for i in range(0, 50):
             text += "Line " + str(i) + "\n"
-            self.rpalite.input_text(text)
-
+            #self.rpalite.input_text(text)
         self.rpalite.click_by_position(100, 300)
         self.rpalite.scroll(20)
         self.rpalite.scroll(-20)

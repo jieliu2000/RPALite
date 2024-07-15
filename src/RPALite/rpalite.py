@@ -409,14 +409,26 @@ class RPALite:
     def click_by_text_inside_window(self, text, window_title, button='left', double_click= False):
         '''Click the positon of a string on screen. '''
         logger.debug('Click by text inside window:' + text + " window title: " + window_title)
-        img = self.take_screenshot(window_title)
+        img = self.take_screenshot()
+        window_title_positions = self.image_handler.find_texts_in_image(window_title, img)
+        if(window_title_positions is None or len(window_title_positions) == 0):
+            logger.error('Cannot find window title: ' + window_title)
+            return
+        title_position = window_title_positions[0][0]
+
         rects = self.find_windows_by_title(window_title, img)
         if(rects is None or len(rects) ==0):
             return None
         else:
-            location = self.validate_text_exists(text, None, rects, img)
-            if(location is not None and location[0]):
-                self.click_by_position(int(location[0]), int(location[1]), button, double_click)
+            locations = self.validate_text_exists(text, None, rects, img)
+            if locations is None or len(locations) == 0:
+                logger.error('Cannot find text: ' + text + ' in window: ' + window_title)
+                return
+            
+            sorted_locations = sorted(locations, key=lambda x: (x[0]-title_position[0])**2 + (x[1]-title_position[1])**2)
+
+            location = sorted_locations[0]
+            self.click_by_position(int(location[0]), int(location[1]), button, double_click)
             self.sleep()
         self.sleep()
 
@@ -514,7 +526,6 @@ class RPALite:
             Text to type
 
         '''
-
         pyautogui.write(text, interval=0.2)
         self.sleep()
 

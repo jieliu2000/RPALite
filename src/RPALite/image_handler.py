@@ -127,7 +127,7 @@ class ImageHandler:
 
         if len(results) == 0:
             return None
-    
+        results = sorted(results, key=lambda l: l[2], reverse=True)
         return results
 
 
@@ -240,6 +240,8 @@ class ImageHandler:
    
         return target_information[1]
     
+    def find_text_inside_window(self, image, target_text, window_title):
+        pass
 
     def find_window_near_position(self, image, target):
         return self.find_control_near_position(image, target)

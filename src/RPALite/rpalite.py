@@ -372,10 +372,8 @@ class RPALite:
                     return None
                 position = self.find_control(app, automate_id=automate_id)
                 return position
-        
-            if location_description.startswith('ocr:'):
-                return self.find_text_in_window(location_description.split('text:')[1], app=app)
-            
+             
+            return self.wait_until_text_exists(location_description)
 
     def click(self, locator=None,  button='left', double_click= False, app = None):
         '''Click on a control. The parameter could be a locator or the control's text (like the button text or the field name)'''
@@ -524,7 +522,6 @@ class RPALite:
         ----------
         text : str
             Text to type
-
         '''
         pyautogui.write(text, interval=0.2)
         self.sleep()

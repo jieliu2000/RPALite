@@ -4,7 +4,7 @@ import numpy as np
 from difflib import SequenceMatcher
 
 class ImageHandler:
-    def __init__(self, debug_mode = False, languages = ['ch_sim','en'], debug_image_show_seconds=5):
+    def __init__(self, debug_mode = False, languages = ['en'], debug_image_show_seconds=5):
         '''
         Initialize the ImageHandler class. This class use EasyOCR for text OCR. About language codes please check https://www.jaided.ai/easyocr/'''
         self.debug_mode = debug_mode

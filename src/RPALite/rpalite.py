@@ -28,7 +28,7 @@ class RPALite:
         The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
     '''
 
-    def __init__(self, step_pause_interval = 3, debug_mode = False, languages = ['ch_sim','en']):
+    def __init__(self, step_pause_interval = 3, debug_mode = False, languages = ['en']):
         """
         Parameters
         ----------
@@ -39,7 +39,7 @@ class RPALite:
             The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
         
         languages : arr of str
-            The languages to be used for OCR. The default value is ['ch_sim','en'], which are Simplified Chinese and English. Please refer to the language list(https://www.jaided.ai/easyocr) of EasyOCR(https://github.com/JaidedAI/EasyOCR) for more information.
+            The languages to be used for OCR. The default value is [en'], which is English. Please refer to the language list(https://www.jaided.ai/easyocr) of EasyOCR(https://github.com/JaidedAI/EasyOCR) for more information.
         """
         self.platform = platform.system()
         self.debug_mode = debug_mode

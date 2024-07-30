@@ -3,8 +3,8 @@ import PIL.Image
 from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
 import uiautomation as auto
+import mouselib
 import PIL
-import mouse as mouselib
 from pywinauto import mouse, keyboard, findwindows, Application
 import time
 import platform
@@ -442,11 +442,10 @@ class RPALite:
 
 
     def mouse_press(self, button='left'):
-
-        mouse.press(button)
+        pyautogui.mouseDown(button=button)
 
     def mouse_release(self, button='left'):
-        mouse.release(button)
+        pyautogui.mouseUp(button=button)
 
     def scroll(self, times = 1, sleep = None):
         '''
@@ -464,6 +463,11 @@ class RPALite:
         sleep_seconds = sleep if sleep is not None else self.step_pause_interval
         self.sleep(sleep_seconds)
         pass
+
+    def mouse_move(self, x:int, y:int):
+        mouse.move((x, y))
+        self.sleep()
+        
 
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
         '''

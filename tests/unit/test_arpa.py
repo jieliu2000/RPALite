@@ -48,6 +48,20 @@ class TestRPALite:
         
         self.rpalite.close_app(app)
 
+    def test_mouse_press_move_actions(self):
+        app = self.open_app()
+        self.rpalite.maximize_window(app)
+        text = "Sample text for testing scroll:\n"
+        self.rpalite.input_text(text)
+        self.rpalite.click_by_text("Sample")
+        self.rpalite.mouse_press()
+
+        location = self.rpalite.validate_text_exists("scroll")
+
+        self.rpalite.mouse_move(location[0], location[1])
+        self.rpalite.mouse_release()
+        self.rpalite.sleep(20)
+        self.close_app()
 
     def test_find_window_by_title(self):
         image = PIL.Image.open('./tests/unit/text_and_window2.png')

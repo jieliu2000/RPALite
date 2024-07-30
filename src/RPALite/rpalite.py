@@ -3,8 +3,9 @@ import PIL.Image
 from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
 import uiautomation as auto
+from warnings import deprecate
+import mouselib
 import PIL
-import mouse as mouselib
 from pywinauto import mouse, keyboard, findwindows, Application
 import time
 import platform
@@ -287,7 +288,7 @@ class RPALite:
 
         start_time = datetime.now()
         while(True):
-            location = self.validate_text_exists(text, filter_args_in_parent, parent_control, search_in_image)
+            location = self.find_text_positions(text, filter_args_in_parent, parent_control, search_in_image)
             if(location is not None):
                 return location 
             else:
@@ -297,8 +298,11 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
     
-        
+    @deprecate(version='0.0.3', reason="Use find_text_positions() instead.")
     def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None):
+        return self.find_text_positions(text, filter_args_in_parent, parent_control)
+    
+    def find_text_positions(self, text, filter_args_in_parent=None, parent_control = None, img = None):
         '''Validate whether a specific text exists in the current screen. This function will return True if the text exists, otherwise it will return False.'''
         if img is None:
             img = self.take_screenshot()
@@ -418,7 +422,7 @@ class RPALite:
         if(rects is None or len(rects) ==0):
             return None
         else:
-            locations = self.validate_text_exists(text, None, rects, img)
+            locations = self.find_text_positions(text, None, rects, img)
             if locations is None or len(locations) == 0:
                 logger.error('Cannot find text: ' + text + ' in window: ' + window_title)
                 return
@@ -442,11 +446,10 @@ class RPALite:
 
 
     def mouse_press(self, button='left'):
-
-        mouse.press(button)
+        pyautogui.mouseDown(button=button)
 
     def mouse_release(self, button='left'):
-        mouse.release(button)
+        pyautogui.mouseUp(button=button)
 
     def scroll(self, times = 1, sleep = None):
         '''
@@ -464,6 +467,11 @@ class RPALite:
         sleep_seconds = sleep if sleep is not None else self.step_pause_interval
         self.sleep(sleep_seconds)
         pass
+
+    def mouse_move(self, x:int, y:int):
+        mouse.move((x, y))
+        self.sleep()
+        
 
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
         '''

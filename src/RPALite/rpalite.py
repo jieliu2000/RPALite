@@ -3,7 +3,7 @@ import PIL.Image
 from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
 import uiautomation as auto
-from warnings import deprecate
+from deprecated import deprecated
 import mouselib
 import PIL
 from pywinauto import mouse, keyboard, findwindows, Application
@@ -298,7 +298,7 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
     
-    @deprecate(version='0.0.3', reason="Use find_text_positions() instead.")
+    @deprecated(version='0.0.3', reason="Use find_text_positions() instead.")
     def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None):
         return self.find_text_positions(text, filter_args_in_parent, parent_control)
     

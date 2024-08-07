@@ -16,6 +16,11 @@ class TestRPALite:
         self.rpalite.run_command(get_test_app_and_description()[0]) 
         return self.rpalite.find_application(get_test_app_and_description()[1], get_test_app_and_description()[2])
      
+    
+    def test_clipboard(self):
+        text = self.rpalite.get_clipboard_text()
+        print(text)
+
     def test_click_image(self):
         self.platform = platform.system()
         self.platform_release = platform.release()

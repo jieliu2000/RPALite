@@ -4,12 +4,13 @@ from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
 import uiautomation as auto
 from deprecated import deprecated
-import mouselib
+import mouse as mouselib
 import PIL
 from pywinauto import mouse, keyboard, findwindows, Application
 import time
 import platform
 import pyautogui
+import pyperclip
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
@@ -450,6 +451,10 @@ class RPALite:
 
     def mouse_release(self, button='left'):
         pyautogui.mouseUp(button=button)
+
+    def get_clipboard_text(self):
+        return pyperclip.paste()
+
 
     def scroll(self, times = 1, sleep = None):
         '''

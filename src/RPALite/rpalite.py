@@ -3,13 +3,14 @@ import PIL.Image
 from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
 import uiautomation as auto
-from warnings import deprecate
-import mouselib
+from deprecated import deprecated
+import mouse as mouselib
 import PIL
 from pywinauto import mouse, keyboard, findwindows, Application
 import time
 import platform
 import pyautogui
+import pyperclip
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
@@ -298,7 +299,7 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
     
-    @deprecate(version='0.0.3', reason="Use find_text_positions() instead.")
+    @deprecated(version='0.0.3', reason="Use find_text_positions() instead.")
     def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None):
         return self.find_text_positions(text, filter_args_in_parent, parent_control)
     
@@ -349,14 +350,15 @@ class RPALite:
         window = None
 
         if window_title_pattern is not None:
-            window = app.window(title_re=window_title_pattern)
+            window = app.window(found_index=0, title_re=window_title_pattern)
         elif app.window() is not None:
-            window = app.window()
+            window = app.window(found_index=0)
         
         if window is not None:
             wrapper = window.wrapper_object()
             wrapper.maximize()
             self.sleep()
+
             
     def locate(self, location_description, parent_image = None, app = None):
         '''Find a control by its locator.'''
@@ -450,6 +452,10 @@ class RPALite:
 
     def mouse_release(self, button='left'):
         pyautogui.mouseUp(button=button)
+
+    def get_clipboard_text(self):
+        return pyperclip.paste()
+
 
     def scroll(self, times = 1, sleep = None):
         '''

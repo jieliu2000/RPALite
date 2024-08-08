@@ -11,3 +11,5 @@ pytest>=6.2.5
 build==1.2.1
 uiautomation==2.0.19
 mouse==0.7.1
+Deprecated==1.2.14
+pyperclip==1.8.2

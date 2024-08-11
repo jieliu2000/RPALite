@@ -31,6 +31,16 @@ We currently provide a copy of the Robot Framework documentation in English, whi
 
 ### Installation
 
+You can install RPALite via pip:
+
+```bash
+pip install RPALite
+```
+
+You can also install RPALite from source following the instructions below.
+
+#### Installation from source
+
 Since we are still in the early stages of the project, you need to clone the project and install it after build. First clone the project to you computer:
 
 ```

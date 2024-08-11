@@ -8,9 +8,17 @@ authors = [{ name = "Liu Jie", email = "jieliu2000@live.com" }]
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.8"
-classifiers = ["License :: OSI Approved :: Apache Software License"]
-version = "0.0.2"
+classifiers = [
+    "Framework :: Robot Framework :: Library",
+    "Operating System :: Microsoft :: Windows",
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+]
+version = "0.0.3"
 description = "An open source RPA (Robotic Process Automation) library"
 
 [project.urls]
 Home = "https://github.com/jieliu2000/RPALite"
+Documentation = "https://jieliu2000.github.io/RPALite/"
+Issues = "https://github.com/jieliu2000/RPALite/issues"

@@ -30,6 +30,16 @@ RPALite是一个开源的RPA(Robotic Process Automation，机器人流程自动�
 
 ### 安装
 
+你可以通过pip安装RPALite：
+
+```bash
+pip install RPALite
+```
+
+也可以通过下面的方法在下载代码以后进行安装：
+
+#### 下载代码后安装
+
 由于目前我们还在项目早期阶段，你需要把项目克隆到本地后进行安装。首先将项目克隆到本地：
 ```
 git clone https://github.com/jieliu2000/RPALite.git

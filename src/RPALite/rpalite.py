@@ -15,7 +15,6 @@ import keyboard as keyboardlib
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
-__version__ = '0.1'
 
 @library(scope='GLOBAL', auto_keywords=True)
 class RPALite:
@@ -305,7 +304,27 @@ class RPALite:
         return self.find_text_positions(text, filter_args_in_parent, parent_control)
     
     def find_text_positions(self, text, filter_args_in_parent=None, parent_control = None, img = None):
-        '''Validate whether a specific text exists in the current screen. This function will return True if the text exists, otherwise it will return False.'''
+        '''Find a text in the current screen. This function will return the location if the text exists, otherwise it will return None.
+        
+        Parameters
+        ----------
+        text : str
+            The text to search for.
+        
+        filter_args_in_parent : dict
+            The filter arguments to filter the parent control. This is used to find the parent control of the text. If not specified, the parent control will be considered during search.
+        
+        parent_control : uiautomation control
+            The parent control to search in. If not specified, the function will search all controls.
+
+        img : PIL.Image
+            The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
+        
+        Returns
+        -------
+        tuple
+            The location of the text in the screen. The location is a tuple of (x, y, width, height).
+        '''
         if img is None:
             img = self.take_screenshot()
         
@@ -360,9 +379,32 @@ class RPALite:
             wrapper.maximize()
             self.sleep()
 
-            
+    
     def locate(self, location_description, parent_image = None, app = None):
-        '''Find a control by its locator.'''
+        ''' Locate a control by a description. The description can be a string that is displayed on screen or a string of some elements' properties with a prefix.
+        This function will work based on location_description's value based on these rules:
+            - If the description starts with "image:", the function will try to load the image file based on the path after "image:". Then it will search for the image and return the location.
+            - If the description starts with "automateId:", the function will try to find the control by the automation id and return the location of the control.
+            - If the description doesn't start with any prefix, the function will try to find the control by the text and return the location of the matched text.
+
+        Parameters
+        ----------
+        location_description : str
+            The description of the control. The description can be a string that is displayed on screen or a string of some elements' properties with a prefix. 
+        
+        parent_image : PIL.Image
+            The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
+
+        app : Application
+            The application to search in. If not specified, the function will search in the current application. See find_application() for more information.
+        
+        Returns
+        -------
+        tuple
+            The location of the control. The location is a tuple of (x, y, width, height).
+    
+        '''
+        
         if(isinstance(location_description, str)):
             if location_description.startswith('image:'):
                 path = location_description.split('image:')[1]

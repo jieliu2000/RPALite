@@ -351,14 +351,15 @@ class RPALite:
         window = None
 
         if window_title_pattern is not None:
-            window = app.window(title_re=window_title_pattern)
+            window = app.window(found_index=0, title_re=window_title_pattern)
         elif app.window() is not None:
-            window = app.window()
+            window = app.window(found_index=0)
         
         if window is not None:
             wrapper = window.wrapper_object()
             wrapper.maximize()
             self.sleep()
+
             
     def locate(self, location_description, parent_image = None, app = None):
         '''Find a control by its locator.'''

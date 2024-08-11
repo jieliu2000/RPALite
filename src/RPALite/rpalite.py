@@ -466,9 +466,8 @@ class RPALite:
         ----------
         times: int
             The number of times to scroll the wheel. Default is 1. This parameter also indicates the scroll direction. Positive value means scrolling down, and negative value means scrolling up. 
-            Negative value means scrolling up.
         sleep: float
-            The time to sleep after scrolling. If this parameter is 
+            The time to sleep in seconds after scrolling. 
         '''
         mouselib.wheel(times)
         sleep_seconds = sleep if sleep is not None else self.step_pause_interval

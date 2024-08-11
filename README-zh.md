@@ -22,6 +22,10 @@ RPALite是一个开源的RPA(Robotic Process Automation，机器人流程自动�
 * 支持基于Windows控件的名称，类，或者Automation ID查找对应控件的坐标
 * 支持对基于图片的定位。你可以通过传给RPALite一张屏幕局部的图片返回对应图片部分在屏幕上的坐标
 
+## 文档
+
+目前我们提供一份英文的Robot Framework文档，你可以在[这里](https://jieliu2000.github.io/RPALite/docs/robot/RPALite.html)访问。如果你希望在本地打开，可以直接打开[项目录下的Robot Framework帮助文档](docs/robot/RPALite.html)。
+
 ## 快速开始
 
 ### 安装

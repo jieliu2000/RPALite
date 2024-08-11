@@ -23,6 +23,10 @@ Currently RPALite supports the following operations on Windows platform:
 * Supports finding the coordinates of a Windows control based on the control's name, class, or Automation ID.
 * Support for image-based positioning. You can pass RPALite a picture of a part of the screen to return the coordinates of the part of the screen that corresponds to the picture.
 
+## Documentation
+
+We currently provide a copy of the Robot Framework documentation in English, which you can access [here](https://jieliu2000.github.io/RPALite/docs/robot/RPALite.html). If you want to open it locally, you can open the [Robot Framework help documentation under Project Folder](docs/robot/RPALite.html) directly
+
 ## Quick Start
 
 ### Installation

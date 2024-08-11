@@ -25,7 +25,7 @@ Currently RPALite supports the following operations on Windows platform:
 
 ## Documentation
 
-We currently provide a copy of the Robot Framework documentation in English, which you can access [here](https://jieliu2000.github.io/RPALite/docs/robot/RPALite.html). If you want to open it locally, you can open the [Robot Framework help documentation under Project Folder](docs/robot/RPALite.html) directly
+We currently provide a copy of the Robot Framework documentation in English, which you can access [online documentation](https://jieliu2000.github.io/RPALite/docs/robot/RPALite.html). If you want to open it locally, you can open the [Robot Framework help documentation under the project folder](docs/robot/RPALite.html) directly
 
 ## Quick Start
 

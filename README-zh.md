@@ -24,7 +24,7 @@ RPALite是一个开源的RPA(Robotic Process Automation，机器人流程自动�
 
 ## 文档
 
-目前我们提供一份英文的Robot Framework文档，你可以在[这里](https://jieliu2000.github.io/RPALite/docs/robot/RPALite.html)访问。如果你希望在本地打开，可以直接打开[项目录下的Robot Framework帮助文档](docs/robot/RPALite.html)。
+目前我们提供一份英文的Robot Framework文档，你可以通过[在线文档](https://jieliu2000.github.io/RPALite/docs/robot/RPALite.html)访问。如果你希望在本地打开，可以直接打开[项目目录下的Robot Framework帮助文档](docs/robot/RPALite.html)。
 
 ## 快速开始
 

@@ -11,6 +11,7 @@ import time
 import platform
 import pyautogui
 import pyperclip
+import keyboard as keyboardlib
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
@@ -536,7 +537,7 @@ class RPALite:
         text : str
             Text to type
         '''
-        pyautogui.write(text, interval=0.2)
+        keyboardlib.write(text, delay=0.2)
         self.sleep()
 
     def enter_in_field(self, field_name, text):

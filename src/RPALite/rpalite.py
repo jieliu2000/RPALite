@@ -59,6 +59,7 @@ class RPALite:
         ----------
         command : str
             The command to be executed. This can be program file name (in the system path or full path), or any command that can be executed in the system command line.
+        
         noblock : bool
             Specifies whether this function need to be blocked when executing the command
         """
@@ -110,6 +111,7 @@ class RPALite:
         ----------
         title : str
             A string that will be used to match the title of the window. It can only be a single line string. Text matching is essentially fuzzy matching based on OCR technology. Therefore matching is case sensitive.
+        
         image : PIL image
             Indicates the image to be searched. If it is None, the function will take a screenshot of the current screen.
 
@@ -167,10 +169,13 @@ class RPALite:
         ----------
         app : 
             The application. It can be obtained by the "find_application" function.
+        
         class_name : str
             The class name of the control. Use Windows Inspect tool or Accessibility Insights to find the class name of the control. 
+        
         title: str  
             The title of the control. Use Windows Inspect tool or Accessibility Insights to find the title of the control.
+        
         automate_id : str
             The automation ID of the control. Use Windows Inspect tool or Accessibility Insights to find the automation ID of the control.
 
@@ -245,6 +250,7 @@ class RPALite:
         ----------
         all_screens : bool
             Whether to take screenshots of all screens. If set to False, only the current screen will be taken.
+        
         filename : str
             The filename to save the screenshot to. If not specified, this method will not save the screenshot to a file.
         
@@ -491,12 +497,29 @@ class RPALite:
 
 
     def mouse_press(self, button='left'):
+        '''Presses the mouse button.
+
+        Parameters:
+        ----------
+        button: str
+            The mouse button to be pressed. Value could be 'left' or 'right'. Default is 'left'
+        '''
         pyautogui.mouseDown(button=button)
 
     def mouse_release(self, button='left'):
+        '''Releases the mouse button. 
+
+        Parameters:
+        ----------
+        button: str
+            The mouse button to be released. Value could be 'left' or 'right'. Default is 'left'
+        '''
         pyautogui.mouseUp(button=button)
 
     def get_clipboard_text(self):
+        '''
+        Returns the text in the clipboard.
+        '''
         return pyperclip.paste()
 
 
@@ -507,7 +530,8 @@ class RPALite:
         Parameters:
         ----------
         times: int
-            The number of times to scroll the wheel. Default is 1. This parameter also indicates the scroll direction. Positive value means scrolling down, and negative value means scrolling up. 
+            The number of times to scroll the wheel. Default is 1. This parameter also indicates the scroll direction. Positive value means scrolling up, and negative value means scrolling down. 
+        
         sleep: float
             The time to sleep in seconds after scrolling. 
         '''
@@ -532,10 +556,13 @@ class RPALite:
         ----------
         x: int
             The x coordinate of the position to be clicked
+
         y: int
             The y coordinate of the position to be clicked
+
         button: str
             The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'
+
         double_click: bool
             Whether to perform a double click. Default is False.
         '''

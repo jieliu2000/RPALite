@@ -150,7 +150,7 @@ class RPALite:
         '''
 
         img = self.take_screenshot()
-        location = self.image_handler.find_text_in_image(img, text)
+        location = self.image_handler.find_texts_in_image(img, text)
         if(location is None):
             return None
         else:

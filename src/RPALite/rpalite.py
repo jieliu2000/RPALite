@@ -516,6 +516,17 @@ class RPALite:
         '''
         pyautogui.mouseUp(button=button)
 
+    def copy_text_to_clipboard(self, text):
+        '''
+        Copy the text to the clipboard.
+
+        Parameters:
+        ----------
+        text: str
+            The text to be copied to the clipboard.
+        '''
+        pyperclip.copy(text)
+
     def get_clipboard_text(self):
         '''
         Returns the text in the clipboard.

@@ -243,7 +243,7 @@ class RPALite:
 
         return params
     
-    def take_screenshot(self, all_screens = True, filename = None):
+    def take_screenshot(self, all_screens = False, filename = None):
         '''Take a screenshot and save it to a file. If the filename parameter is not specified, the screenshot will be saved to a file with a random name.
         
         Parameters
@@ -260,7 +260,7 @@ class RPALite:
             The screenshot image.
         '''
 
-        img = PIL.ImageGrab.grab(all_screens=True)
+        img = PIL.ImageGrab.grab(all_screens=False)
         if filename is not None:
             img.save(filename)
         return img
@@ -463,7 +463,7 @@ class RPALite:
         '''Click the positon of a string on screen. '''
         logger.debug('Click by text inside window:' + text + " window title: " + window_title)
         img = self.take_screenshot()
-        window_title_positions = self.image_handler.find_texts_in_image(window_title, img)
+        window_title_positions = self.image_handler.find_texts_in_image(img, window_title)
         if(window_title_positions is None or len(window_title_positions) == 0):
             logger.error('Cannot find window title: ' + window_title)
             return

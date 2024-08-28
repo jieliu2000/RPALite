@@ -297,7 +297,7 @@ class RPALite:
         while(True):
             location = self.find_text_positions(text, filter_args_in_parent, parent_control, search_in_image)
             if(location is not None):
-                return location 
+                return location[0] 
             else:
                 diff = datetime.now() - start_time
                 if(diff.seconds > timeout):

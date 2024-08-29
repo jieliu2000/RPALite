@@ -44,8 +44,7 @@ jobs:
           extract: true
 
       - name: Test with pytest
-        uses: pavelzw/pytest-action@v2
-        with:
-          verbose: true
-          click-to-expand: true
-          report-title: "Test Report"
+        run: |
+          echo "------Start testing------"
+          pytest
+          echo "------End testing------"

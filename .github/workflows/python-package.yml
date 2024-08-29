@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9"]
 
     steps:
     - uses: actions/checkout@v4
@@ -36,6 +36,20 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-#    - name: Test with pytest
-#      run: |
-#        pytest
+    - name: Prepare tesitng application
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: 'jieliu2000/intes-go'
+        latest: true
+        fileName: 'intes-go*windows_amd64.tar.gz'
+        extract: true
+        
+    - name: Test with pytest
+      uses: pavelzw/pytest-action@v2
+      with:
+        verbose: true
+        emoji: true
+        job-summary: true
+        custom-arguments: '-q'
+        click-to-expand: true
+        report-title: 'Test Report'

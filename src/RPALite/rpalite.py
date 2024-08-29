@@ -157,7 +157,16 @@ class RPALite:
             return None
         else:
             return self.image_handler.find_control_near_position(img, location[0])
-    
+
+    def get_screen_size(self):
+        '''Returns the size of the screen.
+        Returns
+        -------
+        tuple
+            A tuple of (width, height) represents the width and height of the screen.
+        '''
+        size = pyautogui.size()
+        return (size.width, size.height)
 
     def find_control(self, app, class_name=None, title=None, automate_id=None):
         '''

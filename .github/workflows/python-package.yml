@@ -47,7 +47,5 @@ jobs:
         uses: pavelzw/pytest-action@v2
         with:
           verbose: true
-          job-summary: true
-          custom-arguments: "-q"
           click-to-expand: true
           report-title: "Test Report"

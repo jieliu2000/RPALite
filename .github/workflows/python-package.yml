@@ -36,6 +36,16 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-#    - name: Test with pytest
-#      run: |
-#        pytest
+    - name: Prepare tesitng application
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: 'jieliu2000/intes-go'
+        latest: true
+        fileName: 'intes-go*windows_amd64.tar.gz'
+        
+    - name: Test with pytest
+      run: |
+        pwd
+        tar -zxvf intes-go*.tar.gz
+        ls
+        pytest

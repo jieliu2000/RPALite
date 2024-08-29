@@ -42,7 +42,7 @@ class TestRPALite:
 
     def test_mouse_click(self):
         app = self.open_app()
-        self.rpalite.maximize_window(app)
+        #self.rpalite.maximize_window(app)
         self.rpalite.click_by_text("Button 1")
         self.rpalite.validate_text_exists("Button 1 pressed")
         self.close_app()

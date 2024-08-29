@@ -42,10 +42,10 @@ jobs:
         repository: 'jieliu2000/intes-go'
         latest: true
         fileName: 'intes-go*windows_amd64.tar.gz'
+        extract: true
         
     - name: Test with pytest
       run: |
         pwd
-        tar -zxvf intes-go*.tar.gz
         ls
         pytest

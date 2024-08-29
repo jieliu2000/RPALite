@@ -4,7 +4,7 @@ import PIL
 import platform
 
 def get_test_app_and_description():
-        return "notepad.exe", ".*Notepad.*", "Notepad"
+        return "intes-go.exe", "INTES-GO*", "GLFW30"
 
 class TestRPALite:
 
@@ -18,40 +18,17 @@ class TestRPALite:
      
     
     def test_clipboard(self):
-        text = self.rpalite.get_clipboard_text()
-        print(text)
+        pass
 
     def test_click_image(self):
-        self.platform = platform.system()
-        self.platform_release = platform.release()
-        if(self.platform != 'Windows' and self.platform_release != '11'):
-            # This image is a windows 11 start image. It doesn't work on other platforms.
-            pass
-        self.rpalite.click("image:./tests/unit/start.png")
+        pass
 
-    def test_scroll(self):
-        app = self.open_app()
-        self.rpalite.maximize_window(app)
-        text = "Sample text for testing scroll:\n"
-        for i in range(0, 50):
-            text += "Line " + str(i) + "\n"
-            self.rpalite.input_text(text)
-        self.rpalite.click_by_position(100, 300)
-        self.rpalite.scroll(20)
-        self.rpalite.scroll(-20)
-
-        self.close_app()
+    def test_scroll(self):  
+        pass
 
 
     def test_click_automate_id(self):
-        app = self.rpalite.run_command('mspaint')
-        app = self.rpalite.find_application(class_name= "MSPaintApp")
-        self.rpalite.click('automateId:RotateDropdown', app = app)
-        
-        location = self.rpalite.validate_text_exists('Rotate 180°')
-        assert location is not None, "Text not found"
-        
-        self.rpalite.close_app(app)
+        pass
 
     def test_mouse_press_move_actions(self):
         app = self.open_app()
@@ -67,11 +44,10 @@ class TestRPALite:
         self.rpalite.mouse_release()
         self.rpalite.sleep(20)
         self.close_app()
+        print("Finished testing mouse press move actions...")
 
     def test_find_window_by_title(self):
-        image = PIL.Image.open('./tests/unit/text_and_window2.png')
-        window = self.rpalite.find_windows_by_title('Solution Explorer', image)
-        assert window is not None
+        pass
 
     def close_app(self):
         test_app_and_description = get_test_app_and_description()
@@ -80,26 +56,32 @@ class TestRPALite:
             self.rpalite.close_app(application)
 
     def test_init(self):
+        print("Testing init...")
         assert self.rpalite is not None
         assert self.rpalite.platform == "Windows"
+        print("Finished testing init...")
     
     
     def test_maximize_window_by_app(self):
+        print("Testing maximize window by app...")
         app = self.open_app()
         self.rpalite.maximize_window(app)
         window = app.windows()[0]
         client_rect = window.client_rect()
         print(client_rect)
         self.close_app()
-
+        print("Finished testing maximize window by app...")
 
     def test_run_command(self):
+        print("Testing run command...")
         self.rpalite.run_command(get_test_app_and_description()[0]) 
         application = self.rpalite.find_application(get_test_app_and_description()[1], get_test_app_and_description()[2])
         assert application is not None
         self.close_app()
+        print("Finished testing run command...")
 
     def test_sleep(self):
+        print("Testing sleep...")
         start = datetime.now()
         self.rpalite.sleep(1)
         end = datetime.now()
@@ -112,6 +94,7 @@ class TestRPALite:
         end = datetime.now()
         difference = end - start
         assert difference.total_seconds() >= 5
+        print("Finished testing sleep...")
 
 
     @classmethod

@@ -297,7 +297,7 @@ class RPALite:
         while(True):
             location = self.find_text_positions(text, filter_args_in_parent, parent_control, search_in_image)
             if(location is not None):
-                return location 
+                return location[0] 
             else:
                 diff = datetime.now() - start_time
                 if(diff.seconds > timeout):
@@ -338,8 +338,7 @@ class RPALite:
         if(locations is None or len(locations) == 0):
             return None
         else:
-            location = locations[0]
-            return location[0]
+            return [loc[0] for loc in locations]
 
 
     def find_application(self, title=None, class_name = None):
@@ -477,9 +476,11 @@ class RPALite:
             if locations is None or len(locations) == 0:
                 logger.error('Cannot find text: ' + text + ' in window: ' + window_title)
                 return
-            
-            sorted_locations = sorted(locations, key=lambda x: (x[0]-title_position[0])**2 + (x[1]-title_position[1])**2)
 
+            if locations is not None and len(locations) > 1:
+                sorted_locations = sorted(locations, key=lambda x: (x[0]-title_position[0])**2 + (x[1]-title_position[1])**2)
+            else:
+                sorted_locations = [locations]
             location = sorted_locations[0]
             self.click_by_position(int(location[0]), int(location[1]), button, double_click)
             self.sleep()

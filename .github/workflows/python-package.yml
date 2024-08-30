@@ -42,7 +42,18 @@ jobs:
           latest: true
           fileName: "intes-go*windows_amd64.tar.gz"
           extract: true
-
+      
       - uses: OrbitalOwen/desktop-screenshot-action@0.1
         with:
           file-name: "desktop.jpg"
+       
+      - name: Test with pytest
+        run: |
+          echo "------Start testing------"
+          pytest
+          echo "------End testing------"
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          path: tests/recording/test.avi
+          compression-level: 0

@@ -1,5 +1,9 @@
 
+import random
+import tempfile
+import threading
 import PIL.Image
+import numpy as np
 from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
 import uiautomation as auto
@@ -12,6 +16,7 @@ import platform
 import pyautogui
 import pyperclip
 import keyboard as keyboardlib
+import cv2
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
@@ -49,7 +54,9 @@ class RPALite:
             raise Exception('This version currently only supports Windows. Other platforms will be supported in the future.')
         self.image_handler = ImageHandler(debug_mode, languages)
         self.step_pause_interval = step_pause_interval
-
+        self.screen_recording_thread = None
+        self.screen_recording_file = None
+        
 
     def run_command(self, command, noblock = True):
         """
@@ -653,3 +660,76 @@ class RPALite:
         self.click_by_position(x+3, y+3)
         self.input_text(text)
         self.sleep()
+
+    def start_screen_recording(self, target_avi_file_path = None, fps = 10):
+        '''
+        Starts recording the screen.
+        This function is an automation method and will not return any value.
+
+        Parameters
+        ----------
+        target_avi_file_path : str
+            File name to save the video file. If this value is set to None, RPALite will create a file in the temp folder with a random name
+        fps : int
+            Frame per second, default is 10
+        '''
+        if target_avi_file_path is None or target_avi_file_path == '':
+            temp_dir = tempfile.mkdtemp()
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+            target_avi_file_path = os.path.join(temp_dir, str(random.randint(10000, 99999)) + '.avi')
+        thread = threading.Thread(target=self.record_screen_impl, args=(target_avi_file_path, fps))
+        thread.start()
+        self.screen_recording_thread = thread
+        return target_avi_file_path
+
+    def stop_screen_recording(self):
+        '''
+        Stops recording the screen.
+        This function is an automation method and will not return any value.
+        '''
+        if self.screen_recording_thread:
+            self.screen_recording_thread.keep_recording = False
+        self.screen_recording_thread = None
+        recording_file = self.screen_recording_file + ''
+        self.screen_recording_file = None
+        return recording_file
+
+    @not_keyword
+    def record_screen_impl(self, target_avi_file_path, fps = 10):
+        '''
+        Recording the screen.
+        This function is an automation method and will not return any value.
+
+        Parameters
+        ----------
+        target_avi_file_path : str
+            The target AVI file path to save the video file
+        
+        fps : int
+            Frame per second, default is 10
+        '''
+        screen_size = self.get_screen_size()
+        
+        # Specify video codec
+        codec = cv2.VideoWriter_fourcc(*"XVID")
+        out = cv2.VideoWriter(target_avi_file_path, codec, fps, screen_size)
+
+        self.keep_screen_recording = True
+        t = threading.currentThread()
+        self.screen_recording_file = target_avi_file_path
+        # X and Y coordinates of mouse pointer
+        Xs = [0,8,6,14,12,4,2,0]
+        Ys = [0,2,4,12,14,6,8,0]
+
+        while getattr(t, "keep_recording", True):
+            img = pyautogui.screenshot()
+          
+
+            frame = np.array(img)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
+
+            out.write(frame)
+
+        # Release the Video writer
+        out.release()

@@ -1,7 +1,7 @@
 from datetime import datetime
 from RPALite import RPALite
-import PIL
-import platform
+import random
+import os
 import logging
 
 
@@ -17,6 +17,14 @@ class TestRPALite:
     def setup_class(cls):
         logger.info("Setup class...")
         cls.rpalite = RPALite(debug_mode=False)
+        cls.rpalite.start_screen_recording()
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        test_path = os.path.abspath(os.path.join(dir_path, os.pardir))
+        recording_path = os.path.join(test_path, "recording")
+        if not os.path.exists(recording_path):
+            os.makedirs(recording_path)
+        target_video = os.path.join(recording_path, 'test.avi')
+        cls.rpalite.start_screen_recording(target_video)
 
     def open_app(self):
         self.rpalite.run_command(get_test_app_and_description()[0]) 
@@ -107,3 +115,5 @@ class TestRPALite:
         application = cls.rpalite.find_application(test_app_and_description[1], test_app_and_description[2])
         if(application is not None):
             cls.rpalite.close_app(application)
+        file = cls.rpalite.stop_screen_recording()
+        print(f"Recording saved to: {file}")

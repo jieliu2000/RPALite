@@ -58,7 +58,7 @@ jobs:
       - name: Test with pytest
         run: |
           echo "------Start testing------"
-          export PYTHONIOENCODING=utf-8
+          SET PYTHONIOENCODING=utf-8
           pytest -v -s
           echo "------End testing------"
 

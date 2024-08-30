@@ -35,24 +35,33 @@ jobs:
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Prepare tesitng application
+      - name: Download intes-go
         uses: robinraju/release-downloader@v1
         with:
           repository: "jieliu2000/intes-go"
           latest: true
           fileName: "intes-go*windows_amd64.tar.gz"
           extract: true
-      
+
+      - name: Download Mesa3D(opengl)
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: "lightningterror/Mesa3D-Windows"
+          latest: true
+          fileName: "32bit-mesa*7z"
+          extract: true
+
       - uses: OrbitalOwen/desktop-screenshot-action@0.1
         with:
           file-name: "desktop.jpg"
-       
+
       - name: Test with pytest
         run: |
           echo "------Start testing------"
-          pytest
+          export PYTHONIOENCODING=utf-8
+          pytest -v -s
           echo "------End testing------"
-          
+
       - uses: actions/upload-artifact@v4
         with:
           path: tests/recording/test.avi

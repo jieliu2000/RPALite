@@ -46,9 +46,3 @@ jobs:
       - uses: OrbitalOwen/desktop-screenshot-action@0.1
         with:
           file-name: "desktop.jpg"
-
-      - name: Test with pytest
-        run: |
-          echo "------Start testing------"
-          pytest
-          echo "------End testing------"

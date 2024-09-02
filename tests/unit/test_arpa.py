@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 def get_test_app_and_description():
-        return "intes-go.exe", "INTES-GO*", "GLFW30"
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        test_executable = os.path.abspath(os.path.join(dir_path, os.pardir,  os.pardir, "intes.exe"))
+        return test_executable, "INTES*", "FLTK"
 
 class TestRPALite:
 
@@ -17,7 +19,6 @@ class TestRPALite:
     def setup_class(cls):
         logger.info("Setup class...")
         cls.rpalite = RPALite(debug_mode=False)
-        cls.rpalite.start_screen_recording()
         dir_path = os.path.dirname(os.path.realpath(__file__))
         test_path = os.path.abspath(os.path.join(dir_path, os.pardir))
         recording_path = os.path.join(test_path, "recording")

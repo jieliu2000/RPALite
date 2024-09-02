@@ -14,3 +14,5 @@ mouse==0.7.1
 Deprecated==1.2.14
 pyperclip==1.8.2
 keyboard==0.13.5
+pytest-md==0.2.0
+pytest-emoji==0.2.0

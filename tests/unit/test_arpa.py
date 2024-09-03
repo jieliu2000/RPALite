@@ -1,6 +1,7 @@
 from datetime import datetime
 from RPALite import RPALite
 import random
+import pytest
 import os
 import logging
 
@@ -47,13 +48,31 @@ class TestRPALite:
 
     def test_get_screen_size(self):
         size = self.rpalite.get_screen_size()
-        assert(size[0] > 10 and size[1] > 10)
+        assert(size[0] > 200 and size[1] > 200)
+
+    def test_validate_text_exists(self):
+        with pytest.raises(AssertionError):
+            self.rpalite.validate_text_exists("")
+        
+        app = self.open_app()
+        #self.rpalite.maximize_window(app)
+        with pytest.raises(AssertionError):
+            self.rpalite.validate_text_exists("Dummy Text")
+        
+        position = self.rpalite.validate_text_exists("Mouse Test Canvas")
+        assert(len(position)> 0)
+
+        self.close_app()
 
     def test_mouse_click(self):
         app = self.open_app()
-        #self.rpalite.maximize_window(app)
+        self.rpalite.maximize_window(app)
         self.rpalite.click_by_text("Button 1")
-        self.rpalite.validate_text_exists("Button 1 pressed")
+        self.rpalite.validate_text_exists("Button 1 clicked")
+
+        with pytest.raises(AssertionError):
+            self.rpalite.validate_text_exists("Button 2 clicked")
+        
         self.close_app()
         print("Finished testing mouse press move actions...")
 

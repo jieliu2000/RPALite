@@ -323,7 +323,34 @@ class RPALite:
     
     @deprecated(version='0.0.3', reason="Use find_text_positions() instead.")
     def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None):
-        return self.find_text_positions(text, filter_args_in_parent, parent_control)
+        '''Validate if a specific text exists in the current screen. If the text exists, this function will return the position of the text; otherwise it will raise an AssertionError.
+        
+        Parameters
+        ----------
+        text : str
+            The text to search for.
+        
+        filter_args_in_parent : dict
+            The filter arguments to filter the parent control. This is used to find the parent control of the text. If not specified, the parent control will be considered during search.
+        
+        parent_control : uiautomation control
+            The parent control to search in. If not specified, the function will search all controls.
+        
+        img : PIL.Image
+            The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
+        
+        Returns
+        -------
+        tuple
+            The location of the text in the screen. The location is a tuple of (x, y, width, height). Please note that the function will raise an AssertionError if the text does not exist.
+
+        '''
+        if not text:
+            raise AssertionError('Text cannot be empty.')
+        position = self.find_text_positions(text, filter_args_in_parent, parent_control)
+        if not position:
+            raise AssertionError('Text not found: ' + text)
+        return position
     
     def find_text_positions(self, text, filter_args_in_parent=None, parent_control = None, img = None):
         '''Find a text in the current screen. This function will return the location if the text exists, otherwise it will return None.

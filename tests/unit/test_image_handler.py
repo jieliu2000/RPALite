@@ -12,6 +12,12 @@ class TestImageHandler:
     def setup_class(cls):
         cls.handler = ImageHandler(debug_mode=False)
 
+
+    @classmethod
+    def teardown_class(cls):
+        print("Tearing down the test class")
+     
+
     def test_find_text_in_image(self):
         image = PIL.Image.open('./tests/unit/text_and_window.png')
         locations = self.handler.find_texts_in_image(image, "Welcome")

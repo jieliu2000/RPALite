@@ -81,7 +81,7 @@ class ImageHandler:
         return False
 
     def read_text(self, image):
-        arr = self.reader.readtext(np.array(image), link_threshold  = 0.3, batch_size=2)
+        arr = self.reader.readtext(np.array(image), link_threshold  = 0.3, batch_size=2, slope_ths=0.5)
         return arr
 
     def find_texts_in_rects(self, image, text, filter_args_in_parent=None, rects=None):

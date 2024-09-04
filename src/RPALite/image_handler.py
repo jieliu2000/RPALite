@@ -115,7 +115,7 @@ class ImageHandler:
 
                     results.append( (location, target_text, 1))
 
-            elif ratio > best_ratio and ratio > 0.6 and ((rect is not None and self.check_point_inide_rect(r[0][0], rect)) or rect is None) and self.check_text_and_filter_in_window(image, text_arr, r[0], r[1], filter_args_in_parent, rect):
+            elif ratio > best_ratio and ratio > 0.75 and ((rect is not None and self.check_point_inide_rect(r[0][0], rect)) or rect is None) and self.check_text_and_filter_in_window(image, text_arr, r[0], r[1], filter_args_in_parent, rect):
                 best_ratio = ratio
                 target_text = r[1]
                 position = r[0]

@@ -60,6 +60,7 @@ jobs:
           job-summary: true
           click-to-expand: true
           report-title: "Test Report"
+        continue-on-error: true
 
       - uses: OrbitalOwen/desktop-screenshot-action@0.1
         with:

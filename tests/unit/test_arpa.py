@@ -45,6 +45,19 @@ class TestRPALite:
     
     def test_click_automate_id_notepad(self):
         
+        self.rpalite.send_keys('{VK_LWIN down}{VK_LWIN up}')
+        try:
+            position = self.rpalite.validate_text_exists("Window Server")
+            # This case cannot run on windows server
+            if position is not None:
+                self.rpalite.send_keys('{VK_LWIN down}M{VK_LWIN up}')
+                return 
+        except Exception as e:
+            # not windows server
+            print("not windows server")    
+            
+        self.rpalite.send_keys('{VK_LWIN down}M{VK_LWIN up}')
+
         self.rpalite.run_command("notepad.exe")
         app = self.rpalite.find_application(".*Notepad")
         assert app is not None

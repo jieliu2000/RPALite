@@ -178,7 +178,7 @@ class RPALite:
     def find_control(self, app, class_name=None, title=None, automate_id=None):
         '''
         Finds a control by the parameters. This function uses uiautomation module (https://github.com/yinkaisheng/Python-UIAutomation-for-Windows) to find the control and returns the client rect of the element
-        You can use ClassName, Title, AutomationID to search for a control. You can use Windows' Inspect tool (https://learn.microsoft.com/en-us/windows/win32/winauto/inspect-objects) or Accessibility Insights (https://accessibilityinsights.io/) to get these properties of Apps.
+        You can use ClassName, Title, automateId to search for a control. You can use Windows' Inspect tool (https://learn.microsoft.com/en-us/windows/win32/winauto/inspect-objects) or Accessibility Insights (https://accessibilityinsights.io/) to get these properties of Apps.
         In the parameters, app is mandatory. You can get the app object using 
 
         Parameters
@@ -347,12 +347,12 @@ class RPALite:
         '''
         if not text:
             raise AssertionError('Text cannot be empty.')
-        position = self.find_text_positions(text, filter_args_in_parent, parent_control)
+        position = self.find_text_positions(text, filter_args_in_parent, parent_control, img, True)
         if not position:
             raise AssertionError('Text not found: ' + text)
         return position
     
-    def find_text_positions(self, text, filter_args_in_parent=None, parent_control = None, img = None):
+    def find_text_positions(self, text, filter_args_in_parent=None, parent_control = None, img = None, exact_match=False):
         '''Find a text in the current screen. This function will return the location if the text exists, otherwise it will return None.
         
         Parameters
@@ -380,12 +380,17 @@ class RPALite:
         locations = self.image_handler.find_texts_in_rects(img, text, filter_args_in_parent, parent_control)
         if(locations is None or len(locations) == 0):
             return None
+        elif exact_match and (len(locations[0]) < 2 or (not locations[0][1]) or (not (locations[0][1] in text) and not (text in locations[0][1]))):
+            return None
         else:
             return [loc[0] for loc in locations]
 
 
     def find_application(self, title=None, class_name = None):
         '''Find an application by its title or ClassName.'''
+
+        if title is None and class_name is None:
+            raise Exception('Either title or class name must be specified.')
         params = self.build_element_params(title, class_name)
     
         windows = findwindows.find_elements(**params)
@@ -479,16 +484,16 @@ class RPALite:
             self.click_by_position(position[0], position[1], button, double_click)
 
         if(isinstance(locator, str)):
-            position = self.locate(locator, app=app)
-
-            if position is None:
-                return
-            
             if locator.startswith('automateId:'):
                 if(app is None):
                     logger.error('App is not specified for automateId click. Cancel clicking')
                     raise AssertionError('App is not specified for automateId click. Cancel clicking')
-                
+        
+            position = self.locate(locator, app=app)
+
+            if position is None:
+                return
+                    
             self.click_by_position(position[0] + int(position[2]/2), position[1] + int(position[3]/2), button, double_click)          
          
         pass

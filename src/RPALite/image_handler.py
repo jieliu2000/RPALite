@@ -140,7 +140,8 @@ class ImageHandler:
             cv2.imshow('shapes', np.array(image)) 
             cv2.waitKey(0)
         
-        arr = self.reader.readtext(np.array(image),  decoder="greedy", beamWidth= 5, link_threshold  = 0.3, batch_size=2)
+        i = np.array(image)
+        arr = self.reader.readtext(i)
         
         return self.find_texts_in_array_and_rect(text, arr, image, filter_args_in_parent, rect)
 

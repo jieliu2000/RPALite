@@ -42,9 +42,40 @@ class TestRPALite:
     def test_scroll(self):  
         pass
 
+    '''
+    def test_click_automate_id_mspaint(self):
+        
+        self.rpalite.run_command("mspaint.exe")
+        app = self.rpalite.find_application(".*Paint")
+        assert app is not None
+        self.rpalite.maximize_window(app)
+        self.rpalite.validate_text_exists("File")
 
-    def test_click_automate_id(self):
-        pass
+        self.rpalite.click("automateId:Flip", app= app)
+        
+        self.rpalite.validate_text_exists("Flip vertical")
+
+        self.rpalite.close_app(app)        
+    '''
+    
+    def test_click_automate_id_notepad(self):
+        
+        self.rpalite.run_command("notepad.exe")
+        app = self.rpalite.find_application(".*Notepad")
+        assert app is not None
+        self.rpalite.maximize_window(app)
+        self.rpalite.validate_text_exists("File")
+
+        self.rpalite.click("automateId:File", app= app)
+        
+        self.rpalite.validate_text_exists("Page setup")
+        
+        self.rpalite.click("Exit", app= app)
+
+        with pytest.raises(AssertionError):
+            self.rpalite.validate_text_exists("Page setup")
+       
+        self.rpalite.close_app(app)    
 
     def test_get_screen_size(self):
         size = self.rpalite.get_screen_size()
@@ -67,16 +98,27 @@ class TestRPALite:
     def test_mouse_click(self):
         app = self.open_app()
         self.rpalite.maximize_window(app)
-        self.rpalite.click_by_text("Button 1")
-        self.rpalite.validate_text_exists("Button 1 clicked")
+        self.rpalite.click_by_text("Button B")
+        self.rpalite.validate_text_exists("Button B clicked")
 
         with pytest.raises(AssertionError):
-            self.rpalite.validate_text_exists("Button 2 clicked")
+            self.rpalite.validate_text_exists("Button A clicked")
         
         self.close_app()
         print("Finished testing mouse press move actions...")
 
     def test_find_window_by_title(self):
+        
+        app = self.open_app()
+        windows = self.rpalite.find_windows_by_title("Mouse Test Canvas")
+        assert len(windows) > 0
+
+        window = windows[0]
+        assert window is not None
+        assert window[2]> 100
+        assert window[3] > 80
+        self.close_app()
+        print("Finished testing mouse press move actions...")
         pass
 
     def close_app(self):

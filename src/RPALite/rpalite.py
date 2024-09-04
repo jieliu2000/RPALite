@@ -529,8 +529,8 @@ class RPALite:
                 sorted_locations = sorted(locations, key=lambda x: (x[0]-title_position[0])**2 + (x[1]-title_position[1])**2)
             else:
                 sorted_locations = [locations]
-            location = sorted_locations[0]
-            self.click_by_position(int(location[0]), int(location[1]), button, double_click)
+            location = sorted_locations[0][0]
+            self.click_by_position(location[0], location[1], button, double_click)
             self.sleep()
         self.sleep()
 

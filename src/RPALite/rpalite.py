@@ -321,7 +321,6 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
     
-    @deprecated(version='0.0.3', reason="Use find_text_positions() instead.")
     def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None):
         '''Validate if a specific text exists in the current screen. If the text exists, this function will return the position of the text; otherwise it will raise an AssertionError.
         

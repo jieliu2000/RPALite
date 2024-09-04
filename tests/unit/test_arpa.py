@@ -47,7 +47,7 @@ class TestRPALite:
         
         self.rpalite.send_keys('{VK_LWIN down}{VK_LWIN up}')
         try:
-            position = self.rpalite.validate_text_exists("Window Server")
+            position = self.rpalite.validate_text_exists("Windows Server")
             # This case cannot run on windows server
             if position is not None:
                 self.rpalite.send_keys('{VK_LWIN down}M{VK_LWIN up}')

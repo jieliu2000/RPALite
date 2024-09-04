@@ -348,6 +348,7 @@ class RPALite:
         if not text:
             raise AssertionError('Text cannot be empty.')
         position = self.find_text_positions(text, filter_args_in_parent, parent_control, img, True)
+        
         if not position:
             raise AssertionError('Text not found: ' + text)
         return position

@@ -80,6 +80,9 @@ class ImageHandler:
                 return True
         return False
 
+    def read_text(self, image):
+        arr = self.reader.readtext(np.array(image), link_threshold  = 0.3, batch_size=2)
+        return arr
 
     def find_texts_in_rects(self, image, text, filter_args_in_parent=None, rects=None):
         '''
@@ -88,8 +91,8 @@ class ImageHandler:
         if rects == None:
             return self.find_texts_in_image(image, text, filter_args_in_parent)
         
-        if type(rects) == list and len(rects) > 0:            
-            arr = self.reader.readtext(np.array(image), decoder="beamsearch", beamWidth= 20, batch_size = 2, paragraph = True, width_ths = 0.9)
+        if type(rects) == list and len(rects) > 0:    
+            arr = self.read_text(image)        
             for rect in rects:
                 loc = self.find_texts_in_array_and_rect(text, arr, image, filter_args_in_parent, rect)
                 if loc is not None:
@@ -140,8 +143,7 @@ class ImageHandler:
             cv2.imshow('shapes', np.array(image)) 
             cv2.waitKey(0)
         
-        i = np.array(image)
-        arr = self.reader.readtext(i)
+        arr = self.read_text(image)
         
         return self.find_texts_in_array_and_rect(text, arr, image, filter_args_in_parent, rect)
 

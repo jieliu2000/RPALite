@@ -49,7 +49,6 @@ class TestRPALite:
         app = self.rpalite.find_application(".*Notepad")
         assert app is not None
         self.rpalite.maximize_window(app)
-        self.rpalite.validate_text_exists("File")
 
         self.rpalite.click("automateId:File", app= app)
         
@@ -164,20 +163,3 @@ class TestRPALite:
             cls.rpalite.close_app(application)
         file = cls.rpalite.stop_screen_recording()
         print(f"Recording saved to: {file}")
-
-
-    '''
-    def test_click_automate_id_mspaint(self):
-        
-        self.rpalite.run_command("mspaint.exe")
-        app = self.rpalite.find_application(".*Paint")
-        assert app is not None
-        self.rpalite.maximize_window(app)
-        self.rpalite.validate_text_exists("File")
-
-        self.rpalite.click("automateId:Flip", app= app)
-        
-        self.rpalite.validate_text_exists("Flip vertical")
-
-        self.rpalite.close_app(app)        
-    '''

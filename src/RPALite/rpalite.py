@@ -499,14 +499,35 @@ class RPALite:
         pass
 
     def click_by_image(self, image_path, button='left', double_click= False):
-        img = PIL.Image.open(image_path)
-        screenshot = self.take_screenshot()
-            
-        location = self.image_handler.find_image_location(img, screenshot)
+        '''Click a image in the current screen
+        Parameters
+        ----------     
+        image_path: str
+            The image to search for.
+
+        button: str
+            The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'
+
+        double_click: bool
+            Whether to perform a double click. Default is False.
+        '''         
+        location = self.find_image_location(image_path)
         if(location is not None):
                 self.click_by_position(int(location[0]) + 2, int(location[1]) + 2, button, double_click)
 
     def find_image_position(self, image_path):
+        '''Find a image in the current screen. This function will return the location if the image exists, otherwise it will return None.
+        
+        Parameters
+        ----------
+        image_path: str
+            The image to search for.
+        
+        Returns
+        -------
+        tuple
+            The location of the text in the screen. The location is a tuple of (x, y, width, height).
+        '''
         img = PIL.Image.open(image_path)
         screenshot = self.take_screenshot()  
         return self.image_handler.find_image_location(img, screenshot)

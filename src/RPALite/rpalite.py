@@ -504,7 +504,13 @@ class RPALite:
             
         location = self.image_handler.find_image_location(img, screenshot)
         if(location is not None):
-                self.click_by_position(int(location[0]) + 2, int(location[1]) + 2)
+                self.click_by_position(int(location[0]) + 2, int(location[1]) + 2, button, double_click)
+
+    def find_image_position(self, image_path):
+        img = PIL.Image.open(image_path)
+        screenshot = self.take_screenshot()  
+        return self.image_handler.find_image_location(img, screenshot)
+
 
     def click_by_text_inside_window(self, text, window_title, button='left', double_click= False):
         '''Click the positon of a string on screen. '''

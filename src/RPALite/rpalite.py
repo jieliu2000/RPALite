@@ -498,8 +498,8 @@ class RPALite:
          
         pass
 
-    def click_by_image(self, image_path, button='left', double_click= False):
-        '''Click a image in the current screen
+    def click_by_image(self, image_path, parent_image = None, button='left', double_click= False):
+        '''Click an image in the current screen
         Parameters
         ----------     
         image_path: str
@@ -511,27 +511,53 @@ class RPALite:
         double_click: bool
             Whether to perform a double click. Default is False.
         '''         
-        location = self.find_image_location(image_path)
+        location = self.find_image_location(image_path, parent_image)
         if(location is not None):
                 self.click_by_position(int(location[0]) + 2, int(location[1]) + 2, button, double_click)
 
-    def find_image_position(self, image_path):
-        '''Find a image in the current screen. This function will return the location if the image exists, otherwise it will return None.
+    def find_image_on_screen(self, image):
+        '''Find an image in the current screen. This function will return the location if the image exists, otherwise it will return None.
         
         Parameters
         ----------
-        image_path: str
-            The image to search for.
+        image: str or PIL image
+            The image to search for in current screen. 
         
         Returns
         -------
         tuple
-            The location of the text in the screen. The location is a tuple of (x, y, width, height).
+            The location of the image in the screen. The location is a tuple of (x, y, width, height).
         '''
-        img = PIL.Image.open(image_path)
+        if isinstance(image, str):
+            image = PIL.Image.open(image)
         screenshot = self.take_screenshot()  
-        return self.image_handler.find_image_location(img, screenshot)
+        return self.image_handler.find_image_location(image, screenshot)
 
+    def find_image_location(self, image, parent_image = None):
+        '''Find an image in the parent image or the entire screen if no parent image is provided. This function will return the location if the image exists, otherwise it will return None.
+        
+        Parameters
+        ----------
+        image: str or PIL image
+            The image to search for. This can be the path of image or PIL image.
+
+        parent_image: str or PIL image
+            The image to search from. This can be the path of image or PIL image.
+
+        Returns
+        -------
+        tuple
+            The location of the image in the screen. The location is a tuple of (x, y, width, height).
+        '''
+        if isinstance(image, str):
+            image = PIL.Image.open(image)
+
+        if parent_image is None:
+            parent_image = self.take_screenshot()
+        elif isinstance(parent_image, str):
+            parent_image = PIL.Image.open(parent_image)
+
+        return self.image_handler.find_image_location(image, parent_image)
 
     def click_by_text_inside_window(self, text, window_title, button='left', double_click= False):
         '''Click the positon of a string on screen. '''

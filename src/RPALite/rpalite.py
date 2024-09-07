@@ -528,10 +528,7 @@ class RPALite:
         tuple
             The location of the image in the screen. The location is a tuple of (x, y, width, height).
         '''
-        if isinstance(image, str):
-            image = PIL.Image.open(image)
-        screenshot = self.take_screenshot()  
-        return self.image_handler.find_image_location(image, screenshot)
+        return self.find_image_location(image)
 
     def find_image_location(self, image, parent_image = None):
         '''Find an image in the parent image or the entire screen if no parent image is provided. This function will return the location if the image exists, otherwise it will return None.

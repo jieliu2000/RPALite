@@ -502,8 +502,8 @@ class RPALite:
         '''Click an image in the parent image or the entire screen if no parent image is provided.
         Parameters
         ----------     
-        image_path: str or PIL image
-            The image to search for.
+        image: str or PIL image
+            The image to search for. This can be the path of image or PIL image.
 
         parent_image: str or PIL image
             The image to search from. This can be the path of image or PIL image.

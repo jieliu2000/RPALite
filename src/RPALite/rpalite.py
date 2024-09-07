@@ -498,12 +498,15 @@ class RPALite:
          
         pass
 
-    def click_by_image(self, image_path, parent_image = None, button='left', double_click= False):
-        '''Click an image in the current screen
+    def click_by_image(self, image, parent_image = None, button='left', double_click= False):
+        '''Click an image in the parent image or the entire screen if no parent image is provided.
         Parameters
         ----------     
-        image_path: str
+        image_path: str or PIL image
             The image to search for.
+
+        parent_image: str or PIL image
+            The image to search from. This can be the path of image or PIL image.
 
         button: str
             The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'
@@ -511,7 +514,7 @@ class RPALite:
         double_click: bool
             Whether to perform a double click. Default is False.
         '''         
-        location = self.find_image_location(image_path, parent_image)
+        location = self.find_image_location(image, parent_image)
         if(location is not None):
                 self.click_by_position(int(location[0]) + 2, int(location[1]) + 2, button, double_click)
 

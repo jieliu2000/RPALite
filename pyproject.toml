@@ -1,0 +1,24 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "RPALite"
+authors = [{ name = "RPALite contributors" }]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Framework :: Robot Framework :: Library",
+    "Operating System :: Microsoft :: Windows",
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+]
+version = "0.0.4"
+description = "Open Source RPA (Robotic Process Automation) Library for Python and Robot Framework"
+
+[project.urls]
+Home = "https://github.com/jieliu2000/RPALite"
+Documentation = "https://jieliu2000.github.io/RPALite/"
+Issues = "https://github.com/jieliu2000/RPALite/issues"

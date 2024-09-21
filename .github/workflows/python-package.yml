@@ -1,0 +1,72 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python package
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  PYTHONIOENCODING: "utf-8" # Global environment variable accessible to all jobs and steps
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download intes application
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: "jieliu2000/intes"
+          latest: true
+          fileName: "intes*windows*.zip"
+          extract: true
+
+      - name: Download and install VC Redist Package
+        run: |
+          curl -L https://aka.ms/vs/17/release/vc_redist.x64.exe -o vc_redist.x64.exe
+          ./vc_redist.x64.exe /install /passive /norestart
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8 pytest
+          pip install -r requirements.txt
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run pytest
+        uses: pavelzw/pytest-action@v2
+        with:
+          verbose: false
+          job-summary: true
+          click-to-expand: true
+          report-title: "Test Report"
+        continue-on-error: true
+
+      - uses: OrbitalOwen/desktop-screenshot-action@0.1
+        with:
+          file-name: "desktop.jpg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: tests/recording/test.avi
+          compression-level: 0

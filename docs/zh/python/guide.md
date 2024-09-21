@@ -18,6 +18,8 @@
 - [键盘/文本操作](#键盘文本操作)
     - [在当前光标位置输入文本](#在当前光标位置输入文本)
     - [发送按键](#发送按键)
+    - [获取字段的值](#获取字段的值)
+    - [根据字段名称模拟输入文本](#根据字段名称模拟输入文本)
 - [剪贴板操作](#剪贴板操作)
     - [获取剪贴板文本](#获取剪贴板文本)
     - [把文本复制到剪贴板](#把文本复制到剪贴板)
@@ -39,7 +41,7 @@ pip install RPALite
 
 ## 创建 RPALite 对象
 
-你可以通过以下代码创建 RPALite 对象：
+由于RPALite被声明为一个类，**在所有操作开始之前，你需要首先创建RPALite 对象**：
 
 ```python
 from RPALite import RPALite
@@ -51,6 +53,8 @@ RPALite 的构造函数包含多个可选参数：
 - `debug_mode`: 布尔值，默认值为 False。如果为 True，则 RPALite 会输出调试信息，在一些需要图像识别的地方，会显示图像中元素的标记等
 - `step_pause_interval`: 整数。含义为每个模拟操作后等待的时间。默认值为 **3** 秒。这个值不能设定为 0，这主要是因为在鼠标或者键盘模拟动作以后，Windows 或者你所操作的程序本身也需要一点时间进行响应，否则程序出问题的可能性会大大增加。
 - `languages`: 字符串列表，表示 RPALite 会使用哪些语言来进行 OCR 识别。默认值为 `["en"]`也就是英语，你可以通过传入其他语言代码来指定使用其他语言的键盘输入。关于支持的语言列表，可以参考[EasyOCR文档中的语言列表](https://www.jaided.ai/easyocr)
+
+本文档之后的示例中使用的rpalite对象，都假设已经执行了创建对象的代码。
 
 ## 程序应用操作
 
@@ -157,6 +161,31 @@ RPALite 会使用 OpenCV 在屏幕上查找对应的图片，如果找到则点�
 ```python
 rpalite.input_text("This is a demo using RPALite.\n")
 ```
+
+### 获取字段的值
+
+示例：
+
+```python
+value = rpalite.get_text_field_value("Field name")
+print(f"Value of field: {value}")
+```
+
+RPALite使用OCR和AI图像技术识别对应的字段和字段的值。由于这种识别并不总是准确的，这个函数可能会有一定的概率出现误差或者错误。在实际的使用中，需要根据实际情况进行调整。
+
+### 根据字段名称模拟输入文本
+
+示例：
+
+```python
+rpalite.enter_in_field("Field name", "New value")
+```
+
+`enter_in_field`函数有两个参数：
+- `field_name`: 字符串，表示字段的名称
+- `text`: 字符串，表示要输入的文本
+
+RPALite使用 OCR和AI图像技术识别对应的字段和文本框位置。同样的，存在一定概率出现误差或者错误。在实际的使用中，需要根据实际情况进行调整。
 
 ### 发送按键
 

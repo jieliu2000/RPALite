@@ -9,15 +9,26 @@
     - [启动应用](#启动应用)
     - [关闭应用](#关闭应用)
     - [最大化窗口](#最大化窗口)
-    - [休眠](#休眠)
 - [模拟鼠标操作](#模拟鼠标操作)
+    - [得到当前光标坐标](#得到当前光标坐标)
+    - [移动鼠标到指定位置](#移动鼠标到指定位置)
     - [按坐标点击](#按坐标点击)
     - [点击文本](#点击文本)
     - [点击图片](#点击图片)
-- [模拟键盘操作](#模拟键盘操作)
+- [键盘/文本操作](#键盘文本操作)
     - [在当前光标位置输入文本](#在当前光标位置输入文本)
     - [发送按键](#发送按键)
-    
+- [剪贴板操作](#剪贴板操作)
+    - [获取剪贴板文本](#获取剪贴板文本)
+    - [把文本复制到剪贴板](#把文本复制到剪贴板)
+- [全局操作](#全局操作)
+    - [休眠](#休眠)
+    - [获取屏幕尺寸](#获取屏幕尺寸)
+    - [屏幕截图](#屏幕截图)
+    - [录屏](#录屏)
+        - [开始录屏](#开始录屏)
+        - [结束录屏](#结束录屏)
+
 ## 安装
 
 你可以通过 pip 安装 RPALite：
@@ -77,16 +88,7 @@ find_application 支持通过以下参数查找一个应用：
 app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
 ```
-### 休眠
 
-你可以使用以下代码让RPALite休眠：
-
-```python
-rpalite.sleep(5)
-```
-`sleep`函数接受一个整数参数，表示 RPALite 需要休眠多少秒。这个参数是可选的，默认值是rpalite对象的`step_pause_interval`属性。
-
-我们前面讲过，这个值不能设定为 0，因为在鼠标或者键盘模拟动作以后，Windows 或者你所操作的程序本身也需要一点时间进行响应，否则程序出问题的可能性会大大增加。如果你将这个参数设定为0，RPALite会直接使用`step_pause_interval`的值。如果你将RPALite的`step_pause_interval`属性设定为0，那么RPALite会直接跳过休眠操作。
 
 ### 最大化窗口
 
@@ -101,10 +103,27 @@ rpalite.maximize_window(app)
 
 RPALite 支持通过多种鼠标模拟操作，譬如点击文本，点击图片，点击坐标等
 
+### 得到当前光标坐标
+
+示例：
+```python
+position = rpalite.get_cursor_position()
+print(f"Current mouse position: {position}")
+```
+得到的坐标为元组形式(x, y)，例如 (10, 20)表示横坐标为10，纵坐标为20。注意，这里的坐标是相对于屏幕左上角的坐标。
+
+### 移动鼠标到指定位置
+
+示例：
+
+```python
+rpalite.mouse_move(10, 20)
+```
+参数为横坐标 x, 纵坐标 y。屏幕左上角为(0, 0)
+
 ### 按坐标点击
 
-你可以使用以下代码点击坐标：
-
+示例：
 ```python
 rpalite.click_by_position(10, 20)
 ```
@@ -129,7 +148,7 @@ rpalite.click_by_image("path/to/image.png")
 
 RPALite 会使用 OpenCV 在屏幕上查找对应的图片，如果找到则点击该图片的左上角。
 
-## 模拟键盘操作
+## 键盘/文本操作
 
 ### 在当前光标位置输入文本
 
@@ -145,4 +164,74 @@ rpalite.input_text("This is a demo using RPALite.\n")
 
 ```python
 rpalite.send_keys("{VK_LWIN down}D{VK_LWIN up}")
+```
+## 剪贴板操作
+
+### 获取剪贴板文本
+示例：
+
+```python
+text = rpalite.get_clipboard_text()
+print(f"Clipboard content: {text}")
+```
+
+### 把文本复制到剪贴板
+示例：
+
+```python
+rpalite.copy_text_to_clipboard("This is a demo using RPALite.")
+```
+
+
+## 全局操作
+
+### 休眠
+
+示例：
+
+```python
+rpalite.sleep(5)
+```
+`sleep`函数接受一个整数参数，表示 RPALite 需要休眠多少秒。这个参数是可选的，默认值是rpalite对象的`step_pause_interval`属性。
+
+我们前面讲过，这个值不能设定为 0，因为在鼠标或者键盘模拟动作以后，Windows 或者你所操作的程序本身也需要一点时间进行响应，否则程序出问题的可能性会大大增加。如果你将这个参数设定为0，RPALite会直接使用`step_pause_interval`的值。如果你将RPALite的`step_pause_interval`属性设定为0，那么RPALite会直接跳过休眠操作。
+
+### 获取屏幕尺寸
+示例：
+
+```python
+size = rpalite.get_screen_size()
+print(f"Screen size: {size}")
+```
+`get_screen_size`函数返回一个元组，表示屏幕的尺寸。例如 (1920, 1080) 表示屏幕宽度为 1920 像素，高度为 1080 像素。
+
+### 屏幕截图
+
+示例：
+
+```python
+pil_image = rpalite.take_screenshot()
+```
+`take_screenshot`函数返回一个 PIL 图像对象，表示当前屏幕的截图。它有两个可选的参数：
+
+- `all_screens`: 布尔值，默认值为 False，意思是只截取当前屏幕的截图。如果为 True，则截取所有屏幕的截图。这个参数在多屏幕环境中很有用。
+- `filename`: 字符串，表示要保存的截图文件的路径。如果这个参数被指定了，那么 RPALite 会将截图保存到指定的文件中。这个字符串为None时，RPALite 不会保存截图。无论是否指定了这个参数，`take_screenshot`函数都会返回一个 PIL 图像对象。
+
+### 录屏
+
+### 开始录屏
+
+```python
+rpalite.start_screen_recording()
+```
+
+`start_screen_recording`函数会启动录屏功能，并开始录制屏幕。它有两个可选参数：
+
+- `target_avi_file_path`: 字符串，表示要保存录屏文件（AVI格式）的路径。如果这个参数被指定了，那么 RPALite 会将录屏内容保存到指定的文件中。这个字符串为None时，RPALite 会在临时目录中创建一个临时文件来保存录屏内容。无论是否指定了这个参数，`start_screen_recording`函数都会返回一个字符串，表示录屏文件的路径。
+- `fps`: 整数，表示录屏的帧率。默认值为 10。
+
+### 结束录屏
+
+```python
+rpalite.stop_screen_recording()
 ```

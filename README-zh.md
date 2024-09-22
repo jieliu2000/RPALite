@@ -2,6 +2,22 @@
 
 | [English](README.md) | [中文](README-zh.md) |
 
+
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/RPALite) 
+![PyPI](https://img.shields.io/pypi/v/RPALite) 
+![GitHub](https://img.shields.io/github/license/jieliu2000/RPALite) 
+
+* [介绍](#介绍)
+* [特性](#特性)
+* [运行效率优化](#运行效率优化)
+* [文档](#文档)
+* [安装](#安装)
+* [快速开始](#快速开始)
+    * [Python](#python)
+    * [Robot Framework](#robot-framework)
+* [贡献者指南](#贡献者指南)
+
+
 ## 介绍
 
 RPALite 是一个开源的 RPA(Robotic Process Automation，机器人流程自动化)库。你可以通过 Python 或者[Robot Framework](https://robotframework.org/)使用 RPALite，实现各种自动化任务。

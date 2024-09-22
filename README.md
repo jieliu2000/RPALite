@@ -1,6 +1,20 @@
 # RPALite - An Open Source RPA (Robotic Process Automation) Programming Library for Python and Robot Framework
 
-| [English](README.md) | [Chinese](README-zh.md) |
+| [English](README.md) | [中文](README-zh.md) |
+
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/RPALite) 
+![PyPI](https://img.shields.io/pypi/v/RPALite) 
+![GitHub](https://img.shields.io/github/license/jieliu2000/RPALite) 
+
+* [Introduction](#introduction)
+* [Features](#features)
+* [Performance Optimization](#performance-optimization)
+* [Documentation](#documentation)
+* [Installation](#installation)
+* [Quick Start](#quick-start)
+    * [Python](#python)
+    * [Robot Framework](#robot-framework)
+* [Contribution Guidelines](#contribution-guidelines)
 
 ## Introduction
 

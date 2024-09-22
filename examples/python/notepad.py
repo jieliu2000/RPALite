@@ -1,8 +1,8 @@
 from RPALite import RPALite
 rpalite = RPALite()
 
-# Press Windows + D to show the desktop
-rpalite.send_keys("{VK_LWIN down}D{VK_LWIN up}")
+# Show the desktop
+rpalite.show_desktop()
 
 # Open Notepad and type a text
 rpalite.run_command("notepad.exe")

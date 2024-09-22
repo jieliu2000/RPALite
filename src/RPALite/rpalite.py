@@ -867,3 +867,10 @@ class RPALite:
 
         # Release the Video writer
         out.release()
+
+    def show_desktop(self):
+        '''
+        Shows desktop and minimizes all windows.
+        '''
+        if(self.platform == 'Windows'):
+            self.send_keys('{VK_LWIN down}D{VK_DOWN}')

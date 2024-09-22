@@ -43,12 +43,12 @@ jobs:
           python -m build
 
       - name: Upload Release Asset
-        uses: alexellis/upload-assets@0.4.0
+        uses: Hs1r1us/Release-AIO@v2.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_paths: '["./dist/rpalite*]'
-        id: upload-release-asset
+          tag_name: ${{ github.ref }}
+          asset_files: './dist'
 
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1

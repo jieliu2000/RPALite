@@ -3,8 +3,10 @@
 | [English](README.md) | [中文](README-zh.md) |
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/RPALite) 
-![PyPI](https://img.shields.io/pypi/v/RPALite) 
-![GitHub](https://img.shields.io/github/license/jieliu2000/RPALite) 
+[![PyPI](https://img.shields.io/pypi/v/RPALite?color=blue&label=PyPI%20Package)](https://pypi.org/project/RPALite/)
+[![License](https://img.shields.io/github/license/jieliu2000/RPALite)](https://github.com/jieliu2000/RPALite/blob/main/LICENSE)
+
+## Table of Contents
 
 * [Introduction](#introduction)
 * [Features](#features)

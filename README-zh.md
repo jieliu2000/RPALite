@@ -2,10 +2,11 @@
 
 | [English](README.md) | [中文](README-zh.md) |
 
-
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/RPALite) 
-![PyPI](https://img.shields.io/pypi/v/RPALite) 
-![GitHub](https://img.shields.io/github/license/jieliu2000/RPALite) 
+[![PyPI](https://img.shields.io/pypi/v/RPALite?color=blue&label=PyPI%20Package)](https://pypi.org/project/RPALite/)
+[![License](https://img.shields.io/github/license/jieliu2000/RPALite)](https://github.com/jieliu2000/RPALite/blob/main/LICENSE)
+
+## 目录
 
 * [介绍](#介绍)
 * [特性](#特性)
@@ -16,7 +17,6 @@
     * [Python](#python)
     * [Robot Framework](#robot-framework)
 * [贡献者指南](#贡献者指南)
-
 
 ## 介绍
 

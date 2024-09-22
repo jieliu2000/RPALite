@@ -20,6 +20,8 @@
     - [发送按键](#发送按键)
     - [获取字段的值](#获取字段的值)
     - [根据字段名称模拟输入文本](#根据字段名称模拟输入文本)
+    - [校验文本是否存在](#校验文本是否存在)
+    - [获取文本的坐标](#获取文本的坐标)
 - [剪贴板操作](#剪贴板操作)
     - [获取剪贴板文本](#获取剪贴板文本)
     - [把文本复制到剪贴板](#把文本复制到剪贴板)
@@ -161,6 +163,8 @@ RPALite 会使用 OpenCV 在屏幕上查找对应的图片，如果找到则点�
 ```python
 rpalite.input_text("This is a demo using RPALite.\n")
 ```
+如同上面代码所示，input_text函数不会自动换行，你需要自己添加换行符。
+如果你需要在某个特定位置输入文本，可以首先用mouse_move函数移动到指定位置，然后再输入文本。
 
 ### 获取字段的值
 
@@ -194,6 +198,30 @@ RPALite使用 OCR和AI图像技术识别对应的字段和文本框位置。同�
 ```python
 rpalite.send_keys("{VK_LWIN down}D{VK_LWIN up}")
 ```
+
+### 校验文本是否存在
+
+示例：
+
+```python
+rpalite.validate_text_exists("Text to check")
+```
+你可能注意到在上面的代码中`validate_text_exists`并没有返回值，这是因为如果文本不存在，该函数会直接抛出一个AssertionError异常。
+
+RPALite使用OCR技术来识别文本，这种识别并不总是准确的，而且我们的识别都只是识别单行文本，所以一方面这个函数可能会识别出错，另一方面无法识别多行文本。你在实际的使用中，需要根据实际情况进行调整。
+
+### 获取文本的坐标
+
+示例：
+
+```python
+positions = rpalite.find_text_positions("Text to find")
+print(f"Text positions: {positions}")
+print(f"First matched text position: {positions[0]}")
+```
+注意`find_text_positions`函数返回的是一个列表，表示文本在屏幕上的位置。其中列表中的每一项都是一个结构为 (x, y, width, height) 的元组，表示文本在屏幕上的位置。x, y表示文本的左上角坐标，width和height分别表示识别出来的文本的宽度和高度。
+
+
 ## 剪贴板操作
 
 ### 获取剪贴板文本
@@ -258,6 +286,8 @@ rpalite.start_screen_recording()
 
 - `target_avi_file_path`: 字符串，表示要保存录屏文件（AVI格式）的路径。如果这个参数被指定了，那么 RPALite 会将录屏内容保存到指定的文件中。这个字符串为None时，RPALite 会在临时目录中创建一个临时文件来保存录屏内容。无论是否指定了这个参数，`start_screen_recording`函数都会返回一个字符串，表示录屏文件的路径。
 - `fps`: 整数，表示录屏的帧率。默认值为 10。
+
+start_screen_recording目前只支持保存为AVI格式的录屏文件。
 
 ### 结束录屏
 

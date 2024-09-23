@@ -62,10 +62,6 @@ jobs:
           report-title: "Test Report"
         continue-on-error: true
 
-      - uses: OrbitalOwen/desktop-screenshot-action@0.1
-        with:
-          file-name: "desktop.jpg"
-
       - uses: actions/upload-artifact@v4
         with:
           path: tests/recording/test.avi

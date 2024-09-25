@@ -711,7 +711,7 @@ class RPALite:
         '''
         Simulate the keyboard action to send keys. It uses pywinauto's send_keys method. See https://pywinauto.readthedocs.io/en/latest/code/pywinauto.keyboard.html for details.
 
-        You can use any Unicode characters (on Windows) and some special keys listed below. The module is also available on Linux.
+        You can use any Unicode characters (on Windows) and some special keys listed below.
 
         Available key codes: 
 
@@ -873,4 +873,4 @@ class RPALite:
         Shows desktop and minimizes all windows.
         '''
         if(self.platform == 'Windows'):
-            self.send_keys('{VK_LWIN down}D{VK_DOWN}')
+            self.send_keys('{VK_LWIN down}D{VK_LWIN}')

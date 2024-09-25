@@ -5,7 +5,6 @@ opencv-python==4.6.0.66
 opencv-python-headless==4.9.0.80
 pillow==10.3.0
 PyAutoGUI==0.9.54
-pywinauto==0.6.8
 robotframework==7.0
 pytest>=6.2.5
 build==1.2.1
@@ -16,3 +15,4 @@ pyperclip==1.8.2
 keyboard==0.13.5
 pytest-md==0.2.0
 pytest-emoji==0.2.0
+pywinauto>=0.6.6

@@ -343,7 +343,7 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
     
-    def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None):
+    def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None,throw_exception_when_failed = True):
         '''Validate if a specific text exists in the current screen. If the text exists, this function will return the position of the text; otherwise it will raise an AssertionError.
         
         Parameters
@@ -360,14 +360,19 @@ class RPALite:
         img : PIL.Image
             The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
         
+        throw_exception_when_failed : bool = True
+            Whether to raise an AssertionError when the text is not found. If set to False, this function will return None if the text is not found.
+            
         Returns
         -------
         tuple
             The location of the text in the screen. The location is a tuple of (x, y, width, height). Please note that the function will raise an AssertionError if the text does not exist.
 
         '''
-        if not text:
+        if not text and throw_exception_when_failed:
             raise AssertionError('Text cannot be empty.')
+        if not text:
+            return None
         position = self.find_text_positions(text, filter_args_in_parent, parent_control, img, True)
         
         if not position:

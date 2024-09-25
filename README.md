@@ -8,15 +8,15 @@
 
 ## Table of Contents
 
-* [Introduction](#introduction)
-* [Features](#features)
-* [Performance Optimization](#performance-optimization)
-* [Documentation](#documentation)
-* [Installation](#installation)
-* [Quick Start](#quick-start)
-    * [Python](#python)
-    * [Robot Framework](#robot-framework)
-* [Contribution Guidelines](#contribution-guidelines)
+- [Introduction](#introduction)
+- [Features](#features)
+- [Performance Optimization](#performance-optimization)
+- [Documentation](#documentation)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+  - [Python](#python)
+  - [Robot Framework](#robot-framework)
+- [Contribution Guidelines](#contribution-guidelines)
 
 ## Introduction
 
@@ -43,6 +43,7 @@ Currently, RPALite supports the following operations on the Windows platform:
 The most time-consuming operations in RPALite are image recognition and OCR. For OCR, we use [EasyOCR](https://github.com/JaidedAI/EasyOCR). EasyOCR runs more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
 
 ## Documentation
+
 In the following sections, we provide a [Quick Start Guide](#quick-start) to give you a basic understanding of RPALite.
 
 Here are links to more detailed documentation:
@@ -58,41 +59,6 @@ You can install RPALite via pip:
 
 ```bash
 pip install RPALite
-```
-
-Alternatively, you can also install after downloading the source code:
-
-### Installing After Downloading the Code
-
-First, clone the project locally:
-
-```bash
-git clone https://github.com/jieliu2000/RPALite.git
-```
-
-Then navigate to the rpalite directory and build and install it:
-
-```bash
-cd RPALite
-```
-
-Install the libraries required for building:
-
-```bash
-pip install -r requirements.txt
-```
-
-Build the project:
-
-```bash
-python -m build
-```
-
-Finally, install using pip. Below is an example, *replace XXX with the actual version number when using*:
-
-```bash
-cd dist
-pip install rpalite-XXX.tar.gz
 ```
 
 ## Quick Start

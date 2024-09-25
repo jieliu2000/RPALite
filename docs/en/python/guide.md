@@ -42,6 +42,41 @@ You can install RPALite through pip:
 pip install RPALite
 ```
 
+Alternatively, you can also install after downloading the source code:
+
+### Installing After Downloading the Code
+
+First, clone the project locally:
+
+```bash
+git clone https://github.com/jieliu2000/RPALite.git
+```
+
+Then navigate to the rpalite directory and build and install it:
+
+```bash
+cd RPALite
+```
+
+Install the libraries required for building:
+
+```bash
+pip install -r requirements.txt
+```
+
+Build the project:
+
+```bash
+python -m build
+```
+
+Finally, install using pip. Below is an example, _replace XXX with the actual version number when using_:
+
+```bash
+cd dist
+pip install rpalite-XXX.tar.gz
+```
+
 ## Creating an RPALite Object
 
 Since RPALite is declared as a class, **you need to create an RPALite object before performing any operations**:
@@ -112,10 +147,12 @@ RPALite supports multiple types of mouse simulation operations, such as clicking
 ### Getting Current Cursor Position
 
 Example:
+
 ```python
 position = rpalite.get_cursor_position()
 print(f"Current mouse position: {position}")
 ```
+
 The returned coordinates are in tuple form (x, y), for example (10, 20) means the horizontal coordinate is 10 and the vertical coordinate is 20. Note that the coordinates are relative to the top-left corner of the screen.
 
 ### Moving Mouse to Specified Position
@@ -125,14 +162,17 @@ Example:
 ```python
 rpalite.mouse_move(10, 20)
 ```
+
 Parameters are horizontal coordinate x and vertical coordinate y. The top-left corner of the screen is (0, 0).
 
 ### Clicking by Coordinates
 
 Example:
+
 ```python
 rpalite.click_by_position(10, 20)
 ```
+
 The first parameter is the horizontal coordinate x, and the second parameter is the vertical coordinate y. The top-left corner of the screen is (0, 0).
 
 ### Clicking Text
@@ -183,6 +223,7 @@ rpalite.enter_in_field("Field name", "New value")
 ```
 
 The `enter_in_field` function takes two parameters:
+
 - `field_name`: A string representing the name of the field.
 - `text`: A string representing the text to input.
 
@@ -224,6 +265,7 @@ Example:
 ```python
 rpalite.sleep(5)
 ```
+
 The `sleep` function accepts an integer parameter indicating how many seconds RPALite should sleep. This parameter is optional; the default value is the `step_pause_interval` attribute of the rpalite object.
 
 As mentioned earlier, this value cannot be set to 0 because Windows or the program being operated needs some time to respond to mouse or keyboard actions; otherwise, the likelihood of issues increases significantly. If you set this parameter to 0, RPALite will use the value of `step_pause_interval`. If `step_pause_interval` is set to 0, RPALite will skip the sleep operation.
@@ -236,6 +278,7 @@ Example:
 size = rpalite.get_screen_size()
 print(f"Screen size: {size}")
 ```
+
 The `get_screen_size` function returns a tuple representing the dimensions of the screen. For example, (1920, 1080) indicates a screen width of 1920 pixels and height of 1080 pixels.
 
 ### Taking Screenshots
@@ -245,6 +288,7 @@ Example:
 ```python
 pil_image = rpalite.take_screenshot()
 ```
+
 The `take_screenshot` function returns a PIL image object representing the current screenshot. It has two optional parameters:
 
 - `all_screens`: A boolean, default is False, meaning only the current screen is captured. If set to True, all screens are captured. This parameter is useful in multi-monitor environments.

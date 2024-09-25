@@ -6,18 +6,17 @@
 [![License](https://img.shields.io/github/license/jieliu2000/RPALite)](https://github.com/jieliu2000/RPALite/blob/main/LICENSE)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/RPALite)](https://www.python.org/downloads/)
 
-
 ## 目录
 
-* [介绍](#介绍)
-* [特性](#特性)
-* [运行效率优化](#运行效率优化)
-* [文档](#文档)
-* [安装](#安装)
-* [快速开始](#快速开始)
-    * [Python](#python)
-    * [Robot Framework](#robot-framework)
-* [贡献者指南](#贡献者指南)
+- [介绍](#介绍)
+- [特性](#特性)
+- [运行效率优化](#运行效率优化)
+- [文档](#文档)
+- [安装](#安装)
+- [快速开始](#快速开始)
+  - [Python](#python)
+  - [Robot Framework](#robot-framework)
+- [贡献者指南](#贡献者指南)
 
 ## 介绍
 
@@ -39,21 +38,20 @@ _在目前版本，RPALite 仅支持 Windows 平台，对其他平台的支持�
 - 支持基于 Windows 控件的名称，类，或者 Automation ID 查找对应控件的坐标
 - 支持对基于图片的定位。你可以通过传给 RPALite 一张屏幕局部的图片返回对应图片部分在屏幕上的坐标
 
-
 ## 运行效率优化
 
 RPALite 中最消耗时间的操作是图片识别和 OCR，其中 OCR 部分我们使用了[EasyOCR](https://github.com/JaidedAI/EasyOCR)。EasyOCR 在有独立显卡和 CUDA 支持的电脑上运行效率会更高，所以如果发现 RPALite 运行速度比较慢，可以考虑切换到有独立显卡和 CUDA 支持的电脑上运行，并安装对应的 pytorch 版本。
 
-
 ## 文档
-在这份文档的后面部分，我们提供了[快速开始](#快速开始)，让你可以对RPALite有一个简单直接的了解。
+
+在这份文档的后面部分，我们提供了[快速开始](#快速开始)，让你可以对 RPALite 有一个简单直接的了解。
 
 以下是更详细的文档链接：
 
-- [Python中使用RPALite的编程指南](docs/zh/python/guide.md)
-- [Robot Framework中使用RPALite的编程指南](docs/zh/robot/guide.md)
+- [Python 中使用 RPALite 的编程指南](docs/zh/python/guide.md)
+- [Robot Framework 中使用 RPALite 的编程指南](docs/zh/robot/guide.md)
 
-除了以上文档以外，我们提供一份英文的 Robot Framework Library文档，你可以通过[在线Robot Framework文档](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html)访问。如果你希望在本地打开，可以直接打开[项目目录下的 Robot Framework Library文档](docs/en/robot/RPALite.html)。
+除了以上文档以外，我们提供一份英文的 Robot Framework Library 文档，你可以通过[在线 Robot Framework 文档](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html)访问。如果你希望在本地打开，可以直接打开[项目目录下的 Robot Framework Library 文档](docs/en/robot/RPALite.html)。
 
 ## 安装
 
@@ -61,41 +59,6 @@ RPALite 中最消耗时间的操作是图片识别和 OCR，其中 OCR 部分我
 
 ```bash
 pip install RPALite
-```
-
-也可以通过下面的方法在下载代码以后进行安装：
-
-### 下载代码后安装
-
-首先将项目克隆到本地：
-
-```bash
-git clone https://github.com/jieliu2000/RPALite.git
-```
-
-之后进入 rpalite 目录后 build 并安装
-
-```bash
-cd RPALite
-```
-
-安装 build 所需要的库：
-
-```bash
-pip install -r requirements.txt
-```
-
-进行项目构建：
-
-```bash
-python -m build
-```
-
-之后使用 pip 进行安装。以下代码为一个示例，*实际使用时请把 XXX 改成对应的实际版本号*。
-
-```bash
-cd dist
-pip install rpalite-XXX.tar.gz
 ```
 
 ## 快速开始
@@ -140,7 +103,6 @@ Test Notepad
     Close App    ${app}
 
 ```
-
 
 ## 贡献者指南
 

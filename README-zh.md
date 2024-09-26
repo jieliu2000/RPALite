@@ -73,8 +73,10 @@ pip install RPALite
 from RPALite import RPALite
 rpalite = RPALite()
 
-# 按下Windows + D以显示桌面
-rpalite.send_keys("{VK_LWIN down}D{VK_LWIN up}")
+
+# 显示桌面
+rpalite.show_desktop()
+
 
 # 运行notepad并输入一段文字
 rpalite.run_command("notepad.exe")

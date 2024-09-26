@@ -73,8 +73,8 @@ Below is an example of using RPALite to operate Windows Notepad:
 from RPALite import RPALite
 rpalite = RPALite()
 
-# Press Win + D to show the desktop
-rpalite.send_keys("{VK_LWIN down}D{VK_LWIN up}")
+# Show the desktop
+rpalite.show_desktop()
 
 # Run Notepad and input some text
 rpalite.run_command("notepad.exe")

@@ -29,6 +29,7 @@
   - [休眠](#休眠)
   - [获取屏幕尺寸](#获取屏幕尺寸)
   - [屏幕截图](#屏幕截图)
+  - [显示桌面](#显示桌面)
   - [录屏](#录屏)
     - [开始录屏](#开始录屏)
     - [结束录屏](#结束录屏)
@@ -145,8 +146,6 @@ RPALite 支持通过多种鼠标模拟操作，譬如点击文本，点击图片
 
 ### 得到当前光标坐标
 
-示例：
-
 ```python
 position = rpalite.get_cursor_position()
 print(f"Current mouse position: {position}")
@@ -156,8 +155,6 @@ print(f"Current mouse position: {position}")
 
 ### 移动鼠标到指定位置
 
-示例：
-
 ```python
 rpalite.mouse_move(10, 20)
 ```
@@ -165,8 +162,6 @@ rpalite.mouse_move(10, 20)
 参数为横坐标 x, 纵坐标 y。屏幕左上角为(0, 0)
 
 ### 按坐标点击
-
-示例：
 
 ```python
 rpalite.click_by_position(10, 20)
@@ -207,8 +202,6 @@ rpalite.input_text("This is a demo using RPALite.\n")
 
 ### 获取字段的值
 
-示例：
-
 ```python
 value = rpalite.get_text_field_value("Field name")
 print(f"Value of field: {value}")
@@ -217,8 +210,6 @@ print(f"Value of field: {value}")
 RPALite 使用 OCR 和 AI 图像技术识别对应的字段和字段的值。由于这种识别并不总是准确的，这个函数可能会有一定的概率出现误差或者错误。在实际的使用中，需要根据实际情况进行调整。
 
 ### 根据字段名称模拟输入文本
-
-示例：
 
 ```python
 rpalite.enter_in_field("Field name", "New value")
@@ -241,8 +232,6 @@ rpalite.send_keys("{VK_LWIN down}D{VK_LWIN up}")
 
 ### 校验文本是否存在
 
-示例：
-
 ```python
 rpalite.validate_text_exists("Text to check")
 ```
@@ -252,8 +241,6 @@ rpalite.validate_text_exists("Text to check")
 RPALite 使用 OCR 技术来识别文本，这种识别并不总是准确的，而且我们的识别都只是识别单行文本，所以一方面这个函数可能会识别出错，另一方面无法识别多行文本。你在实际的使用中，需要根据实际情况进行调整。
 
 ### 获取文本的坐标
-
-示例：
 
 ```python
 positions = rpalite.find_text_positions("Text to find")
@@ -267,16 +254,12 @@ print(f"First matched text position: {positions[0]}")
 
 ### 获取剪贴板文本
 
-示例：
-
 ```python
 text = rpalite.get_clipboard_text()
 print(f"Clipboard content: {text}")
 ```
 
 ### 把文本复制到剪贴板
-
-示例：
 
 ```python
 rpalite.copy_text_to_clipboard("This is a demo using RPALite.")
@@ -286,8 +269,6 @@ rpalite.copy_text_to_clipboard("This is a demo using RPALite.")
 
 ### 休眠
 
-示例：
-
 ```python
 rpalite.sleep(5)
 ```
@@ -296,9 +277,13 @@ rpalite.sleep(5)
 
 我们前面讲过，这个值不能设定为 0，因为在鼠标或者键盘模拟动作以后，Windows 或者你所操作的程序本身也需要一点时间进行响应，否则程序出问题的可能性会大大增加。如果你将这个参数设定为 0，RPALite 会直接使用`step_pause_interval`的值。如果你将 RPALite 的`step_pause_interval`属性设定为 0，那么 RPALite 会直接跳过休眠操作。
 
-### 获取屏幕尺寸
+### 显示桌面
 
-示例：
+```python
+rpalite.show_desktop()
+```
+
+### 获取屏幕尺寸
 
 ```python
 size = rpalite.get_screen_size()
@@ -308,8 +293,6 @@ print(f"Screen size: {size}")
 `get_screen_size`函数返回一个元组，表示屏幕的尺寸。例如 (1920, 1080) 表示屏幕宽度为 1920 像素，高度为 1080 像素。
 
 ### 屏幕截图
-
-示例：
 
 ```python
 pil_image = rpalite.take_screenshot()
@@ -322,7 +305,7 @@ pil_image = rpalite.take_screenshot()
 
 ### 录屏
 
-### 开始录屏
+#### 开始录屏
 
 ```python
 rpalite.start_screen_recording()
@@ -335,7 +318,7 @@ rpalite.start_screen_recording()
 
 start_screen_recording 目前只支持保存为 AVI 格式的录屏文件。
 
-### 结束录屏
+#### 结束录屏
 
 ```python
 rpalite.stop_screen_recording()

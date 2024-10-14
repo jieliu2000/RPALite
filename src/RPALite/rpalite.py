@@ -244,6 +244,36 @@ class RPALite:
 
         return (rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
 
+    def click_control(self, app, class_name=None, title=None, automate_id=None, click_position='center', button='left', double_click=False):
+        """
+        Find the center, left or right position of the control then click it.
+
+        Parameters
+        ----------
+        app : 
+            The application. It can be obtained by the "find_application" function.
+        class_name : str
+            The class name of the control. Use Windows Inspect tool or Accessibility Insights to find the class name of the control. 
+        title: str  
+            The title of the control. Use Windows Inspect tool or Accessibility Insights to find the title of the control.
+        automate_id : str
+            The automation ID of the control. Use Windows Inspect tool or Accessibility Insights to find the automation ID of the control.
+        click_position: str
+            The position you want to click, you can use 'left','center','right'.
+        button: str
+            The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'.
+        double_click: bool
+            Whether to perform a double click. Default is False.
+
+        """
+        position = self.find_control(app, class_name, title, automate_id)
+        if click_position == 'center':
+            self.click_by_position(int(position[0]) + int(position[2]) // 2, int(position[1]) + int(position[3]) // 2, button, double_click)
+        if click_position == 'left':
+            self.click_by_position(int(position[0]) + 5, int(position[1]) + int(position[3]) // 2, button, double_click)
+        if click_position == 'right':
+            self.click_by_position(int(position[0]) + (position[2]) - 5, int(position[1]) + int(position[3]) // 2, button, double_click)
+
     @not_keyword
     def find_control_by_process(self, process_id):
         '''
@@ -343,6 +373,40 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
     
+    def wait_until_text_disappear(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
+        """
+        Wait until a specific text disappears in the current screen. .
+
+        Parameters
+        ----------
+        text: str
+            The text that waiting to disappear.
+
+        filter_args_in_parent : dict
+            The filter arguments to filter the parent control. This is used to find the parent control of the text. If not specified, the parent control will be considered during search.
+        
+        parent_control : uiautomation control
+            The parent control to search in. If not specified, the function will search all controls.
+        
+        search_in_image : PIL.Image
+            The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
+
+        timeout: int
+            The timeout in seconds. If the text is not disappeared within the timeout, an AssertionError will be raised.
+
+        """
+        start_time = datetime.now()
+        while(True):
+            disappear_text= self.find_text_positions(text, filter_args_in_parent, parent_control, search_in_image)
+            if disappear_text is None:
+                return
+            else:
+                diff = datetime.now() - start_time
+                if diff.seconds > timeout:
+                    raise AssertionError('Timeout waiting for text disappears: ' + text)
+                self.sleep(1)
+                search_in_image = None
+
     def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None,throw_exception_when_failed = True):
         '''Validate if a specific text exists in the current screen. If the text exists, this function will return the position of the text; otherwise it will raise an AssertionError.
         
@@ -526,7 +590,7 @@ class RPALite:
         pass
 
     def click_by_image(self, image, button='left', double_click= False):
-        '''Click an image in the parent image or the entire screen if no parent image is provided.
+        '''Click center position of an image in the parent image or the entire screen if no parent image is provided.
         Parameters
         ----------     
         image: str or PIL image
@@ -540,7 +604,7 @@ class RPALite:
         '''         
         location = self.find_image_location(image)
         if(location is not None):
-                self.click_by_position(int(location[0]) + 2, int(location[1]) + 2, button, double_click)
+                self.click_by_position(int(location[0]) + int(location[2]) // 2, int(location[1]) + int(location[3]) // 2, button, double_click)
 
     def find_image_on_screen(self, image):
         '''Find an image in the current screen. This function will return the location if the image exists, otherwise it will return None.
@@ -583,6 +647,33 @@ class RPALite:
 
         return self.image_handler.find_image_location(image, parent_image)
 
+    def wait_until_image_exist(self, image, parent_image = None, timeout = 30):
+        '''
+        Parameters
+        ----------
+        image: str or PIL image
+            The image to search for. This can be the path of image or PIL image.
+
+        parent_image: str or PIL image
+            The image to search from. This can be the path of image or PIL image.
+
+        Returns
+        -------
+        tuple
+            The location of the image in the screen. The location is a tuple of (x, y, width, height).
+        '''
+        start_time = datetime.now()
+        while(True):
+            location = self.find_image_location(image, parent_image)
+            if(location is not None):
+                return location[0] 
+            else:
+                diff = datetime.now() - start_time
+                if(diff.seconds > timeout):
+                    raise AssertionError('Timeout waiting for image')
+                self.sleep(1)
+            return location
+
     def click_by_text_inside_window(self, text, window_title, button='left', double_click= False):
         '''Click the positon of a string on screen. '''
         logger.debug('Click by text inside window:' + text + " window title: " + window_title)
@@ -613,12 +704,12 @@ class RPALite:
 
     def click_by_text(self, text, button='left', double_click=False, filter_args_in_parent=None):
         '''
-        Clicks the positon of a string on screen. 
+        Clicks the center position of a string on screen. 
         '''
         logger.debug('Click by text:', text)
         location = self.wait_until_text_exists(text, filter_args_in_parent)
         if(location is not None and location[0]):
-            self.click_by_position(int(location[0]), int(location[1]), button, double_click)
+            self.click_by_position(int(location[0]) + int(location[2]) // 2, int(location[1]) + int(location[3]) // 2, button, double_click)
         self.sleep()
 
 
@@ -681,6 +772,12 @@ class RPALite:
         mouse.move((x, y))
         self.sleep()
         
+    def mouse_move_on_text(self, text, filter_args_in_parent=None, parent_control=None, search_in_image=None, timeout=30):
+        '''
+        Move mouse to the center position of a string on screen. 
+        '''
+        position = self.wait_until_text_exists(text, filter_args_in_parent, parent_control, search_in_image, timeout)
+        self.mouse_move(int(position[0]) + int(position[2]) // 2, int(position[1]) + int(position[3]) // 2)
 
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
         '''

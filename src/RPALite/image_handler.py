@@ -57,6 +57,31 @@ class ImageHandler:
 
         pass
 
+    def find_all_image_locations(self, image, parentImage):
+        if parentImage is None or image is None:
+            return None
+        # Find the location of the image in the parent image
+        if self.debug_mode:
+            cv2.imshow('shapes', np.array(parentImage)) 
+            cv2.waitKey(self.debug_image_show_milliseconds)
+
+        gray = cv2.cvtColor(np.array(parentImage), cv2.COLOR_BGR2GRAY)
+        
+        target = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2GRAY)
+        
+        # Use template matching to find the location of the image in the parent image
+        # result = cv2.matchTemplate(gray, target, cv2.TM_CCOEFF_NORMED)
+        result = cv2.matchTemplate(gray, target, cv2.TM_CCOEFF_NORMED)
+        
+        # find all the image locations in the parent image
+        locations = np.where(result >= 0.9)
+        h, w = target.shape
+
+        # Sort and convert the locations to a list of tuples including height and width
+        sorted_locations = sorted([(pt[0], pt[1], w, h) for pt in zip(*locations[::-1])], key=lambda y: y[1])
+
+        return sorted_locations
+        
     def find_text_in_array(self, text, arrays, windows):
         '''
         Returns the location information, format is (top_x, top_y, width, height) of the text. This function will first iterate over the arrays, find matched text and check it is in the window. If the matched text is in the window, the function will return the text location. If no matched text found returns None.

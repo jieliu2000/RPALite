@@ -16,3 +16,4 @@ keyboard==0.13.5
 pytest-md==0.2.0
 pytest-emoji==0.2.0
 pywinauto>=0.6.6
+github-release-downloader==1.1.0

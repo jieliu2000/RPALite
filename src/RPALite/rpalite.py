@@ -449,7 +449,7 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
 
-    def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None,throw_exception_when_failed = True):
+    def validate_text_exists(self, text, filter_args_in_parent=None, parent_control = None, img = None, throw_exception_when_failed = True):
         '''Validate if a specific text exists in the current screen. If the text exists, this function will return the position of the text; otherwise it will raise an AssertionError.
         
         Parameters
@@ -688,6 +688,32 @@ class RPALite:
             parent_image = PIL.Image.open(parent_image)
 
         return self.image_handler.find_image_location(image, parent_image)
+    
+    def find_all_image_locations(self, image, parent_image = None):
+        '''Find all images in the parent image or the entire screen if no parent image is provided. This function will return the locations if the image exists, otherwise it will return None.
+        
+        Parameters
+        ----------
+        image: str or PIL image
+            The image to search for. This can be the path of image or PIL image.
+
+        parent_image: str or PIL image
+            The image to search from. This can be the path of image or PIL image.
+
+        Returns
+        -------
+        list
+            A list of locations of the image in the screen. Each location is a tuple of (x, y, width, height).
+        '''
+        if isinstance(image, str):
+            image = PIL.Image.open(image)
+
+        if parent_image is None:
+            parent_image = self.take_screenshot()
+        elif isinstance(parent_image, str):
+            parent_image = PIL.Image.open(parent_image)
+
+        return self.image_handler.find_all_image_locations(image, parent_image)
 
     def wait_until_image_shown(self, image, parent_image = None, timeout = 30):
         '''
@@ -872,7 +898,7 @@ class RPALite:
         self.sleep()
 
 
-    def input_text(self, text):
+    def input_text(self, text, seconds = 0):
         '''
         Types text at the current active position.
         This function is an automation method and will not return any value.
@@ -883,7 +909,7 @@ class RPALite:
             Text to type
         '''
         keyboardlib.write(text, delay=0.2)
-        self.sleep()
+        self.sleep(seconds)
 
     def get_text_field_value(self, field_name):
         '''

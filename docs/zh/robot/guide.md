@@ -17,6 +17,15 @@
 - [模拟键盘操作](#模拟键盘操作)
   - [在当前光标位置输入文本](#在当前光标位置输入文本)
   - [发送按键](#发送按键)
+- [全局操作](#全局操作)
+  - [休眠](#休眠)
+  - [获取屏幕尺寸](#获取屏幕尺寸)
+  - [屏幕截图](#屏幕截图)
+  - [显示桌面](#显示桌面)
+  - [录屏](#录屏)
+    - [开始录屏](#开始录屏)
+    - [结束录屏](#结束录屏)
+
 
 ## 安装
 
@@ -134,3 +143,48 @@ Sleep    1
 `Sleep`函数接受一个整数参数，表示 RPALite 需要休眠多少秒。这个参数是可选的，默认值是 rpalite 对象的`step_pause_interval`属性。
 
 我们前面讲过，这个值不能设定为 0，因为在鼠标或者键盘模拟动作以后，Windows 或者你所操作的程序本身也需要一点时间进行响应，否则程序出问题的可能性会大大增加。如果你将这个参数设定为 0，RPALite 会直接使用`step_pause_interval`的值。如果你将 RPALite 的`step_pause_interval`属性设定为 0，那么 RPALite 会直接跳过休眠操作。
+
+### 显示桌面
+
+```robotframework
+Show Desktop
+```
+
+### 获取屏幕尺寸
+
+```robotframework
+${size} = Get Screen Size
+${log_message} =  Format String    Screen size: {0} ${size}
+Log    ${log_message}
+```
+`get_screen_size`函数返回一个元组，表示屏幕的尺寸。例如 (1920, 1080) 表示屏幕宽度为 1920 像素，高度为 1080 像素。
+
+### 屏幕截图
+
+```robotframework
+${pil_image} =    Take Screenshot
+```
+`Take Screenshot`函数返回一个 PIL 图像对象，表示当前屏幕的截图。它有两个可选的参数：
+
+- `all_screens`: 布尔值，默认值为 False，意思是只截取当前屏幕的截图。如果为 True，则截取所有屏幕的截图。这个参数在多屏幕环境中很有用。
+- `filename`: 字符串，表示要保存的截图文件的路径。如果这个参数被指定了，那么 RPALite 会将截图保存到指定的文件中。这个字符串为 None 时，RPALite 不会保存截图。无论是否指定了这个参数，`Take Screenshot`函数都会返回一个 PIL 图像对象。
+
+### 录屏
+
+#### 开始录屏
+
+```robotframework
+Start Screen Recording
+```
+
+`Start Screen Recording`函数会启动录屏功能，并开始录制屏幕。它有两个可选参数：
+
+- `target_avi_file_path`: 字符串，表示要保存录屏文件（AVI 格式）的路径。如果这个参数被指定了，那么 RPALite 会将录屏内容保存到指定的文件中。这个字符串为 None 时，RPALite 会在临时目录中创建一个临时文件来保存录屏内容。无论是否指定了这个参数，`Start Screen Recording`函数都会返回一个字符串，表示录屏文件的路径。
+- `fps`: 整数，表示录屏的帧率。默认值为 10。
+
+start_screen_recording 目前只支持保存为 AVI 格式的录屏文件。
+
+#### 结束录屏
+```robotframework
+Stop Screen Recording
+```

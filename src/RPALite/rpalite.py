@@ -1,16 +1,14 @@
 
 import random
 import tempfile
+import platform
 import threading
 import PIL.Image
 import numpy as np
 from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
-import uiautomation as auto
 from deprecated import deprecated
-import mouse as mouselib
 import PIL
-from pywinauto import mouse, keyboard, findwindows, Application
 import time
 import platform
 import pyautogui
@@ -20,6 +18,11 @@ import cv2
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
+
+if platform.system == 'Windows':
+    import uiautomation as auto
+    import mouse as mouselib
+    from pywinauto import mouse, keyboard, findwindows, Application
 
 @library(scope='GLOBAL', auto_keywords=True)
 class RPALite:

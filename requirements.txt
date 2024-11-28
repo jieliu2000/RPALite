@@ -8,12 +8,12 @@ PyAutoGUI==0.9.54
 robotframework==7.0
 pytest>=6.2.5
 build==1.2.1
-uiautomation==2.0.19
+uiautomation==2.0.19; sys_platform == 'win32'
 mouse==0.7.1
 Deprecated==1.2.14
 pyperclip==1.8.2
 keyboard==0.13.5
 pytest-md==0.2.0
 pytest-emoji==0.2.0
-pywinauto>=0.6.6
+pywinauto>=0.6.6; sys_platform == 'win32'
 github-release-downloader==1.1.0

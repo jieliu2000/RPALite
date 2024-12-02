@@ -918,7 +918,7 @@ class RPALite:
         fps : int
             Frame per second, default is 10
         """
-        if target_avi_file_path is None or target_avi_file_path == '':
+        if not target_avi_file_path:
             temp_dir = tempfile.mkdtemp()
             if not os.path.exists(temp_dir):
                 os.makedirs(temp_dir)
@@ -957,11 +957,9 @@ class RPALite:
         screen_size = self.get_screen_size()
 
         # Specify video codec
-        codec = cv2.VideoWriter_fourcc(*"XVID")
-        out = cv2.VideoWriter(target_avi_file_path, codec, fps, screen_size)
+        out = cv2.VideoWriter(target_avi_file_path, cv2.VideoWriter.fourcc(*"XVID"), fps, screen_size)
 
-        self.keep_screen_recording = True
-        t = threading.currentThread()
+        t = threading.current_thread()
         self.screen_recording_file = target_avi_file_path
         # X and Y coordinates of mouse pointer
         # Xs = [0, 8, 6, 14, 12, 4, 2, 0]

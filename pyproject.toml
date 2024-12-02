@@ -7,16 +7,31 @@ name = "RPALite"
 authors = [{ name = "RPALite contributors" }]
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 classifiers = [
     "Framework :: Robot Framework :: Library",
     "Operating System :: Microsoft :: Windows",
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: Apache Software License",
 ]
 version = "0.0.9"
 description = "Open Source RPA (Robotic Process Automation) Library for Python and Robot Framework"
+dependencies = [
+    "easyocr>=1.7.2",
+    "keyboard>=0.13.5",
+    "mouse>=0.7.1",
+    "pyautogui>=0.9.54",
+    "pywinauto>=0.6.8",
+    "robotframework>=7.1.1",
+    "uiautomation>=2.0.20",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.3",
+]
 
 [project.urls]
 Home = "https://github.com/jieliu2000/RPALite"

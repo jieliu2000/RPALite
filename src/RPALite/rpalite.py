@@ -317,7 +317,7 @@ class RPALite:
             The screenshot image.
         """
 
-        img = PIL.ImageGrab.grab(all_screens=False)
+        img = PIL.ImageGrab.grab(all_screens=all_screens)
         if filename is not None:
             img.save(filename)
         return img

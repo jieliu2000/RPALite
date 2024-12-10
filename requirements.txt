@@ -32,7 +32,7 @@ networkx==3.4.2
     #   torch
 ninja==1.11.1.2
     # via easyocr
-numpy==1.26.4
+numpy==2.2.0
     # via
     #   easyocr
     #   imageio
@@ -42,13 +42,13 @@ numpy==1.26.4
     #   shapely
     #   tifffile
     #   torchvision
-opencv-python-headless==4.9.0.80
+opencv-python-headless==4.10.0.84
     # via easyocr
 packaging==24.2
     # via
     #   lazy-loader
     #   scikit-image
-pillow==10.3.0
+pillow==11.0.0
     # via
     #   easyocr
     #   imageio
@@ -62,7 +62,7 @@ pygetwindow==0.0.9
     # via pyautogui
 pymsgbox==1.0.9
     # via pyautogui
-pyperclip==1.8.2
+pyperclip==1.9.0
     # via mouseinfo
 pyrect==0.2.0
     # via pygetwindow
@@ -90,7 +90,7 @@ setuptools==75.6.0
     # via torch
 shapely==2.0.6
     # via easyocr
-six==1.16.0
+six==1.17.0
     # via pywinauto
 sympy==1.13.1
     # via torch

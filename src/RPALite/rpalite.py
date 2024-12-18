@@ -19,7 +19,7 @@ from datetime import datetime
 from .image_handler import ImageHandler
 import os
 
-if platform.system == 'Windows':
+if platform.system() == 'Windows':
     import uiautomation as auto
     import mouse as mouselib
     from pywinauto import mouse, keyboard, findwindows, Application

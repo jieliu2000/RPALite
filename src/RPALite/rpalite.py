@@ -332,48 +332,6 @@ class RPALite:
         if filename is not None:
             img.save(filename)
         return img
-
-
-    @deprecated("This function has been deprecated, use wait_until_text_shown instead.")
-    def wait_until_text_exists(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
-        '''
-        Wait until a specific text exists in the current screen. This function will return the location if the text exists, otherwise it will return None.
-        
-        Parameters
-        ----------
-        text : str
-            The text to wait for.
-            
-        filter_args_in_parent : dict
-            The filter arguments to filter the parent control. This is used to find the parent control of the text. If not specified, the parent control will be considered during search.
-        
-        parent_control : uiautomation control
-            The parent control to search in. If not specified, the function will search all controls.
-        
-        search_in_image : PIL.Image
-            The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
-        
-        timeout : int
-            The timeout in seconds. If the text is not found within the timeout, an AssertionError will be raised.
-
-        Returns
-        -------
-        tuple
-            The location of the text in the screen. The location is a tuple of (x, y, width, height).
-
-        '''
-
-        start_time = datetime.now()
-        while(True):
-            location = self.find_text_positions(text, filter_args_in_parent, parent_control, search_in_image)
-            if(location is not None):
-                return location[0] 
-            else:
-                diff = datetime.now() - start_time
-                if(diff.seconds > timeout):
-                    raise AssertionError('Timeout waiting for text: ' + text)
-                self.sleep(1)
-                search_in_image = None
     
     def wait_until_text_shown(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
         '''

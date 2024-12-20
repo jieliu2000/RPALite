@@ -8,6 +8,7 @@ from semantic_version import SimpleSpec
 from github_release_downloader import check_and_download_updates, GitHubRepo
 from pathlib import Path
 import re
+import platform
 
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,10 @@ def get_test_app_and_description():
         return test_executable, "INTES*", "FLTK"
 
 def download_test_app():
+    check_file = os.path.isfile("intes.exe")
+    if check_file:
+        logger.info("Test application already exists.")
+        return
     check_and_download_updates(GitHubRepo("jieliu2000", "intes"),  # Releases source
         SimpleSpec(">0.1"),  
         assets_mask=re.compile(".*\\.zip"),  # Download *.exe only
@@ -65,6 +70,8 @@ class TestRPALite:
         self.close_app()
     
     def test_click_automate_id_notepad(self):
+        if platform.system() != 'Windows':
+            return
         
         self.rpalite.send_keys('{VK_LWIN down}{VK_LWIN up}')
         try:
@@ -127,7 +134,6 @@ class TestRPALite:
         print("Finished testing mouse press move actions...")
 
     def test_find_window_by_title(self):
-        
         app = self.open_app()
         windows = self.rpalite.find_windows_by_title("Mouse Test Canvas")
         assert len(windows) > 0

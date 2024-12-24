@@ -1044,3 +1044,13 @@ class RPALite:
         '''
         if(self.platform == 'Windows'):
             self.send_keys('{VK_LWIN down}D{VK_LWIN}')
+    
+    def intercepte_image(self, location, image=None):
+        '''
+        Intercepts an image from the screen or one image.
+        '''
+        if(image is None):
+            image = self.take_screenshot()
+        x, y, w, h = location
+        targetImage = image.crop((x, y, x+w, h))
+        return targetImage

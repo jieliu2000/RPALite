@@ -608,7 +608,7 @@ class RPALite:
                 position = self.find_control(app, automate_id=automate_id)
                 return position
              
-            return self.wait_until_text_exists(location_description)
+            return self.wait_until_text_shown(location_description)
 
     def click(self, locator=None,  button='left', double_click= False, app = None):
         '''Click on a control. The parameter could be a locator or the control's text (like the button text or the field name)'''
@@ -775,7 +775,7 @@ class RPALite:
         Clicks the center position of a string on screen. 
         '''
         logger.debug('Click by text:', text)
-        location = self.wait_until_text_exists(text, filter_args_in_parent)
+        location = self.wait_until_text_shown(text, filter_args_in_parent)
         if(location is not None and location[0]):
             self.click_by_position(int(location[0]) + int(location[2]) // 2, int(location[1]) + int(location[3]) // 2, button, double_click)
         self.sleep()
@@ -844,7 +844,7 @@ class RPALite:
         '''
         Move mouse to the center position of a string on screen. 
         '''
-        position = self.wait_until_text_exists(text, filter_args_in_parent, parent_control, search_in_image, timeout)
+        position = self.wait_until_text_shown(text, filter_args_in_parent, parent_control, search_in_image, timeout)
         self.mouse_move(int(position[0]) + int(position[2]) // 2, int(position[1]) + int(position[3]) // 2)
 
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
@@ -956,7 +956,7 @@ class RPALite:
     
         '''
         img = self.take_screenshot()
-        location = self.wait_until_text_exists(field_name)
+        location = self.wait_until_text_shown(field_name)
         if(location is None):
             logger.error('Cannot find field:', field_name)
             return

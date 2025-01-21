@@ -1,4 +1,4 @@
-# RPALite - 用于 Python 和 Robot Framework 的开源 RPA(Robotic Process Automation，机器人流程自动化)编程库
+# RPALite - 一个开源的 Python 和 Robot Framework RPA（机器人流程自动化）编程库
 
 | [English](README.md) | [中文](README-zh.md) |
 
@@ -8,43 +8,61 @@
 
 ## 目录
 
-- [介绍](#介绍)
-- [特性](#特性)
-- [运行效率优化](#运行效率优化)
+- [简介](#简介)
+- [功能特性](#功能特性)
+- [平台支持](#平台支持)
+- [性能优化](#性能优化)
 - [文档](#文档)
 - [安装](#安装)
-- [快速开始](#快速开始)
+- [快速入门](#快速入门)
   - [Python](#python)
   - [Robot Framework](#robot-framework)
-- [贡献者指南](#贡献者指南)
+- [贡献指南](#贡献指南)
 
-## 介绍
+## 简介
 
-RPALite 是一个开源的 RPA(Robotic Process Automation，机器人流程自动化)库。你可以通过 Python 或者[Robot Framework](https://robotframework.org/)使用 RPALite，实现各种自动化任务。
+RPALite 是一个开源的 RPA（机器人流程自动化）库。您可以通过 Python 或 [Robot Framework](https://robotframework.org/) 来使用 RPALite 实现各种自动化任务。
 
-_在目前版本，RPALite 仅支持 Windows 平台，对其他平台的支持将在未来版本中添加。_
+RPALite 现已支持 Windows 和 macOS 平台，提供跨平台自动化能力。
 
-## 特性
+## 功能特性
 
-目前 RPALite 在 Windows 平台支持以下操作：
+RPALite 支持以下操作：
 
-- 启动应用
-- 根据应用名称或者 ClassName 查找应用
-- 关闭应用
-- 支持对特定文字的鼠标点击
-- 支持基于文本框提示词或者文本框标签的文本框定位和输入
-- 支持基于坐标的鼠标点击
-- 鼠标点击支持左键，右键，和双击
-- 支持基于 Windows 控件的名称，类，或者 Automation ID 查找对应控件的坐标
-- 支持对基于图片的定位。你可以通过传给 RPALite 一张屏幕局部的图片返回对应图片部分在屏幕上的坐标
+- 启动应用程序
+- 通过名称或 ClassName 查找应用程序
+- 关闭应用程序
+- 对特定文本进行鼠标点击
+- 基于占位符或标签定位和输入文本框
+- 基于坐标的鼠标点击
+- 支持左键点击、右键点击和双击操作
+- 基于控件名称、类或自动化 ID（Windows）定位控件并获取其坐标
+- 基于图像的定位。您可以将部分截图传递给 RPALite，以返回屏幕上对应部分的坐标
+- 屏幕录制功能
+- 剪贴板操作
+- 高级键盘输入支持（包括特殊键和组合键）
+- 窗口管理（最大化、最小化、显示桌面）
 
-## 运行效率优化
+## 平台支持
 
-RPALite 中最消耗时间的操作是图片识别和 OCR，其中 OCR 部分我们使用了[EasyOCR](https://github.com/JaidedAI/EasyOCR)。EasyOCR 在有独立显卡和 CUDA 支持的电脑上运行效率会更高，所以如果发现 RPALite 运行速度比较慢，可以考虑切换到有独立显卡和 CUDA 支持的电脑上运行，并安装对应的 pytorch 版本。
+### Windows
+- 完整的自动化支持，包括 UI 控件
+- Windows 特有功能，如 UI 自动化
+- 某些功能可能需要管理员权限
+
+### macOS
+- 基本的自动化支持，包括鼠标和键盘控制
+- 窗口管理和应用程序控制
+- 需要辅助功能和屏幕录制权限
+- 某些系统快捷键可能无法拦截
+
+## 性能优化
+
+RPALite 中最耗时的操作是图像识别和 OCR。对于 OCR，我们使用 [EasyOCR](https://github.com/JaidedAI/EasyOCR)。EasyOCR 在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。
 
 ## 文档
 
-在这份文档的后面部分，我们提供了[快速开始](#快速开始)，让你可以对 RPALite 有一个简单直接的了解。
+在这份文档的后面部分，我们提供了[快速入门](#快速入门)，让你可以对 RPALite 有一个简单直接的了解。
 
 以下是更详细的文档链接：
 
@@ -55,61 +73,76 @@ RPALite 中最消耗时间的操作是图片识别和 OCR，其中 OCR 部分我
 
 ## 安装
 
-你可以通过 pip 安装 RPALite：
+您可以通过 pip 安装 RPALite：
 
 ```bash
 pip install RPALite
 ```
 
-## 快速开始
+系统会根据您的操作系统自动安装特定平台所需的依赖项。
 
-正如我们在前面所说的，你可以使用 Python 或者 Robot Framework 使用 RPALite。下面部分是一些示例：
+## 快速入门
+
+如前所述，您可以通过 Python 或 Robot Framework 使用 RPALite。以下是一些示例：
 
 ### Python
 
-以下为使用 RPALite 操作 Windows 记事本 (Notepad) 的一个示例：
+以下是使用 RPALite 操作 Windows 记事本的示例：
 
 ```python
 from RPALite import RPALite
 rpalite = RPALite()
 
-
 # 显示桌面
 rpalite.show_desktop()
 
-
-# 运行notepad并输入一段文字
+# 运行记事本并输入一些文本
 rpalite.run_command("notepad.exe")
-rpalite.input_text("This is a demo using RPALite.\n")
+rpalite.input_text("这是一个使用 RPALite 的演示。\n")
 
-# 找到notepad app并关闭
-app = rpalite.find_application(".*Notepad")
+# 查找记事本应用并关闭它
+app = rpalite.find_application(".*记事本")
 rpalite.close_app(app)
+```
+
+### 高级键盘输入示例
+
+```python
+# 简单文本输入
+rpalite.send_keys("你好世界")
+
+# 特殊键
+rpalite.send_keys("{ENTER}")
+rpalite.send_keys("{ESC}")
+
+# 组合键
+rpalite.send_keys("^c")          # Control+C
+rpalite.send_keys("%{F4}")       # Alt+F4
+rpalite.send_keys("+(abc)")      # Shift+ABC（大写）
 ```
 
 ### Robot Framework
 
-以下为使用 RPALite 操作 Notepad 的一个示例：
+以下是使用 RPALite 操作 Windows 记事本的示例：
 
 ```robotframework
 *** Settings ***
 Library    RPALite
 
 *** Test Cases ***
-Test Notepad
+测试记事本
     Send Keys    {VK_LWIN down}D{VK_LWIN up}
     Run Command    notepad.exe
-    ${app} =     Find Application    .*Notepad
+    ${app} =     Find Application    .*记事本
     Maximize Window    ${app}
-    Input Text    This is a demo using RPALite.
+    Input Text    这是一个使用 RPALite 的演示。
     Close App    ${app}
-
 ```
 
-## 贡献者指南
+## 贡献指南
 
-如果你希望为 RPALite 贡献代码，可以直接创建 Pull Request。请确保你的代码风格与现有代码一致，以及通过 tests 目录下的所有测试。此外也请确保你为新增或者修改的代码更新了单元测试。
+如果您想为 RPALite 贡献代码，欢迎提交 Pull Request。请确保您的代码风格与现有代码库一致，并通过 tests 目录中的所有测试。此外，请确保为任何新增或修改的代码更新单元测试。
 
-- Github 代码库：https://github.com/jieliu2000/RPALite
-- Gitee 代码库：https://gitee.com/jieliu2000/rpalite
-- Gitcode 代码库：https://gitcode.com/jieliu2000/rpalite
+- GitHub 仓库：https://github.com/jieliu2000/RPALite
+- Gitee 仓库：https://gitee.com/jieliu2000/rpalite
+- Gitcode 仓库：https://gitcode.com/jieliu2000/rpalite

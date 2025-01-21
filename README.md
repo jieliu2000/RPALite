@@ -10,6 +10,7 @@
 
 - [Introduction](#introduction)
 - [Features](#features)
+- [Platform Support](#platform-support)
 - [Performance Optimization](#performance-optimization)
 - [Documentation](#documentation)
 - [Installation](#installation)
@@ -22,11 +23,11 @@
 
 RPALite is an open-source RPA (Robotic Process Automation) library. You can use RPALite through Python or [Robot Framework](https://robotframework.org/) to achieve various automation tasks.
 
-_In the current version, RPALite only supports the Windows platform, and support for other platforms will be added in future versions._
+RPALite now supports both Windows and macOS platforms, providing cross-platform automation capabilities.
 
 ## Features
 
-Currently, RPALite supports the following operations on the Windows platform:
+RPALite supports the following operations:
 
 - Launching applications
 - Finding applications by name or ClassName
@@ -35,8 +36,25 @@ Currently, RPALite supports the following operations on the Windows platform:
 - Locating and inputting into text boxes based on placeholders or labels
 - Mouse clicking based on coordinates
 - Support for left-click, right-click, and double-click operations
-- Locating controls based on Windows control names, classes, or Automation IDs and getting their coordinates
+- Locating controls based on control names, classes, or Automation IDs (Windows) and getting their coordinates
 - Image-based location. You can pass a partial screenshot to RPALite to return the coordinates of the corresponding part on the screen.
+- Screen recording capabilities
+- Clipboard operations
+- Advanced keyboard input support with special keys and combinations
+- Window management (maximize, minimize, show desktop)
+
+## Platform Support
+
+### Windows
+- Full automation support including UI controls
+- Windows-specific features like UI Automation
+- Administrative privileges may be required for some features
+
+### macOS
+- Basic automation support including mouse and keyboard control
+- Window management and application control
+- Requires accessibility and screen recording permissions
+- Some system-wide shortcuts may not be interceptable
 
 ## Performance Optimization
 
@@ -61,6 +79,8 @@ You can install RPALite via pip:
 pip install RPALite
 ```
 
+Platform-specific dependencies will be automatically installed based on your operating system.
+
 ## Quick Start
 
 As mentioned earlier, you can use RPALite with Python or Robot Framework. Here are some examples:
@@ -83,6 +103,22 @@ rpalite.input_text("This is a demo using RPALite.\n")
 # Find the Notepad app and close it
 app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
+```
+
+### Advanced Keyboard Input Examples
+
+```python
+# Simple text input
+rpalite.send_keys("Hello World")
+
+# Special keys
+rpalite.send_keys("{ENTER}")
+rpalite.send_keys("{ESC}")
+
+# Key combinations
+rpalite.send_keys("^c")          # Control+C
+rpalite.send_keys("%{F4}")       # Alt+F4
+rpalite.send_keys("+(abc)")      # Shift+ABC (uppercase)
 ```
 
 ### Robot Framework

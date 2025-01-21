@@ -87,6 +87,8 @@ As mentioned earlier, you can use RPALite with Python or Robot Framework. Here a
 
 ### Python
 
+#### Windows Example
+
 Below is an example of using RPALite to operate Windows Notepad:
 
 ```python
@@ -105,6 +107,39 @@ app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
 ```
 
+#### macOS Example
+
+Here's an example of using RPALite to operate Notes app on macOS:
+
+```python
+from RPALite import RPALite
+rpalite = RPALite()
+
+# Launch Notes app
+rpalite.run_command("open -a Notes")
+
+# Find and control the Notes app
+app = rpalite.find_application("Notes")
+if app:
+    # Maximize the window
+    rpalite.maximize_window(app)
+    
+    # Type some text
+    rpalite.input_text("This is a demo using RPALite on macOS.\n")
+    
+    # Use keyboard shortcuts
+    rpalite.send_keys("^s")  # Save (Command+S)
+    
+    # Close the app
+    rpalite.close_app(app)
+```
+
+Note: On macOS, you'll need to grant the following permissions:
+- Accessibility (for keyboard and mouse control)
+- Screen Recording (for screen capture and OCR)
+
+You can grant these permissions in System Preferences > Security & Privacy > Privacy.
+
 ### Advanced Keyboard Input Examples
 
 ```python
@@ -119,9 +154,16 @@ rpalite.send_keys("{ESC}")
 rpalite.send_keys("^c")          # Control+C
 rpalite.send_keys("%{F4}")       # Alt+F4
 rpalite.send_keys("+(abc)")      # Shift+ABC (uppercase)
+
+# macOS specific
+rpalite.send_keys("#c")          # Command+C (Copy)
+rpalite.send_keys("#v")          # Command+V (Paste)
+rpalite.send_keys("#w")          # Command+W (Close window)
 ```
 
 ### Robot Framework
+
+#### Windows Example
 
 Below is an example of using RPALite to operate Windows Notepad:
 
@@ -138,6 +180,43 @@ Test Notepad
     Input Text    This is a demo using RPALite.
     Close App    ${app}
 ```
+
+#### macOS Example
+
+Here's an example of using RPALite with Robot Framework on macOS to operate the Notes app:
+
+```robotframework
+*** Settings ***
+Library    RPALite
+
+*** Test Cases ***
+Test Notes App
+    # Launch Notes application
+    Run Command    open -a Notes
+    Sleep    2    # Wait for app to launch
+    
+    # Find and control the app
+    ${app} =    Find Application    Notes
+    Maximize Window    ${app}
+    
+    # Type some text
+    Input Text    This is a demo using RPALite on macOS.
+    
+    # Use keyboard shortcuts
+    Send Keys    {VK_LWIN}s    # Command+S to save
+    Send Keys    {VK_LWIN}a    # Command+A to select all
+    Send Keys    {VK_LWIN}c    # Command+C to copy
+    
+    # Close the app
+    Close App    ${app}
+```
+
+Note: When using RPALite with Robot Framework, use `{VK_LWIN}` to represent the Command key on macOS. 
+Common macOS keyboard shortcuts can be sent using combinations like:
+- `{VK_LWIN}c` - Command+C (Copy)
+- `{VK_LWIN}v` - Command+V (Paste)
+- `{VK_LWIN}s` - Command+S (Save)
+- `{VK_LWIN}w` - Command+W (Close window)
 
 ## Contribution Guidelines
 

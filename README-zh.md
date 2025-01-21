@@ -105,11 +105,44 @@ app = rpalite.find_application(".*记事本")
 rpalite.close_app(app)
 ```
 
+### macOS 示例
+
+以下是使用 RPALite 操作 macOS Notes 应用的示例：
+
+```python
+from RPALite import RPALite
+rpalite = RPALite()
+
+# 启动 Notes 应用
+rpalite.run_command("open -a Notes")
+
+# 查找并控制 Notes 应用
+app = rpalite.find_application("Notes")
+if app:
+    # 最大化窗口
+    rpalite.maximize_window(app)
+    
+    # 输入文本
+    rpalite.input_text("这是一个在 macOS 上使用 RPALite 的演示。\n")
+    
+    # 使用键盘快捷键
+    rpalite.send_keys("^s")  # 保存 (Command+S)
+    
+    # 关闭应用
+    rpalite.close_app(app)
+```
+
+注意：在 macOS 上，您需要授予以下权限：
+- 辅助功能（用于键盘和鼠标控制）
+- 屏幕录制（用于屏幕捕获和 OCR）
+
+您可以在系统偏好设置 > 安全性与隐私 > 隐私中授予这些权限。
+
 ### 高级键盘输入示例
 
 ```python
 # 简单文本输入
-rpalite.send_keys("你好世界")
+rpalite.send_keys("欢迎使用 RPALite")
 
 # 特殊键
 rpalite.send_keys("{ENTER}")
@@ -119,6 +152,11 @@ rpalite.send_keys("{ESC}")
 rpalite.send_keys("^c")          # Control+C
 rpalite.send_keys("%{F4}")       # Alt+F4
 rpalite.send_keys("+(abc)")      # Shift+ABC（大写）
+
+# macOS 特有
+rpalite.send_keys("#c")          # Command+C（复制）
+rpalite.send_keys("#v")          # Command+V（粘贴）
+rpalite.send_keys("#w")          # Command+W（关闭窗口）
 ```
 
 ### Robot Framework
@@ -138,6 +176,43 @@ Library    RPALite
     Input Text    这是一个使用 RPALite 的演示。
     Close App    ${app}
 ```
+
+### macOS 示例
+
+以下是使用 RPALite 在 macOS 上操作 Notes 应用的示例：
+
+```robotframework
+*** Settings ***
+Library    RPALite
+
+*** Test Cases ***
+测试 Notes 应用
+    # 启动 Notes 应用
+    Run Command    open -a Notes
+    Sleep    2    # 等待应用启动
+    
+    # 查找并控制应用
+    ${app} =    Find Application    Notes
+    Maximize Window    ${app}
+    
+    # 输入文本
+    Input Text    这是一个在 macOS 上使用 RPALite 的演示。
+    
+    # 使用键盘快捷键
+    Send Keys    {VK_LWIN}s    # Command+S 保存
+    Send Keys    {VK_LWIN}a    # Command+A 全选
+    Send Keys    {VK_LWIN}c    # Command+C 复制
+    
+    # 关闭应用
+    Close App    ${app}
+```
+
+注意：在使用 RPALite 的 Robot Framework 关键字时，使用 `{VK_LWIN}` 来表示 macOS 上的 Command 键。
+常用的 macOS 键盘快捷键可以使用以下组合：
+- `{VK_LWIN}c` - Command+C（复制）
+- `{VK_LWIN}v` - Command+V（粘贴）
+- `{VK_LWIN}s` - Command+S（保存）
+- `{VK_LWIN}w` - Command+W（关闭窗口）
 
 ## 贡献指南
 

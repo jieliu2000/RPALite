@@ -920,32 +920,106 @@ class RPALite:
 
     def send_keys(self, keys):
         '''
-        Simulate keyboard input
+        Simulate keyboard input. Supports both simple text input and special key combinations.
+        
+        For Windows, it uses pywinauto's send_keys format.
+        For macOS, it converts the keys to keyboard module format.
+        
+        Parameters
+        ----------
+        keys : str
+            The keys to send. Can include special keys and combinations.
+            Examples:
+            - "Hello World"  - types the text
+            - "^c"          - Control+C
+            - "%{F4}"       - Alt+F4
+            - "{ENTER}"     - Press Enter key
+            - "+(abc)"      - Shift+ABC (uppercase)
         '''
         if self.platform == 'Windows':
             keyboard.send_keys(keys)
         elif self.platform == 'Darwin':
             # Convert pywinauto key mappings to keyboard module format
             key_mapping = {
-                '{VK_SHIFT}': 'shift',
-                '{VK_CONTROL}': 'ctrl', 
-                '{VK_MENU}': 'alt',
-                '{VK_LWIN}': 'command',
+                # Special keys
                 '{ENTER}': 'enter',
                 '{ESC}': 'esc',
                 '{UP}': 'up',
                 '{DOWN}': 'down',
                 '{LEFT}': 'left', 
-                '{RIGHT}': 'right'
+                '{RIGHT}': 'right',
+                '{SPACE}': 'space',
+                '{TAB}': 'tab',
+                '{BACKSPACE}': 'backspace',
+                '{DELETE}': 'delete',
+                '{HOME}': 'home',
+                '{END}': 'end',
+                '{PAGEUP}': 'page up',
+                '{PAGEDOWN}': 'page down',
+                
+                # Modifier keys
+                '{VK_SHIFT}': 'shift',
+                '{VK_CONTROL}': 'ctrl',
+                '{VK_MENU}': 'alt',
+                '{VK_LWIN}': 'command',
+                
+                # Function keys
+                '{F1}': 'f1',
+                '{F2}': 'f2',
+                '{F3}': 'f3',
+                '{F4}': 'f4',
+                '{F5}': 'f5',
+                '{F6}': 'f6',
+                '{F7}': 'f7',
+                '{F8}': 'f8',
+                '{F9}': 'f9',
+                '{F10}': 'f10',
+                '{F11}': 'f11',
+                '{F12}': 'f12',
             }
             
-            # Handle key combinations
-            keys = keys.replace('+', ' + ')
-            for old, new in key_mapping.items():
-                keys = keys.replace(old, new)
+            # Handle modifiers
+            modifier_mapping = {
+                '^': 'ctrl',
+                '%': 'alt',
+                '+': 'shift',
+                '#': 'command'  # Add command key for macOS
+            }
             
-            keyboard.send(keys)
-        self.sleep()
+            processed_keys = keys
+            
+            # Convert special key combinations first
+            for old, new in key_mapping.items():
+                processed_keys = processed_keys.replace(old, new)
+            
+            # Handle modifier combinations
+            for mod, mod_name in modifier_mapping.items():
+                # Look for patterns like '^a', '%b', etc.
+                if mod in processed_keys:
+                    # Handle cases like '^(abc)' - multiple keys with same modifier
+                    while f'{mod}(' in processed_keys:
+                        start = processed_keys.find(f'{mod}(')
+                        end = processed_keys.find(')', start)
+                        if end == -1:
+                            break
+                        keys_in_parens = processed_keys[start+2:end]
+                        processed_keys = (processed_keys[:start] + 
+                                       f'{mod_name}+' + keys_in_parens +
+                                       processed_keys[end+1:])
+                
+                    # Handle single character modifiers like '^c'
+                    processed_keys = processed_keys.replace(f'{mod}', f'{mod_name}+')
+            
+            # Split into individual commands and execute them
+            commands = processed_keys.split()
+            for cmd in commands:
+                try:
+                    keyboard.send(cmd)
+                    self.sleep(0.1)  # Small delay between commands
+                except Exception as e:
+                    logger.error(f"Failed to send keys '{cmd}': {str(e)}")
+                
+            self.sleep()
 
 
     def input_text(self, text, seconds = 0):

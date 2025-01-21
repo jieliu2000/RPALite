@@ -9,7 +9,6 @@ from robot.api import logger
 from deprecated import deprecated
 import PIL
 import time
-import platform
 import pyautogui
 import pyperclip
 import keyboard as keyboardlib
@@ -17,6 +16,7 @@ import cv2
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
+import subprocess
 
 # Import platform-specific dependencies
 if platform.system() == 'Windows':
@@ -24,8 +24,8 @@ if platform.system() == 'Windows':
     import mouse as mouselib
     from pywinauto import mouse, keyboard, findwindows, Application
 elif platform.system() == 'Darwin':  # macOS
-    import Quartz
-    import AppKit
+    from Quartz import *
+    from AppKit import *
     import mouse as mouselib
     import keyboard  # Use keyboard module instead of pywinauto.keyboard
 
@@ -77,13 +77,23 @@ class RPALite:
         
         noblock : bool
             Specifies whether this function need to be blocked when executing the command
-        """
 
-        if(noblock):
-            os.popen(command)
-        else:
-            os.system(command)
-        self.sleep()
+        Returns
+        -------
+        int
+            The return code of the command. 0 indicates success.
+        """
+        try:
+            if noblock:
+                process = subprocess.Popen(command, shell=True)
+                return process.pid
+            else:
+                return subprocess.call(command, shell=True)
+        except subprocess.SubprocessError as e:
+            logger.error(f"Failed to execute command: {e}")
+            return -1
+        finally:
+            self.sleep()
         
         
     def sleep(self, seconds = 0):
@@ -1092,7 +1102,6 @@ class RPALite:
     def start_screen_recording(self, target_avi_file_path = None, fps = 10):
         '''
         Starts recording the screen.
-        This function is an automation method and will not return any value.
 
         Parameters
         ----------
@@ -1100,13 +1109,24 @@ class RPALite:
             File name to save the video file. If this value is set to None, RPALite will create a file in the temp folder with a random name
         fps : int
             Frame per second, default is 10
+
+        Returns
+        -------
+        str
+            The path to the video file being recorded
         '''
+        if self.screen_recording_thread is not None:
+            logger.warning("Screen recording is already in progress")
+            return self.screen_recording_file
+
         if target_avi_file_path is None or target_avi_file_path == '':
             temp_dir = tempfile.mkdtemp()
             if not os.path.exists(temp_dir):
                 os.makedirs(temp_dir)
             target_avi_file_path = os.path.join(temp_dir, str(random.randint(10000, 99999)) + '.avi')
-        thread = threading.Thread(target=self.record_screen_impl, args=(target_avi_file_path, fps))
+
+        self.screen_recording_file = target_avi_file_path
+        thread = threading.Thread(target=self.record_screen_impl, args=(target_avi_file_path, fps), daemon=True)
         thread.start()
         self.screen_recording_thread = thread
         return target_avi_file_path
@@ -1114,14 +1134,27 @@ class RPALite:
     def stop_screen_recording(self):
         '''
         Stops recording the screen.
-        This function is an automation method and will not return any value.
+
+        Returns
+        -------
+        str
+            The path to the recorded video file, or None if no recording was in progress
         '''
-        if self.screen_recording_thread:
-            self.screen_recording_thread.keep_recording = False
-        self.screen_recording_thread = None
-        recording_file = self.screen_recording_file + ''
-        self.screen_recording_file = None
-        return recording_file
+        if not self.screen_recording_thread:
+            logger.warning("No screen recording in progress")
+            return None
+
+        try:
+            self.keep_screen_recording = False
+            self.screen_recording_thread.join(timeout=5.0)
+            recording_file = self.screen_recording_file
+            return recording_file
+        except threading.TimeoutError:
+            logger.error("Failed to stop screen recording thread")
+            return None
+        finally:
+            self.screen_recording_thread = None
+            self.screen_recording_file = None
 
     @not_keyword
     def record_screen_impl(self, target_avi_file_path, fps = 10):
@@ -1138,29 +1171,30 @@ class RPALite:
             Frame per second, default is 10
         '''
         screen_size = self.get_screen_size()
-        
-        # Specify video codec
-        codec = cv2.VideoWriter_fourcc(*"XVID")
-        out = cv2.VideoWriter(target_avi_file_path, codec, fps, screen_size)
+        out = None
+        try:
+            # Specify video codec
+            codec = cv2.VideoWriter_fourcc(*"XVID")
+            out = cv2.VideoWriter(target_avi_file_path, codec, fps, screen_size)
+            if not out.isOpened():
+                logger.error("Failed to create video writer")
+                return
 
-        self.keep_screen_recording = True
-        t = threading.currentThread()
-        self.screen_recording_file = target_avi_file_path
-        # X and Y coordinates of mouse pointer
-        Xs = [0,8,6,14,12,4,2,0]
-        Ys = [0,2,4,12,14,6,8,0]
-
-        while getattr(t, "keep_recording", True):
-            img = pyautogui.screenshot()
-          
-
-            frame = np.array(img)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
-
-            out.write(frame)
-
-        # Release the Video writer
-        out.release()
+            self.keep_screen_recording = True
+            while self.keep_screen_recording:
+                try:
+                    img = pyautogui.screenshot()
+                    frame = np.array(img)
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    out.write(frame)
+                except Exception as e:
+                    logger.error(f"Error during screen recording: {e}")
+                    break
+        except Exception as e:
+            logger.error(f"Failed to initialize screen recording: {e}")
+        finally:
+            if out is not None:
+                out.release()
 
     def show_desktop(self):
         '''

@@ -1,33 +1,37 @@
-# Core dependencies (required for all platforms)
-numpy
-Pillow
-pyautogui
-opencv-python
-keyboard
-mouse
-pyperclip
-deprecated
-robotframework
+# Core dependencies
+numpy>=1.21.0
+Pillow>=9.0.0
+pyautogui>=0.9.53
+keyboard>=0.13.5
+mouse>=0.7.1
+pyperclip>=1.8.2
+deprecated>=1.2.13
+robotframework>=6.0.0
 
-# Windows specific dependencies
-pywinauto; sys_platform == 'win32'
-uiautomation; sys_platform == 'win32'
+# Computer Vision & Image Processing
+opencv-python>=4.9.0.80
+opencv-contrib-python>=4.6.0.66
+opencv-python-headless>=4.9.0.80
 
-# macOS specific dependencies
-pyobjc-framework-Quartz; sys_platform == 'darwin'
-pyobjc-framework-AppKit; sys_platform == 'darwin'
-
-# Deep Learning dependencies
+# OCR & Deep Learning
 --extra-index-url https://download.pytorch.org/whl/torch_stable.html
-torch
-torchvision
+torch>=2.0.0
+torchvision>=0.15.0
 easyocr>=1.7.1
 
-# Other dependencies
-opencv-contrib-python==4.6.0.66
-opencv-python-headless==4.9.0.80
+# Platform specific dependencies
+# Windows
+pywinauto>=0.6.8; sys_platform == 'win32'
+uiautomation>=2.0.0; sys_platform == 'win32'
+
+# macOS
+pyobjc>=8.0; sys_platform == 'darwin'
+
+# Testing & Development
 pytest>=6.2.5
-build==1.2.1
-pytest-md==0.2.0
-pytest-emoji==0.2.0
-github-release-downloader==1.1.0
+pytest-md>=0.2.0
+pytest-emoji>=0.2.0
+build>=1.2.1
+
+# Utilities
+github-release-downloader>=1.1.0

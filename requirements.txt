@@ -1,19 +1,33 @@
-easyocr==1.7.1
-numpy==1.26.4
+# Core dependencies (required for all platforms)
+numpy
+Pillow
+pyautogui
+opencv-python
+keyboard
+mouse
+pyperclip
+deprecated
+robotframework
+
+# Windows specific dependencies
+pywinauto; sys_platform == 'win32'
+uiautomation; sys_platform == 'win32'
+
+# macOS specific dependencies
+pyobjc-framework-Quartz; sys_platform == 'darwin'
+pyobjc-framework-AppKit; sys_platform == 'darwin'
+
+# Deep Learning dependencies
+--extra-index-url https://download.pytorch.org/whl/torch_stable.html
+torch
+torchvision
+easyocr>=1.7.1
+
+# Other dependencies
 opencv-contrib-python==4.6.0.66
-opencv-python==4.6.0.66
 opencv-python-headless==4.9.0.80
-pillow==10.3.0
-PyAutoGUI==0.9.54
-robotframework==7.0
 pytest>=6.2.5
 build==1.2.1
-uiautomation==2.0.19; sys_platform == 'win32'
-mouse==0.7.1
-Deprecated==1.2.14
-pyperclip==1.8.2
-keyboard==0.13.5
 pytest-md==0.2.0
 pytest-emoji==0.2.0
-pywinauto>=0.6.6; sys_platform == 'win32'
 github-release-downloader==1.1.0

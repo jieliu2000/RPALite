@@ -28,6 +28,12 @@ elif platform.system() == 'Darwin':  # macOS
     from AppKit import *
     import mouse as mouselib
     import keyboard  # Use keyboard module instead of pywinauto.keyboard
+elif platform.system() == 'Linux':
+    import mouse as mouselib
+    import keyboard
+    import Xlib
+    from Xlib import X, display, Xutil
+    from Xlib.ext import randr
 
 @library(scope='GLOBAL', auto_keywords=True)
 class RPALite:
@@ -58,8 +64,8 @@ class RPALite:
         """
         self.platform = platform.system()
         self.debug_mode = debug_mode
-        if self.platform not in ['Windows', 'Darwin']:
-            raise Exception('This version currently only supports Windows and macOS. Other platforms will be supported in the future.')
+        if self.platform not in ['Windows', 'Darwin', 'Linux']:
+            raise Exception('This version currently only supports Windows, macOS and Linux. Other platforms will be supported in the future.')
         self.image_handler = ImageHandler(debug_mode, languages)
         self.step_pause_interval = step_pause_interval
         self.screen_recording_thread = None
@@ -562,6 +568,22 @@ class RPALite:
                         'kill': lambda force=False: app.terminate() if not force else app.forceTerminate()
                     }
             return None
+        elif self.platform == 'Linux':
+            # Linux implementation using xdotool
+            try:
+                if title:
+                    # Search for window by title
+                    result = subprocess.run(['xdotool', 'search', '--name', title], 
+                                          capture_output=True, text=True)
+                    if result.returncode == 0 and result.stdout.strip():
+                        return {
+                            'window_id': result.stdout.strip(),
+                            'kill': lambda force=False: subprocess.run(['xdotool', 'windowkill', result.stdout.strip()])
+                        }
+                return None
+            except Exception as e:
+                logger.error(f"Failed to find application on Linux: {e}")
+                return None
 
     @not_keyword
     def get_app(self, app_or_keyword):
@@ -579,6 +601,12 @@ class RPALite:
             app.kill(not force_quit)
         elif self.platform == 'Darwin':
             app['kill'](force_quit)
+        elif self.platform == 'Linux':
+            if app and 'window_id' in app:
+                try:
+                    subprocess.run(['xdotool', 'windowkill', app['window_id']])
+                except Exception as e:
+                    logger.error(f"Failed to close application on Linux: {e}")
 
    
     def maximize_window(self, app_or_keyword, window_title_pattern = None):
@@ -622,6 +650,15 @@ class RPALite:
                         )
                         break
                 self.sleep()
+        elif self.platform == 'Linux':
+            app = self.get_app(app_or_keyword)
+            if app and 'window_id' in app:
+                try:
+                    subprocess.run(['xdotool', 'windowactivate', app['window_id']])
+                    subprocess.run(['xdotool', 'windowsize', app['window_id'], '100%', '100%'])
+                    self.sleep()
+                except Exception as e:
+                    logger.error(f"Failed to maximize window on Linux: {e}")
 
     
     def locate(self, location_description, parent_image = None, app = None):
@@ -1205,3 +1242,8 @@ class RPALite:
         elif self.platform == 'Darwin':
             # Use Mission Control shortcut for macOS
             self.send_keys('^%{UP}')
+        elif self.platform == 'Linux':
+            try:
+                subprocess.run(['wmctrl', '-k', 'on'])
+            except Exception as e:
+                logger.error(f"Failed to show desktop on Linux: {e}")

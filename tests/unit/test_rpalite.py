@@ -9,6 +9,10 @@ from github_release_downloader import check_and_download_updates, GitHubRepo
 from pathlib import Path
 import re
 import platform
+import zipfile
+import shutil
+from github import Github
+import requests
 
 
 logger = logging.getLogger(__name__)
@@ -20,15 +24,67 @@ def get_test_app_and_description():
         return test_executable, "INTES*", "FLTK"
 
 def download_test_app():
-    check_file = os.path.isfile("intes.exe")
-    if check_file:
+    test_app_path = os.path.abspath("intes.exe")
+    if os.path.isfile(test_app_path):
         logger.info("Test application already exists.")
         return
-    check_and_download_updates(GitHubRepo("jieliu2000", "intes"),  # Releases source
-        SimpleSpec(">0.1"),  
-        assets_mask=re.compile(".*\\.zip"),  # Download *.exe only
-        downloads_dir=Path("../")
-    )
+
+    try:
+        # Initialize GitHub API
+        g = Github()
+        repo = g.get_repo("jieliu2000/intes")
+        
+        # Get the latest release
+        latest_release = repo.get_latest_release()
+        
+        # Find the zip asset
+        zip_asset = None
+        for asset in latest_release.get_assets():
+            if re.match(r".*\.zip", asset.name):
+                zip_asset = asset
+                break
+        
+        if not zip_asset:
+            raise Exception("No zip file found in the latest release")
+        
+        # Download the zip file
+        logger.info(f"Downloading {zip_asset.name}...")
+        headers = {
+            "Accept": "application/octet-stream",
+        }
+        response = requests.get(zip_asset.url, headers=headers, stream=True)
+        
+        # Save the zip file
+        zip_path = os.path.abspath(zip_asset.name)
+        with open(zip_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        
+        # Extract the exe from zip
+        logger.info(f"Extracting {zip_path}...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            # Find the exe file in the zip
+            exe_files = [f for f in zip_ref.namelist() if f.lower().endswith('.exe')]
+            if not exe_files:
+                raise Exception("No exe file found in the downloaded zip")
+            
+            # Extract the first exe file found
+            exe_file = exe_files[0]
+            with zip_ref.open(exe_file) as source, open(test_app_path, 'wb') as target:
+                shutil.copyfileobj(source, target)
+        
+        # Set executable permissions (for Unix-like systems)
+        os.chmod(test_app_path, 0o755)
+        
+        # Clean up the zip file
+        os.remove(zip_path)
+        logger.info("Test application downloaded and extracted successfully.")
+        
+    except Exception as e:
+        logger.error(f"Failed to download and extract test application: {str(e)}")
+        if os.path.exists(test_app_path):
+            os.remove(test_app_path)
+        raise
 
 class TestRPALite:
 

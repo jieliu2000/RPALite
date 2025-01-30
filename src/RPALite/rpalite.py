@@ -49,7 +49,7 @@ class RPALite:
         The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
     '''
 
-    def __init__(self, step_pause_interval = 3, debug_mode = False, languages = ['en']):
+    def __init__(self, step_pause_interval = 3, debug_mode = False, ocr_engine="paddleocr", languages = ['en']):
         """
         Parameters
         ----------
@@ -64,9 +64,10 @@ class RPALite:
         """
         self.platform = platform.system()
         self.debug_mode = debug_mode
+        self.ocr_engine = ocr_engine
         if self.platform not in ['Windows', 'Darwin', 'Linux']:
             raise Exception('This version currently only supports Windows, macOS and Linux. Other platforms will be supported in the future.')
-        self.image_handler = ImageHandler(debug_mode, languages)
+        self.image_handler = ImageHandler(debug_mode, ocr_engine, languages)
         self.step_pause_interval = step_pause_interval
         self.screen_recording_thread = None
         self.screen_recording_file = None

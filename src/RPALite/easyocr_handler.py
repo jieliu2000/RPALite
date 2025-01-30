@@ -11,7 +11,7 @@ class EasyOCRHandler:
         self.debug_mode = debug_mode
         self.reader = easyocr.Reader(self.languages)
         
-    def find_texts_in_image(self, image, text: str) -> Optional[List[Tuple[Tuple[int, int, int, int], str]]]:
+    def find_texts_in_image(self, image) -> Optional[List[Tuple[Tuple[int, int, int, int], str]]]:
         """
         Find text locations in an image using EasyOCR.
         
@@ -35,21 +35,11 @@ class EasyOCRHandler:
             
         try:
             results = self.reader.readtext(img_array)
+            return results
             if self.debug_mode:
                 logger.debug(f"EasyOCR results: {results}")
                 
-            matches = []
-            for (bbox, text_recognized, prob) in results:
-                if text.lower() in text_recognized.lower():
-                    # Convert bbox to (x, y, width, height)
-                    x_min = int(min(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
-                    y_min = int(min(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
-                    x_max = int(max(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
-                    y_max = int(max(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
-                    matches.append(((x_min, y_min, x_max - x_min, y_max - y_min), text_recognized))
-                    
-            return matches if matches else None
-            
+                
         except Exception as e:
             logger.error(f"Error in EasyOCR text recognition: {e}")
             return None 

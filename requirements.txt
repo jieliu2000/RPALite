@@ -40,3 +40,5 @@ github-release-downloader>=1.1.0
 xdotool>=3.0; sys_platform == 'linux'
 wmctrl>=1.0; sys_platform == 'linux'
 python-xlib>=0.30; sys_platform == 'linux'
+paddlepaddle
+paddleocr

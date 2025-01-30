@@ -2,19 +2,24 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Optional
 import logging
-from .easyocr_handler import EasyOCRHandler
 from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
 
 class ImageHandler:
-    def __init__(self, debug_mode: bool = False, languages: List[str] = ['en'], debug_image_show_seconds=5):
+    def __init__(self, debug_mode: bool = False, ocr_engine: str = "paddleocr", languages: List[str] = ['en'], debug_image_show_seconds=5):
         '''
         Initialize the ImageHandler class. This class use EasyOCR for text OCR. About language codes please check https://www.jaided.ai/easyocr/'''
         self.debug_mode = debug_mode
         self.languages = languages
         self.debug_image_show_milliseconds = debug_image_show_seconds * 1000
-        self.ocr_handler = EasyOCRHandler(languages, debug_mode)
+        # Initialize OCR handler based on selected engine
+        if ocr_engine.lower() == "paddleocr":
+            from .paddleocr_handler import PaddleOCRHandler
+            self.ocr_handler = PaddleOCRHandler(languages, debug_mode)
+        else:
+            from .easyocr_handler import EasyOCRHandler
+            self.ocr_handler = EasyOCRHandler(languages, debug_mode)
         pass
     
     def check_point_inide_rect(self, point, rect):

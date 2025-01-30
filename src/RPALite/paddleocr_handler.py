@@ -19,7 +19,7 @@ class PaddleOCRHandler:
         # Initialize PaddleOCR with specified languages
         self.ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=debug_mode)
         
-    def find_texts_in_image(self, image, text: str) -> Optional[List[Tuple[Tuple[int, int, int, int], str]]]:
+    def find_texts_in_image(self, image) -> Optional[List[Tuple[Tuple[int, int, int, int], str]]]:
         """
         Find text locations in an image using PaddleOCR.
         
@@ -43,27 +43,26 @@ class PaddleOCRHandler:
             
         try:
             # Perform OCR using PaddleOCR
-            result = self.ocr.ocr(img_array, cls=True)
+            ocr_results = self.ocr.ocr(img_array, cls=True)
             
             if self.debug_mode:
-                logger.debug(f"PaddleOCR results: {result}")
+                logger.debug(f"PaddleOCR results: {ocr_results}")
                 
-            matches = []
-            for line in result:
+            results = []
+            for line in ocr_results:
                 if line and len(line) >= 2:
                     bbox = line[0]
                     text_recognized = line[1][0]
                     confidence = line[1][1]
                     
-                    if text.lower() in text_recognized.lower():
-                        # Convert bbox to (x, y, width, height)
-                        x_min = int(min(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
-                        y_min = int(min(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
-                        x_max = int(max(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
-                        y_max = int(max(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
-                        matches.append(((x_min, y_min, x_max - x_min, y_max - y_min), text_recognized))
-                        
-            return matches if matches else None
+                    # Convert bbox to (x, y, width, height)
+                    x_min = int(min(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
+                    y_min = int(min(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
+                    x_max = int(max(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
+                    y_max = int(max(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
+                    results.append(((x_min, y_min, x_max - x_min, y_max - y_min), text_recognized))
+                    
+            return results if results else None
             
         except Exception as e:
             logger.error(f"Error in PaddleOCR text recognition: {e}")

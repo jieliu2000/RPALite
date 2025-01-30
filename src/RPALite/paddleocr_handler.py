@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class PaddleOCRHandler:
-    def __init__(self, languages: List[str] = ['en'], debug_mode: bool = False):
+    def __init__(self, languages: List[str] = ['en'], debug_mode: bool = False, confidence_threshold: float = 0.5):
         """
         Initialize PaddleOCR handler.
         
@@ -16,6 +16,7 @@ class PaddleOCRHandler:
         """
         self.languages = languages
         self.debug_mode = debug_mode
+        self.confidence_threshold = confidence_threshold
         # Initialize PaddleOCR with specified languages
         self.ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=debug_mode)
         
@@ -49,11 +50,14 @@ class PaddleOCRHandler:
                 logger.debug(f"PaddleOCR results: {ocr_results}")
                 
             results = []
-            for line in ocr_results:
+            for line in ocr_results[0]:
                 if line and len(line) >= 2:
                     bbox = line[0]
                     text_recognized = line[1][0]
                     confidence = line[1][1]
+                    # filter out low confidence results
+                    if confidence < self.confidence_threshold:
+                        continue
                     
                     # Convert bbox to (x, y, width, height)
                     x_min = int(min(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))

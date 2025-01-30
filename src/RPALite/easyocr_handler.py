@@ -11,7 +11,7 @@ class EasyOCRHandler:
         self.debug_mode = debug_mode
         self.reader = easyocr.Reader(self.languages)
         
-    def find_texts_in_image(self, image) -> Optional[List[Tuple[Tuple[int, int, int, int], str]]]:
+    def find_texts_in_image(self, image):
         """
         Find text locations in an image using EasyOCR.
         

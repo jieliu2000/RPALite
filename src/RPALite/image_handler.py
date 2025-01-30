@@ -305,7 +305,7 @@ class ImageHandler:
     def find_window_near_position(self, image, target):
         return self.find_control_near_position(image, target)
 
-    def find_control_near_position(self, image, target, label_target = False):
+    def find_control_near_position(self, image, target, left_or_top_label = False):
         img = np.array(image)
         # converting image into grayscale image 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
@@ -342,7 +342,7 @@ class ImageHandler:
                 if dist_to_right_bottom < dist1:
                     dist1 = dist_to_right_bottom
 
-                if(dist1 < dist) and ((label_target == False) or (label_target and (target[0] + target[2] < x  or target[1] + target[3] < y ))):
+                if(dist1 < dist) and ((left_or_top_label == False) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
                     dist = dist1
                     target_information = approx, (x, y, w, h)
         # displaying the image after drawing contours 

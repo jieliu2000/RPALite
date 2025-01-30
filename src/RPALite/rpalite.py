@@ -1091,10 +1091,11 @@ class RPALite:
     
         '''
         img = self.take_screenshot()
-        location = self.wait_until_text_exists(field_name)
+        location = self.wait_until_text_exists(field_name, search_in_image=img)
         if(location is None):
             logger.error('Cannot find field:', field_name)
             return
+
         (x,y,w,h) = self.image_handler.find_control_near_position(img, location, True)
         self.click_by_position(x+3, y+3)
         self.input_text(text)

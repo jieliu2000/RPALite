@@ -18,9 +18,9 @@ class PaddleOCRHandler:
         self.debug_mode = debug_mode
         self.confidence_threshold = confidence_threshold
         # Initialize PaddleOCR with specified languages
-        self.ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=debug_mode)
+        self.ocr = PaddleOCR(lang='en', show_log=debug_mode)
         
-    def find_texts_in_image(self, image) -> Optional[List[Tuple[Tuple[int, int, int, int], str]]]:
+    def find_texts_in_image(self, image):
         """
         Find text locations in an image using PaddleOCR.
         
@@ -58,13 +58,7 @@ class PaddleOCRHandler:
                     # filter out low confidence results
                     if confidence < self.confidence_threshold:
                         continue
-                    
-                    # Convert bbox to (x, y, width, height)
-                    x_min = int(min(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
-                    y_min = int(min(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
-                    x_max = int(max(bbox[0][0], bbox[1][0], bbox[2][0], bbox[3][0]))
-                    y_max = int(max(bbox[0][1], bbox[1][1], bbox[2][1], bbox[3][1]))
-                    results.append(((x_min, y_min, x_max - x_min, y_max - y_min), text_recognized))
+                    results.append((bbox, text_recognized, confidence))
                     
             return results if results else None
             

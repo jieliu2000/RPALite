@@ -1,18 +1,14 @@
-
 import random
 import tempfile
+import platform
 import threading
 import PIL.Image
 import numpy as np
 from robot.api.deco import keyword, library, not_keyword
 from robot.api import logger
-import uiautomation as auto
 from deprecated import deprecated
-import mouse as mouselib
 import PIL
-from pywinauto import mouse, keyboard, findwindows, Application
 import time
-import platform
 import pyautogui
 import pyperclip
 import keyboard as keyboardlib
@@ -20,6 +16,18 @@ import cv2
 from datetime import datetime
 from .image_handler import ImageHandler
 import os
+import subprocess
+
+# Import platform-specific dependencies
+if platform.system() == 'Windows':
+    import uiautomation as auto
+    import mouse as mouselib
+    from pywinauto import mouse, keyboard, findwindows, Application
+elif platform.system() == 'Darwin':  # macOS
+    from Quartz import *
+    from AppKit import *
+    import mouse as mouselib
+    import keyboard  # Use keyboard module instead of pywinauto.keyboard
 
 @library(scope='GLOBAL', auto_keywords=True)
 class RPALite:
@@ -50,8 +58,8 @@ class RPALite:
         """
         self.platform = platform.system()
         self.debug_mode = debug_mode
-        if(self.platform != 'Windows'):
-            raise Exception('This version currently only supports Windows. Other platforms will be supported in the future.')
+        if self.platform not in ['Windows', 'Darwin']:
+            raise Exception('This version currently only supports Windows and macOS. Other platforms will be supported in the future.')
         self.image_handler = ImageHandler(debug_mode, languages)
         self.step_pause_interval = step_pause_interval
         self.screen_recording_thread = None
@@ -69,13 +77,23 @@ class RPALite:
         
         noblock : bool
             Specifies whether this function need to be blocked when executing the command
-        """
 
-        if(noblock):
-            os.popen(command)
-        else:
-            os.system(command)
-        self.sleep()
+        Returns
+        -------
+        int
+            The return code of the command. 0 indicates success.
+        """
+        try:
+            if noblock:
+                process = subprocess.Popen(command, shell=True)
+                return process.pid
+            else:
+                return subprocess.call(command, shell=True)
+        except subprocess.SubprocessError as e:
+            logger.error(f"Failed to execute command: {e}")
+            return -1
+        finally:
+            self.sleep()
         
         
     def sleep(self, seconds = 0):
@@ -519,19 +537,31 @@ class RPALite:
             return [loc[0] for loc in locations]
 
 
-    def find_application(self, title=None, class_name = None):
+    def find_application(self, title=None, class_name=None):
         '''Find an application by its title or ClassName.'''
-
+        
         if title is None and class_name is None:
             raise Exception('Either title or class name must be specified.')
-        params = self.build_element_params(title, class_name)
-    
-        windows = findwindows.find_elements(**params)
-        if(len(windows) == 0):
+            
+        if self.platform == 'Windows':
+            params = self.build_element_params(title, class_name)
+            windows = findwindows.find_elements(**params)
+            if(len(windows) == 0):
+                return None
+            else:
+                process_id = windows[0].process_id
+                return Application().connect(process = process_id)
+        elif self.platform == 'Darwin':
+            # macOS implementation
+            workspace = AppKit.NSWorkspace.sharedWorkspace()
+            running_apps = workspace.runningApplications()
+            for app in running_apps:
+                if title and title.lower() in app.localizedName().lower():
+                    return {
+                        'app': app,
+                        'kill': lambda force=False: app.terminate() if not force else app.forceTerminate()
+                    }
             return None
-        else:
-            process_id = windows[0].process_id
-            return Application().connect(process = process_id)
 
     @not_keyword
     def get_app(self, app_or_keyword):
@@ -541,29 +571,57 @@ class RPALite:
         return app
 
     def close_app(self, app_or_keyword, force_quit = False):
-        '''Close an application. The parameter could be the app instance or the app's title keyword. The force_quit parameter specify whether this function need to be forced quit just like what we did in task manager.'''
+        '''Close an application.'''
         app = self.get_app(app_or_keyword)
-        if(app is None):
+        if app is None:
             pass
-        else:
-            app.kill(not(force_quit))
+        elif self.platform == 'Windows':
+            app.kill(not force_quit)
+        elif self.platform == 'Darwin':
+            app['kill'](force_quit)
 
    
     def maximize_window(self, app_or_keyword, window_title_pattern = None):
         '''Maximize the window of the application.'''
-        app = self.get_app(app_or_keyword)
-
-        window = None
-
-        if window_title_pattern is not None:
-            window = app.window(found_index=0, title_re=window_title_pattern)
-        elif app.window() is not None:
-            window = app.window(found_index=0)
-        
-        if window is not None:
-            wrapper = window.wrapper_object()
-            wrapper.maximize()
-            self.sleep()
+        if self.platform == 'Windows':
+            app = self.get_app(app_or_keyword)
+            window = None
+            if window_title_pattern is not None:
+                window = app.window(found_index=0, title_re=window_title_pattern)
+            elif app.window() is not None:
+                window = app.window(found_index=0)
+            
+            if window is not None:
+                wrapper = window.wrapper_object()
+                wrapper.maximize()
+                self.sleep()
+        elif self.platform == 'Darwin':
+            app = self.get_app(app_or_keyword)
+            if app:
+                app['app'].activateWithOptions_(AppKit.NSApplicationActivateIgnoringOtherApps)
+                # Get all windows
+                windows = Quartz.CGWindowListCopyWindowInfo(
+                    Quartz.kCGWindowListOptionOnScreenOnly | Quartz.kCGWindowListExcludeDesktopElements,
+                    Quartz.kCGNullWindowID
+                )
+                # Find window belonging to the app
+                for window in windows:
+                    if window[Quartz.kCGWindowOwnerName] == app['app'].localizedName():
+                        # Get screen dimensions
+                        screen = AppKit.NSScreen.mainScreen()
+                        frame = screen.visibleFrame()
+                        # Maximize window
+                        Quartz.CGWindowSetFrame(
+                            window[Quartz.kCGWindowNumber],
+                            Quartz.CGRectMake(
+                                frame.origin.x,
+                                frame.origin.y,
+                                frame.size.width,
+                                frame.size.height
+                            )
+                        )
+                        break
+                self.sleep()
 
     
     def locate(self, location_description, parent_image = None, app = None):
@@ -849,53 +907,129 @@ class RPALite:
 
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
         '''
-        Clicks the positon based on the coordinates. Please note that this function will perform these steps:
-        1. Move the mouse to the position
-        2. Wait for 1 second
-        3. Click the mouse
-
-        Parameters:
-        ----------
-        x: int
-            The x coordinate of the position to be clicked
-
-        y: int
-            The y coordinate of the position to be clicked
-
-        button: str
-            The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'
-
-        double_click: bool
-            Whether to perform a double click. Default is False.
+        Clicks the position based on the coordinates.
         '''
         logger.debug('Click by position: {}, {}, {}, {}'.format(x, y, type(x), type(y)))
-        mouse.move((x, y))
-        self.sleep(1)
-        if(double_click):
-            mouse.double_click(button, (x, y))
-        else:
-            mouse.click(button, (x,y))
+        
+        if self.platform == 'Windows':
+            mouse.move((x, y))
+            self.sleep(1)
+            if double_click:
+                mouse.double_click(button, (x, y))
+            else:
+                mouse.click(button, (x,y))
+        elif self.platform == 'Darwin':
+            mouselib.move(x, y)
+            self.sleep(1)
+            if double_click:
+                mouselib.double_click(button)
+            else:
+                mouselib.click(button)
+                
         self.sleep()
 
     def send_keys(self, keys):
         '''
-        Simulate the keyboard action to send keys. It uses pywinauto's send_keys method. See https://pywinauto.readthedocs.io/en/latest/code/pywinauto.keyboard.html for details.
-
-        You can use any Unicode characters (on Windows) and some special keys listed below.
-
-        Available key codes: 
-
-        {SCROLLLOCK}, {VK_SPACE}, {VK_LSHIFT}, {VK_PAUSE}, {VK_MODECHANGE},{BACK}, {VK_HOME}, {F23}, {F22}, {F21}, {F20}, {VK_HANGEUL}, {VK_KANJI},{VK_RIGHT}, {BS}, {HOME}, {VK_F4}, {VK_ACCEPT}, {VK_F18}, {VK_SNAPSHOT},{VK_PA1}, {VK_NONAME}, {VK_LCONTROL}, {ZOOM}, {VK_ATTN}, {VK_F10}, {VK_F22},{VK_F23}, {VK_F20}, {VK_F21}, {VK_SCROLL}, {TAB}, {VK_F11}, {VK_END},{LEFT}, {VK_UP}, {NUMLOCK}, {VK_APPS}, {PGUP}, {VK_F8}, {VK_CONTROL},{VK_LEFT}, {PRTSC}, {VK_NUMPAD4}, {CAPSLOCK}, {VK_CONVERT}, {VK_PROCESSKEY},{ENTER}, {VK_SEPARATOR}, {VK_RWIN}, {VK_LMENU}, {VK_NEXT}, {F1}, {F2},{F3}, {F4}, {F5}, {F6}, {F7}, {F8}, {F9}, {VK_ADD}, {VK_RCONTROL},{VK_RETURN}, {BREAK}, {VK_NUMPAD9}, {VK_NUMPAD8}, {RWIN}, {VK_KANA},{PGDN}, {VK_NUMPAD3}, {DEL}, {VK_NUMPAD1}, {VK_NUMPAD0}, {VK_NUMPAD7},{VK_NUMPAD6}, {VK_NUMPAD5}, {DELETE}, {VK_PRIOR}, {VK_SUBTRACT}, {HELP},{VK_PRINT}, {VK_BACK}, {CAP}, {VK_RBUTTON}, {VK_RSHIFT}, {VK_LWIN}, {DOWN},{VK_HELP}, {VK_NONCONVERT}, {BACKSPACE}, {VK_SELECT}, {VK_TAB}, {VK_HANJA},{VK_NUMPAD2}, {INSERT}, {VK_F9}, {VK_DECIMAL}, {VK_FINAL}, {VK_EXSEL},{RMENU}, {VK_F3}, {VK_F2}, {VK_F1}, {VK_F7}, {VK_F6}, {VK_F5}, {VK_CRSEL},{VK_SHIFT}, {VK_EREOF}, {VK_CANCEL}, {VK_DELETE}, {VK_HANGUL}, {VK_MBUTTON},{VK_NUMLOCK}, {VK_CLEAR}, {END}, {VK_MENU}, {SPACE}, {BKSP}, {VK_INSERT},{F18}, {F19}, {ESC}, {VK_MULTIPLY}, {F12}, {F13}, {F10}, {F11}, {F16},{F17}, {F14}, {F15}, {F24}, {RIGHT}, {VK_F24}, {VK_CAPITAL}, {VK_LBUTTON},{VK_OEM_CLEAR}, {VK_ESCAPE}, {UP}, {VK_DIVIDE}, {INS}, {VK_JUNJA},{VK_F19}, {VK_EXECUTE}, {VK_PLAY}, {VK_RMENU}, {VK_F13}, {VK_F12}, {LWIN},{VK_DOWN}, {VK_F17}, {VK_F16}, {VK_F15}, {VK_F14}
-        ~ is a shorter alias for {ENTER}
-
-        Modifiers:
-
-        * '+': {VK_SHIFT}
-        * '^': {VK_CONTROL}
-        * '%': {VK_MENU} a.k.a. Alt key
+        Simulate keyboard input. Supports both simple text input and special key combinations.
+        
+        For Windows, it uses pywinauto's send_keys format.
+        For macOS, it converts the keys to keyboard module format.
+        
+        Parameters
+        ----------
+        keys : str
+            The keys to send. Can include special keys and combinations.
+            Examples:
+            - "Hello World"  - types the text
+            - "^c"          - Control+C
+            - "%{F4}"       - Alt+F4
+            - "{ENTER}"     - Press Enter key
+            - "+(abc)"      - Shift+ABC (uppercase)
         '''
-        keyboard.send_keys(keys)
-        self.sleep()
+        if self.platform == 'Windows':
+            keyboard.send_keys(keys)
+        elif self.platform == 'Darwin':
+            # Convert pywinauto key mappings to keyboard module format
+            key_mapping = {
+                # Special keys
+                '{ENTER}': 'enter',
+                '{ESC}': 'esc',
+                '{UP}': 'up',
+                '{DOWN}': 'down',
+                '{LEFT}': 'left', 
+                '{RIGHT}': 'right',
+                '{SPACE}': 'space',
+                '{TAB}': 'tab',
+                '{BACKSPACE}': 'backspace',
+                '{DELETE}': 'delete',
+                '{HOME}': 'home',
+                '{END}': 'end',
+                '{PAGEUP}': 'page up',
+                '{PAGEDOWN}': 'page down',
+                
+                # Modifier keys
+                '{VK_SHIFT}': 'shift',
+                '{VK_CONTROL}': 'ctrl',
+                '{VK_MENU}': 'alt',
+                '{VK_LWIN}': 'command',
+                
+                # Function keys
+                '{F1}': 'f1',
+                '{F2}': 'f2',
+                '{F3}': 'f3',
+                '{F4}': 'f4',
+                '{F5}': 'f5',
+                '{F6}': 'f6',
+                '{F7}': 'f7',
+                '{F8}': 'f8',
+                '{F9}': 'f9',
+                '{F10}': 'f10',
+                '{F11}': 'f11',
+                '{F12}': 'f12',
+            }
+            
+            # Handle modifiers
+            modifier_mapping = {
+                '^': 'ctrl',
+                '%': 'alt',
+                '+': 'shift',
+                '#': 'command'  # Add command key for macOS
+            }
+            
+            processed_keys = keys
+            
+            # Convert special key combinations first
+            for old, new in key_mapping.items():
+                processed_keys = processed_keys.replace(old, new)
+            
+            # Handle modifier combinations
+            for mod, mod_name in modifier_mapping.items():
+                # Look for patterns like '^a', '%b', etc.
+                if mod in processed_keys:
+                    # Handle cases like '^(abc)' - multiple keys with same modifier
+                    while f'{mod}(' in processed_keys:
+                        start = processed_keys.find(f'{mod}(')
+                        end = processed_keys.find(')', start)
+                        if end == -1:
+                            break
+                        keys_in_parens = processed_keys[start+2:end]
+                        processed_keys = (processed_keys[:start] + 
+                                       f'{mod_name}+' + keys_in_parens +
+                                       processed_keys[end+1:])
+                
+                    # Handle single character modifiers like '^c'
+                    processed_keys = processed_keys.replace(f'{mod}', f'{mod_name}+')
+            
+            # Split into individual commands and execute them
+            commands = processed_keys.split()
+            for cmd in commands:
+                try:
+                    keyboard.send(cmd)
+                    self.sleep(0.1)  # Small delay between commands
+                except Exception as e:
+                    logger.error(f"Failed to send keys '{cmd}': {str(e)}")
+                
+            self.sleep()
 
 
     def input_text(self, text, seconds = 0):
@@ -968,7 +1102,6 @@ class RPALite:
     def start_screen_recording(self, target_avi_file_path = None, fps = 10):
         '''
         Starts recording the screen.
-        This function is an automation method and will not return any value.
 
         Parameters
         ----------
@@ -976,13 +1109,24 @@ class RPALite:
             File name to save the video file. If this value is set to None, RPALite will create a file in the temp folder with a random name
         fps : int
             Frame per second, default is 10
+
+        Returns
+        -------
+        str
+            The path to the video file being recorded
         '''
+        if self.screen_recording_thread is not None:
+            logger.warning("Screen recording is already in progress")
+            return self.screen_recording_file
+
         if target_avi_file_path is None or target_avi_file_path == '':
             temp_dir = tempfile.mkdtemp()
             if not os.path.exists(temp_dir):
                 os.makedirs(temp_dir)
             target_avi_file_path = os.path.join(temp_dir, str(random.randint(10000, 99999)) + '.avi')
-        thread = threading.Thread(target=self.record_screen_impl, args=(target_avi_file_path, fps))
+
+        self.screen_recording_file = target_avi_file_path
+        thread = threading.Thread(target=self.record_screen_impl, args=(target_avi_file_path, fps), daemon=True)
         thread.start()
         self.screen_recording_thread = thread
         return target_avi_file_path
@@ -990,14 +1134,27 @@ class RPALite:
     def stop_screen_recording(self):
         '''
         Stops recording the screen.
-        This function is an automation method and will not return any value.
+
+        Returns
+        -------
+        str
+            The path to the recorded video file, or None if no recording was in progress
         '''
-        if self.screen_recording_thread:
-            self.screen_recording_thread.keep_recording = False
-        self.screen_recording_thread = None
-        recording_file = self.screen_recording_file + ''
-        self.screen_recording_file = None
-        return recording_file
+        if not self.screen_recording_thread:
+            logger.warning("No screen recording in progress")
+            return None
+
+        try:
+            self.keep_screen_recording = False
+            self.screen_recording_thread.join(timeout=5.0)
+            recording_file = self.screen_recording_file
+            return recording_file
+        except threading.TimeoutError:
+            logger.error("Failed to stop screen recording thread")
+            return None
+        finally:
+            self.screen_recording_thread = None
+            self.screen_recording_file = None
 
     @not_keyword
     def record_screen_impl(self, target_avi_file_path, fps = 10):
@@ -1014,33 +1171,37 @@ class RPALite:
             Frame per second, default is 10
         '''
         screen_size = self.get_screen_size()
-        
-        # Specify video codec
-        codec = cv2.VideoWriter_fourcc(*"XVID")
-        out = cv2.VideoWriter(target_avi_file_path, codec, fps, screen_size)
+        out = None
+        try:
+            # Specify video codec
+            codec = cv2.VideoWriter_fourcc(*"XVID")
+            out = cv2.VideoWriter(target_avi_file_path, codec, fps, screen_size)
+            if not out.isOpened():
+                logger.error("Failed to create video writer")
+                return
 
-        self.keep_screen_recording = True
-        t = threading.currentThread()
-        self.screen_recording_file = target_avi_file_path
-        # X and Y coordinates of mouse pointer
-        Xs = [0,8,6,14,12,4,2,0]
-        Ys = [0,2,4,12,14,6,8,0]
-
-        while getattr(t, "keep_recording", True):
-            img = pyautogui.screenshot()
-          
-
-            frame = np.array(img)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)      
-
-            out.write(frame)
-
-        # Release the Video writer
-        out.release()
+            self.keep_screen_recording = True
+            while self.keep_screen_recording:
+                try:
+                    img = pyautogui.screenshot()
+                    frame = np.array(img)
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    out.write(frame)
+                except Exception as e:
+                    logger.error(f"Error during screen recording: {e}")
+                    break
+        except Exception as e:
+            logger.error(f"Failed to initialize screen recording: {e}")
+        finally:
+            if out is not None:
+                out.release()
 
     def show_desktop(self):
         '''
         Shows desktop and minimizes all windows.
         '''
-        if(self.platform == 'Windows'):
+        if self.platform == 'Windows':
             self.send_keys('{VK_LWIN down}D{VK_LWIN}')
+        elif self.platform == 'Darwin':
+            # Use Mission Control shortcut for macOS
+            self.send_keys('^%{UP}')

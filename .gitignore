@@ -168,3 +168,7 @@ cython_debug/
 
 tests/recording
 repo-*
+
+# Test logs
+test_log.txt
+test_download.txt

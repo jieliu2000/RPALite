@@ -1,16 +1,20 @@
-import easyocr
 import cv2
 import numpy as np
+from typing import List, Tuple, Optional
+import logging
+from .easyocr_handler import EasyOCRHandler
 from difflib import SequenceMatcher
 
+logger = logging.getLogger(__name__)
+
 class ImageHandler:
-    def __init__(self, debug_mode = False, languages = ['en'], debug_image_show_seconds=5):
+    def __init__(self, debug_mode: bool = False, languages: List[str] = ['en'], debug_image_show_seconds=5):
         '''
         Initialize the ImageHandler class. This class use EasyOCR for text OCR. About language codes please check https://www.jaided.ai/easyocr/'''
         self.debug_mode = debug_mode
         self.languages = languages
         self.debug_image_show_milliseconds = debug_image_show_seconds * 1000
-        self.reader = easyocr.Reader(languages) # this needs to run only once to load the model into memory
+        self.ocr_handler = EasyOCRHandler(languages, debug_mode)
         pass
     
     def check_point_inide_rect(self, point, rect):
@@ -106,7 +110,7 @@ class ImageHandler:
         return False
 
     def read_text(self, image):
-        arr = self.reader.readtext(np.array(image), link_threshold  = 0.3, width_ths =0.3, batch_size=2, slope_ths=0.5)
+        arr = self.ocr_handler.find_texts_in_image(image)
         return arr
 
     def find_texts_in_rects(self, image, text, filter_args_in_parent=None, rects=None):

@@ -18,7 +18,7 @@ class PaddleOCRHandler:
         self.debug_mode = debug_mode
         self.confidence_threshold = confidence_threshold
         # Initialize PaddleOCR with specified languages
-        self.ocr = PaddleOCR(lang='en', show_log=debug_mode)
+        self.ocr = PaddleOCR(lang='en', show_log=debug_mode, det_db_unclip_ratio=0.8, det_db_thresh = 0.6, det_db_box_thresh = 0.9)
         
     def find_texts_in_image(self, image):
         """

@@ -43,7 +43,7 @@ class RPALite:
         The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
     '''
 
-    def __init__(self, step_pause_interval = 3, debug_mode = False, ocr_engine="paddleocr", languages = ['en']):
+    def __init__(self, step_pause_interval = 3, debug_mode = False, ocr_engine="easyocr", languages = ['en']):
         """
         Parameters
         ----------
@@ -348,6 +348,7 @@ class RPALite:
         '''
 
         img = PIL.ImageGrab.grab(all_screens=False)
+        
         if filename is not None:
             img.save(filename)
         return img
@@ -1064,6 +1065,7 @@ class RPALite:
         result = ''
         current_y = 999999
         for i, (location, target_text) in enumerate(text_arr):
+            target_text = target_text.strip()
             if(location[1] < current_y):
                 if i > 0:
                     target_text = ' ' + target_text    

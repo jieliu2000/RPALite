@@ -113,8 +113,28 @@ class ImageHandler:
             if location is not None:
                 return True
         return False
+    
+
 
     def read_text(self, image):
+        
+        img_array = np.array(image)
+        
+        cv_image = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)        
+        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        
+        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+        
+        low_contrast_mask = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                                cv2.THRESH_BINARY_INV, 11, 2)
+        
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        enhanced_borders = cv2.morphologyEx(low_contrast_mask, cv2.MORPH_CLOSE, kernel)
+        
+        enhanced_borders = cv2.cvtColor(enhanced_borders, cv2.COLOR_GRAY2BGR)
+        enhanced_borders = cv2.GaussianBlur(enhanced_borders, (3, 3), 0)
+        img_array = cv2.addWeighted(cv_image, 0.9, enhanced_borders, 0.1, 0)
+
         arr = self.ocr_handler.find_texts_in_image(image)
         return arr
 

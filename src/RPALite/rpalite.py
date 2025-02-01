@@ -17,6 +17,7 @@ from datetime import datetime
 from .image_handler import ImageHandler
 import os
 import subprocess
+from typing import List
 
 # Import platform-specific dependencies
 if platform.system() == 'Windows':
@@ -43,24 +44,20 @@ class RPALite:
         The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
     '''
 
-    def __init__(self, step_pause_interval = 3, debug_mode = False, ocr_engine="easyocr", languages = ['en']):
+    def __init__(self, debug_mode: bool = False, ocr_engine: str = "easyocr", languages: List[str] = ['en'],
+                 step_pause_interval: int = 3):
         """
-        Parameters
-        ----------
-        debug_mode : bool
-            Indicates whether the debug mode is enabled. If it is enabled, the library will output more detailed information and show some images for debugging. The default value is False.
-        
-        step_pause_interval : int
-            The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
-        
-        languages : arr of str
-            The languages to be used for OCR. The default value is [en'], which is English. Please refer to the language list(https://www.jaided.ai/easyocr) of EasyOCR(https://github.com/JaidedAI/EasyOCR) for more information.
+        Initialize the RPALite class.
+        :param debug_mode: Whether to enable debug mode
+        :param ocr_engine: OCR engine to use (easyocr or paddleocr)
+        :param languages: Languages for OCR
+        :param step_pause_interval: Time to wait between steps
         """
         self.platform = platform.system()
         self.debug_mode = debug_mode
         self.ocr_engine = ocr_engine
-        if self.platform not in ['Windows', 'Darwin']:
-            raise Exception('This version currently only supports Windows and macOS. Other platforms will be supported in the future.')
+        if self.platform not in ['Windows']:
+            raise Exception('This version currently only supports Windows. Other platforms will be supported in the future.')
         self.image_handler = ImageHandler(debug_mode, ocr_engine, languages)
         self.step_pause_interval = step_pause_interval
         self.screen_recording_thread = None

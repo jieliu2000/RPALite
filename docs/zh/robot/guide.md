@@ -26,7 +26,6 @@
     - [开始录屏](#开始录屏)
     - [结束录屏](#结束录屏)
 
-
 ## 安装
 
 你可以通过 pip 安装 RPALite：
@@ -157,6 +156,7 @@ ${size} = Get Screen Size
 ${log_message} =  Format String    Screen size: {0} ${size}
 Log    ${log_message}
 ```
+
 `get_screen_size`函数返回一个元组，表示屏幕的尺寸。例如 (1920, 1080) 表示屏幕宽度为 1920 像素，高度为 1080 像素。
 
 ### 屏幕截图
@@ -164,6 +164,7 @@ Log    ${log_message}
 ```robotframework
 ${pil_image} =    Take Screenshot
 ```
+
 `Take Screenshot`函数返回一个 PIL 图像对象，表示当前屏幕的截图。它有两个可选的参数：
 
 - `all_screens`: 布尔值，默认值为 False，意思是只截取当前屏幕的截图。如果为 True，则截取所有屏幕的截图。这个参数在多屏幕环境中很有用。
@@ -185,6 +186,7 @@ Start Screen Recording
 start_screen_recording 目前只支持保存为 AVI 格式的录屏文件。
 
 #### 结束录屏
+
 ```robotframework
 Stop Screen Recording
 ```

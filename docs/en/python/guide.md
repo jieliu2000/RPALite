@@ -4,6 +4,7 @@
 
 - [Introduction](#introduction)
 - [Platform Support](#platform-support)
+- [OCR Engine Configuration](#ocr-engine-configuration)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Advanced Features](#advanced-features)
@@ -34,9 +35,7 @@
   - [Sleeping](#sleeping)
   - [Getting Screen Size](#getting-screen-size)
   - [Taking Screenshot](#taking-screenshot)
-  - [Screen Recording](#screen-recording)
-    - [Starting Screen Recording](#starting-screen-recording)
-    - [Stopping Screen Recording](#stopping-screen-recording)
+  - [Show Desktop](#show-desktop)
 
 ## Introduction
 
@@ -154,9 +153,7 @@ You can directly navigate to each section via the following links:
   - [Sleeping](#sleeping)
   - [Getting Screen Size](#getting-screen-size)
   - [Taking Screenshot](#taking-screenshot)
-  - [Screen Recording](#screen-recording)
-    - [Starting Screen Recording](#starting-screen-recording)
-    - [Stopping Screen Recording](#stopping-screen-recording)
+  - [Show Desktop](#show-desktop)
 
 ## Creating an RPALite Object
 

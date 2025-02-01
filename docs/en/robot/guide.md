@@ -4,32 +4,35 @@
 
 - [Introduction](#introduction)
 - [Platform Support](#platform-support)
+- [OCR Engine Configuration](#ocr-engine-configuration)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Advanced Features](#advanced-features)
 - [Troubleshooting](#troubleshooting)
-- [Importing the RPALite Library](#importing-the-rpalite-library)
 - [Application Operations](#application-operations)
   - [Finding an Application](#finding-an-application)
   - [Launching an Application](#launching-an-application)
   - [Closing an Application](#closing-an-application)
   - [Maximizing a Window](#maximizing-a-window)
-  - [Sleeping](#sleeping)
-- [Simulating Mouse Actions](#simulating-mouse-actions)
+- [Mouse Operations](#mouse-operations)
+  - [Getting Cursor Position](#getting-cursor-position)
+  - [Moving Mouse](#moving-mouse)
   - [Clicking by Coordinates](#clicking-by-coordinates)
   - [Clicking by Text](#clicking-by-text)
   - [Clicking by Image](#clicking-by-image)
-- [Simulating Keyboard Actions](#simulating-keyboard-actions)
-  - [Typing Text at the Current Cursor Position](#typing-text-at-the-current-cursor-position)
-  - [Sending Key Strokes](#sending-key-strokes)
+- [Keyboard Operations](#keyboard-operations)
+  - [Typing Text](#typing-text)
+  - [Sending Keys](#sending-keys)
+  - [Validating Text](#validating-text)
+  - [Finding Text Positions](#finding-text-positions)
+- [Clipboard Operations](#clipboard-operations)
+  - [Getting Clipboard Text](#getting-clipboard-text)
+  - [Setting Clipboard Text](#setting-clipboard-text)
 - [Global Operations](#global-operations)
-  - [Sleeping](#sleeping)
-  - [Getting Screen Dimensions](#getting-screen-dimensions)
-  - [Taking a Screenshot](#taking-a-screenshot)
-  - [Showing the Desktop](#showing-the-desktop)
-  - [Screen Recording](#screen-recording)
-    - [Starting a Screen Recording](#starting-a-screen-recording)
-    - [Stopping a Screen Recording](#stopping-a-screen-recording)
+  - [Sleep](#sleep)
+  - [Show Desktop](#show-desktop)
+  - [Get Screen Size](#get-screen-size)
+  - [Take Screenshot](#take-screenshot)
 
 ## Introduction
 
@@ -59,10 +62,10 @@ You can configure the OCR engine when initializing RPALite:
 
 ```robotframework
 *** Settings ***
-Library    RPALite    ocr_engine=paddleocr    # Use PaddleOCR (default)
+Library    RPALite    ocr_engine=easyocr    # Use EasyOCR (default)
 
 *** Settings ***
-Library    RPALite    ocr_engine=easyocr     # Use EasyOCR
+Library    RPALite    ocr_engine=paddleocr  # Use PaddleOCR
 ```
 
 ### Installation
@@ -110,14 +113,6 @@ If you encounter any issues:
 3. Verify that all dependencies are properly installed
 4. For Windows, ensure you have administrative privileges if required
 
-## Importing the RPALite Library
-
-You can import the RPALite library with the following code:
-
-```robotframework
-Library    RPALite
-```
-
 ## Application Operations
 
 ### Launching an Application
@@ -159,60 +154,89 @@ ${app} =     Find Application    .*Notepad
 Maximize Window    ${app}
 ```
 
-## Simulating Mouse Actions
+## Mouse Operations
 
-RPALite supports various mouse simulation actions, such as clicking on text, images, and coordinates.
-
-### Clicking by Coordinates
-
-You can use the following code to click at specific coordinates:
+### Getting Cursor Position
 
 ```robotframework
-Click By Position    10    20
+${position} =    Get Cursor Position
+Log    Cursor position: ${position}
+```
+
+### Moving Mouse
+
+```robotframework
+Move Mouse    100    200    # Move to absolute position
 ```
 
 ### Clicking by Text
 
 ```robotframework
-Click By Text    Text to click
+Click By Text    Click me    # Clicks on text that matches "Click me"
 ```
 
-### Clicking by Image
+## Keyboard Operations
 
-You can use the following code to click an image:
+### Typing Text
 
 ```robotframework
-Click By Image    path/to/image.png
+Input Text    Hello World    # Types "Hello World" at current cursor position
 ```
 
-## Simulating Keyboard Actions
-
-### Typing Text at the Current Cursor Position
-
-You can use the following code to input a piece of text:
+### Sending Keys
 
 ```robotframework
-Input Text    This is a demo using RPALite.
+Send Keys    {ENTER}    # Sends Enter key
+Send Keys    ^c         # Sends Ctrl+C
+Send Keys    %{F4}      # Sends Alt+F4
 ```
 
-### Sending Key Strokes
-
-You can simulate pressing a key on the keyboard with the following code:
+### Finding Text Positions
 
 ```robotframework
-Send Keys    {VK_LWIN down}D{VK_LWIN up}
+${positions} =    Find Text Positions    Text to find
+Log    Text positions: ${positions}
+```
+
+## Clipboard Operations
+
+### Getting Clipboard Text
+
+```robotframework
+${text} =    Get Clipboard Text
+Log    Clipboard content: ${text}
+```
+
+### Setting Clipboard Text
+
+```robotframework
+Copy Text To Clipboard    This is a test
 ```
 
 ## Global Operations
 
-### Sleeping
-
-You can simulate a program sleep with the following code:
+### Sleep
 
 ```robotframework
-Sleep    1
+Sleep    5    # Sleep for 5 seconds
 ```
 
-The `Sleep` function accepts an integer parameter indicating how many seconds RPALite should sleep. This parameter is optional, and the default value is the `step_pause_interval` attribute of the rpalite object.
+### Show Desktop
 
-As mentioned earlier, this value cannot be set to 0 because after simulating mouse or keyboard actions, Windows or the program being operated also needs some time to respond. Otherwise, the likelihood of issues occurring will greatly increase. If you set this parameter to 0, RPALite will directly use the value of `step_pause_interval`. If you set the `step_pause_interval`
+```robotframework
+Show Desktop
+```
+
+### Get Screen Size
+
+```robotframework
+${size} =    Get Screen Size
+Log    Screen size: ${size}
+```
+
+### Take Screenshot
+
+```robotframework
+${image} =    Take Screenshot
+Take Screenshot    filename=screenshot.png    # Save to file
+```

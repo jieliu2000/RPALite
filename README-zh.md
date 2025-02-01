@@ -23,7 +23,7 @@
 
 RPALite 是一个开源的 RPA（机器人流程自动化）库。您可以通过 Python 或 [Robot Framework](https://robotframework.org/) 来使用 RPALite 实现各种自动化任务。
 
-RPALite 现已支持 Windows 和 macOS 平台，提供跨平台自动化能力。
+RPALite 现在支持 Windows 平台。对 MacOS 和 Linux 的支持正在开发中。
 
 ## 功能特性
 
@@ -59,7 +59,7 @@ RPALite 支持以下操作：
 
 ## 性能优化
 
-RPALite 中最耗时的操作是图像识别和 OCR。对于 OCR，我们使用 [EasyOCR](https://github.com/JaidedAI/EasyOCR)。EasyOCR 在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。
+RPALite 中最耗时的操作是图像识别和 OCR。对于 OCR，用户可以选择使用 [EasyOCR](https://github.com/JaidedAI/EasyOCR)或者 [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 进行文本识别。EasyOCR和PaddleOCR 在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。
 
 ## 文档
 

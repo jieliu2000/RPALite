@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
 ]
-version = "0.1.0"
+version = "0.1.1"
 description = "Open Source RPA (Robotic Process Automation) Library for Python and Robot Framework"
 
 [project.urls]

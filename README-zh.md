@@ -104,7 +104,7 @@ rpalite.run_command("notepad.exe")
 rpalite.input_text("这是一个使用 RPALite 的演示。\n")
 
 # 查找记事本应用并关闭它
-app = rpalite.find_application(".*记事本")
+app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
 ```
 
@@ -138,7 +138,7 @@ Library    RPALite
 测试记事本
     Send Keys    {VK_LWIN down}D{VK_LWIN up}
     Run Command    notepad.exe
-    ${app} =     Find Application    .*记事本
+    ${app} =     Find Application    .*Notepad
     Maximize Window    ${app}
     Input Text    这是一个使用 RPALite 的演示。
     Close App    ${app}

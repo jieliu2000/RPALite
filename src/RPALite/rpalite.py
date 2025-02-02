@@ -259,6 +259,24 @@ class RPALite:
         rect = control.BoundingRectangle
 
         return (rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
+    
+    def click_control_by_label(self, label, button='left', double_click=False):
+        '''Click on a control by the label text. The label text is the text displayed on the control or near the control.
+        
+        Parameters
+        ----------
+        label : str
+            The label text of the control. It can only be a single line string. Text matching is essentially fuzzy matching based on OCR technology. Therefore matching is case sensitive. 
+        
+        button : str
+            The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'.
+        
+        double_click : bool
+            Whether to perform a double click. Default is False.
+        '''
+        position = self.find_control_by_label(label)
+        if position is not None:
+            self.click_by_position(position[0] + int(position[2] / 2), position[1] + int(position[3] / 2), button, double_click)
 
     def click_control(self, app, class_name=None, title=None, automate_id=None, click_position='center', button='left', double_click=False):
         """

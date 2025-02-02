@@ -9,10 +9,37 @@ from github_release_downloader import check_and_download_updates, GitHubRepo
 from pathlib import Path
 import re
 import platform
+import zipfile
+import shutil
+from github import Github
+import requests
+import unittest
 
-
-logger = logging.getLogger(__name__)
+# 配置日志
+# Configure logging
+logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+# 创建控制台 handler
+# Create console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# 创建文件 handler
+# Create file handler
+file_handler = logging.FileHandler('test_log.txt')
+file_handler.setLevel(logging.INFO)
+
+# 创建日志格式
+# Create log format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+
+# 添加 handler 到 logger
+# Add handlers to logger
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 def get_test_app_and_description():
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -20,22 +47,119 @@ def get_test_app_and_description():
         return test_executable, "INTES*", "FLTK"
 
 def download_test_app():
-    check_file = os.path.isfile("intes.exe")
-    if check_file:
+    test_app_path = os.path.abspath("intes.exe")
+    version_file = os.path.abspath("test_download.txt")
+    
+    # Check if intes.exe exists locally
+    if os.path.isfile(test_app_path):
         logger.info("Test application already exists.")
-        return
-    check_and_download_updates(GitHubRepo("jieliu2000", "intes"),  # Releases source
-        SimpleSpec(">0.1"),  
-        assets_mask=re.compile(".*\\.zip"),  # Download *.exe only
-        downloads_dir=Path("../")
-    )
+        
+        # Read locally recorded version
+        local_version = None
+        if os.path.exists(version_file):
+            try:
+                with open(version_file, 'r') as f:
+                    local_version = f.read().strip()
+                    logger.info(f"Local version: {local_version}")
+            except Exception as e:
+                logger.error(f"Failed to read version file: {e}")
+        
+        # Get the latest version from GitHub
+        try:
+            g = Github()
+            repo = g.get_repo("jieliu2000/intes")
+            latest_release = repo.get_latest_release()
+            latest_version = latest_release.tag_name
+            logger.info(f"Latest version on GitHub: {latest_version}")
+            
+            # If local version is up to date, return directly
+            if local_version == latest_version:
+                logger.info("Local intes.exe is up to date.")
+                return
+        except Exception as e:
+            logger.error(f"Failed to check GitHub for latest version: {e}")
+            # If unable to get latest version but local exe exists, continue using it
+            if os.path.exists(test_app_path):
+                logger.warning("Using existing intes.exe despite version check failure")
+                return
+            else:
+                raise Exception("Failed to check version and no local copy exists")
+    
+    # Download the latest version
+    try:
+        # Initialize GitHub API
+        g = Github()
+        repo = g.get_repo("jieliu2000/intes")
+        
+        # Get the latest release
+        latest_release = repo.get_latest_release()
+        latest_version = latest_release.tag_name
+        
+        # Find the zip asset
+        zip_asset = None
+        for asset in latest_release.get_assets():
+            if re.match(r".*\.zip", asset.name):
+                zip_asset = asset
+                break
+        
+        if not zip_asset:
+            raise Exception("No zip file found in the latest release")
+        
+        # Download the zip file
+        logger.info(f"Downloading {zip_asset.name}...")
+        headers = {
+            "Accept": "application/octet-stream",
+        }
+        response = requests.get(zip_asset.url, headers=headers, stream=True)
+        
+        # Save the zip file
+        zip_path = os.path.abspath(zip_asset.name)
+        with open(zip_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        
+        # Extract the exe from zip
+        logger.info(f"Extracting {zip_path}...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            # Find the exe file in the zip
+            exe_files = [f for f in zip_ref.namelist() if f.lower().endswith('.exe')]
+            if not exe_files:
+                raise Exception("No exe file found in the downloaded zip")
+            
+            # Extract the first exe file found
+            exe_file = exe_files[0]
+            with zip_ref.open(exe_file) as source, open(test_app_path, 'wb') as target:
+                shutil.copyfileobj(source, target)
+        
+        # Set executable permissions (for Unix-like systems)
+        os.chmod(test_app_path, 0o755)
+        
+        # Clean up the zip file
+        os.remove(zip_path)
+        
+        # Update version record
+        try:
+            with open(version_file, 'w') as f:
+                f.write(latest_version)
+            logger.info(f"Updated local version to {latest_version}")
+        except Exception as e:
+            logger.error(f"Failed to write version file: {e}")
+        
+        logger.info("Test application downloaded and extracted successfully.")
+        
+    except Exception as e:
+        logger.error(f"Failed to download and extract test application: {str(e)}")
+        if os.path.exists(test_app_path):
+            logger.warning("Using existing intes.exe despite download failure")
+        else:
+            raise Exception("Failed to download intes.exe and no local copy exists")
 
-class TestRPALite:
+class TestRPALite(unittest.TestCase):
 
     @classmethod
-    def setup_class(cls):
+    def setUpClass(cls):
         logger.info("Setup class...")
-        cls.rpalite = RPALite(debug_mode=False)
+        cls.rpalite = RPALite()
         dir_path = os.path.dirname(os.path.realpath(__file__))
         test_path = os.path.abspath(os.path.join(dir_path, os.pardir))
         recording_path = os.path.join(test_path, "recording")
@@ -44,7 +168,6 @@ class TestRPALite:
         target_video = os.path.join(recording_path, 'test.avi')
         cls.rpalite.start_screen_recording(target_video)
         download_test_app()
-
 
     def open_app(self):
         self.rpalite.run_command(get_test_app_and_description()[0]) 
@@ -194,9 +317,8 @@ class TestRPALite:
         assert difference.total_seconds() >= 5
         print("Finished testing sleep...")
 
-
     @classmethod
-    def teardown_class(cls):
+    def tearDownClass(cls):
         print("Tearing down the test class")
         test_app_and_description = get_test_app_and_description()
         application = cls.rpalite.find_application(test_app_and_description[1], test_app_and_description[2])
@@ -204,3 +326,6 @@ class TestRPALite:
             cls.rpalite.close_app(application)
         file = cls.rpalite.stop_screen_recording()
         print(f"Recording saved to: {file}")
+
+if __name__ == '__main__':
+    unittest.main()

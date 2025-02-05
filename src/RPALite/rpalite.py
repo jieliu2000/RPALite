@@ -1044,6 +1044,9 @@ class RPALite:
         '''
         if(self.platform == 'Windows'):
             self.send_keys('{VK_LWIN down}D{VK_LWIN}')
+        elif self.platform == 'Darwin':
+            # Use Mission Control shortcut for macOS
+            self.send_keys('^%{UP}')
     
     def crop_target_area(self, location, image=None):
         '''

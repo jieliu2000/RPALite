@@ -314,7 +314,6 @@ class ImageHandler:
 
                 results.append( (location, target_text))
 
-          
         #cv2.destroyAllWindows()
 
         if len(results) == 0:
@@ -370,8 +369,12 @@ class ImageHandler:
    
                 elif rect_area > target_area:
                     area_ratio = target_area / rect_area
-                    if area_ratio > 0.6 or area_ratio < 0.1:
-                        continue
+                    target_in_rect = (target[0] >= x and target[1] >= y and 
+                                    target[0] + target[2] <= x + w and 
+                                    target[1] + target[3] <= y + h)
+                    if target_in_rect:
+                        if area_ratio > 0.6 or area_ratio < 0.1:
+                            continue
 
                 dist_to_left_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]), float(target[1]+target[3])),True))
                 dist_to_right_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]+target[2]), float(target[1]+target[3])),True))
@@ -380,6 +383,9 @@ class ImageHandler:
                 if dist_to_right_bottom < dist1:
                     dist1 = dist_to_right_bottom
 
+                if abs(x - target[0]) < target[3] or abs(y - target[1]) < target[3]:
+                    dist1 = dist1 * 0.5
+                    
                 if(dist1 < dist) and ((left_or_top_label == False) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
                     dist = dist1
                     target_information = approx, (x, y, w, h)

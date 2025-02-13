@@ -354,7 +354,7 @@ class ImageHandler:
             if len(approx) >= 4 and len(approx) <= 8:
                 x, y, w, h = cv2.boundingRect(approx)
 
-                if(h<6 or w<6):
+                if(h<10 or w<10):
                     #ignore too small shapes
                     continue
 
@@ -369,9 +369,8 @@ class ImageHandler:
                         continue
    
                 elif rect_area > target_area:
-                    # 计算target面积在矩形面积的占比
                     area_ratio = target_area / rect_area
-                    if area_ratio > 0.6:
+                    if area_ratio > 0.6 or area_ratio < 0.1:
                         continue
 
                 dist_to_left_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]), float(target[1]+target[3])),True))

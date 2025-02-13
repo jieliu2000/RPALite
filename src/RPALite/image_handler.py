@@ -351,10 +351,10 @@ class ImageHandler:
 
 
             # Calculate aspect ratio and bounding box
-            if len(approx) == 4:
+            if len(approx) >= 4 and len(approx) <= 8:
                 x, y, w, h = cv2.boundingRect(approx)
 
-                if(h<10 and w<10):
+                if(h<6 or w<6):
                     #ignore too small shapes
                     continue
 

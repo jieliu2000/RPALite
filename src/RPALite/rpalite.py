@@ -285,7 +285,7 @@ class RPALite:
         if position is not None:
             self.click_by_position(position[0] + int(position[2] / 2), position[1] + int(position[3] / 2), button, double_click)
 
-    def click_control(self, app, class_name=None, title=None, automate_id=None, click_position='center', button='left', double_click=False):
+    def click_control(self, app, class_name=None, title=None, automate_id=None, click_position='center-left', button='left', double_click=False):
         """
         Find the center, left or right position of the control then click it.
 
@@ -310,9 +310,13 @@ class RPALite:
         position = self.find_control(app, class_name, title, automate_id)
         if click_position == 'center':
             self.click_by_position(int(position[0]) + int(position[2]) // 2, int(position[1]) + int(position[3]) // 2, button, double_click)
-        if click_position == 'left':
+        elif click_position == 'center-left':
+            self.click_by_position(int(position[0]) + int(position[2]) // 3, int(position[1]) + int(position[3]) // 2, button, double_click)
+        elif click_position == 'center-right':
+            self.click_by_position(int(position[0]) + int(position[2]) * 2 // 3, int(position[1]) + int(position[3]) // 2, button, double_click)
+        elif click_position == 'left':
             self.click_by_position(int(position[0]) + 5, int(position[1]) + int(position[3]) // 2, button, double_click)
-        if click_position == 'right':
+        elif click_position == 'right':
             self.click_by_position(int(position[0]) + (position[2]) - 5, int(position[1]) + int(position[3]) // 2, button, double_click)
 
     @not_keyword

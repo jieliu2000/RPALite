@@ -325,7 +325,9 @@ class ImageHandler:
     def find_window_near_position(self, image, target):
         return self.find_control_near_position(image, target)
 
-    def find_control_near_position(self, image, target, left_or_top_label = False):
+
+    
+    def find_control_near_position(self, image, target, left_or_top_label = False, text_label_match_ration = 1.0):
         img = np.array(image)
         # converting image into grayscale image 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
@@ -347,6 +349,7 @@ class ImageHandler:
             perimeter = cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, 0.01 * perimeter, True)
 
+
             # Calculate aspect ratio and bounding box
             if len(approx) == 4:
                 x, y, w, h = cv2.boundingRect(approx)
@@ -355,9 +358,25 @@ class ImageHandler:
                     #ignore too small shapes
                     continue
 
+                target_area = target[2] * target[3]
+                rect_area = w * h
+                
+                if target_area > rect_area:
+                    rect_in_target = (x >= target[0] and y >= target[1] and 
+                                    x + w <= target[0] + target[2] and 
+                                    y + h <= target[1] + target[3])
+                    if rect_in_target:
+                        continue
+   
+                elif rect_area > target_area:
+                    # 计算target面积在矩形面积的占比
+                    area_ratio = target_area / rect_area
+                    if area_ratio > 0.6:
+                        continue
+
                 dist_to_left_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]), float(target[1]+target[3])),True))
                 dist_to_right_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]+target[2]), float(target[1]+target[3])),True))
-
+                
                 dist1 = dist_to_left_bottom 
                 if dist_to_right_bottom < dist1:
                     dist1 = dist_to_right_bottom

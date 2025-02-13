@@ -182,7 +182,7 @@ class RPALite:
             return self.image_handler.find_control_near_position(img, location[0])
     
 
-    def find_control_by_label(self, label):
+    def find_control_by_label(self, label, image = None):
         '''Finds a control by the label text. This function will return the control if it exists, otherwise it will return None.
         Please note that the "window" or "control" in RPALite refers to a rectangle region which can be located on the system screen. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle.
 
@@ -191,12 +191,19 @@ class RPALite:
         label : str
             The label text of the control. It can only be a single line string. Text matching is essentially fuzzy matching based on OCR technology. Therefore matching is case sensitive. 
        
+        image : PIL image
+            Indicates the image to be searched. If it is None, the function will take a screenshot of the current screen.
+
         Returns
         -------
         tuple
             A tuple of the control that matches the title. The returned tuple represents the rectangle of the control. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle. Returns None if no control is found.
         '''
-        img = self.take_screenshot()
+        if image is None:
+            img = self.take_screenshot()
+        else:
+            img = image
+            
         location = self.image_handler.find_texts_in_image(img, label)
         if(location is None or location[0] is None):
             return None

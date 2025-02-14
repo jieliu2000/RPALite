@@ -365,8 +365,9 @@ class ImageHandler:
                 angle = math.degrees(math.atan2(dy, dx)) % 180
                 
                 # 分类为水平线段或其他线段
-                if dx > 100 and ((angle <= angle_threshold) or (angle >= 180 - angle_threshold)):
-                    horizontal_lines.append((x1, y1, x2, y2))
+                if (angle <= angle_threshold) or (angle >= 180 - angle_threshold):
+                    if dx > 100:
+                        horizontal_lines.append((x1, y1, x2, y2))
                 else:
                     other_lines.append((x1, y1, x2, y2))
         

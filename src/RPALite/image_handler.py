@@ -367,15 +367,6 @@ class ImageHandler:
                     if rect_in_target:
                         continue
    
-                elif rect_area > target_area:
-                    area_ratio = target_area / rect_area
-                    target_in_rect = (target[0] >= x and target[1] >= y and 
-                                    target[0] + target[2] <= x + w and 
-                                    target[1] + target[3] <= y + h)
-                    if target_in_rect:
-                        if area_ratio > 0.6 or area_ratio < 0.1:
-                            continue
-
                 dist_to_left_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]), float(target[1]+target[3])),True))
                 dist_to_right_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]+target[2]), float(target[1]+target[3])),True))
                 
@@ -385,6 +376,13 @@ class ImageHandler:
 
                 if abs(x - target[0]) < target[3] or abs(y - target[1]) < target[3]:
                     dist1 = dist1 * 0.5
+                
+                current_control = target_information[1]
+                # 检查当前轮廓是否在current_control内部
+                if (x >= current_control[0] and y >= current_control[1] and 
+                    x + w <= current_control[0] + current_control[2] and 
+                    y + h <= current_control[1] + current_control[3]):
+                        dist1 = dist1 * 0.7
                     
                 if(dist1 < dist) and ((left_or_top_label == False) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
                     dist = dist1

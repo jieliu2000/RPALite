@@ -194,9 +194,6 @@ class ImageHandler:
         Returns the location information, format is (top_x, top_y, width, height) of the text in the image.
         If the text is not found, returns None.
         '''
-        if self.debug_mode:
-            cv2.imshow('shapes', np.array(image)) 
-            cv2.waitKey(0)
         
         arr = self.read_text(image)
         
@@ -265,10 +262,6 @@ class ImageHandler:
         a = 0
         target_information = None
 
-        if self.debug_mode:
-                cv2.drawContours(img, contours, -1, (0, 255, 0), 1)  
-                cv2.imshow('shapes', img) 
-                cv2.waitKey(0)
         # list for storing names of shapes 
         for contour in contours: 
             # Approximate contour to a polygon
@@ -299,9 +292,6 @@ class ImageHandler:
         return target_information[1]
     
     def find_texts_inside_rect(self, image, target_text, rect):
-        if self.debug_mode:
-                    cv2.imshow('shapes', np.array(image)) 
-                    cv2.waitKey(0)
         
         text_arr = self.read_text(image)
         results = []
@@ -413,11 +403,6 @@ class ImageHandler:
                 # 绘制红色直线，线宽为2
                 cv2.line(img_with_lines, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
-        # 显示带直线的图像
-        cv2.imshow('Detected Lines', img_with_lines)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
         if lines is not None:
             for line in lines:
                 x1, y1, x2, y2 = line
@@ -440,14 +425,17 @@ class ImageHandler:
                 # 如果当前距离小于最小距离，更新target_information
                 if dist_to_target < dist:
                     dist = dist_to_target
-                    target_information = line, (x1, abs(y1 - 20), x2 - x1, y2 - y1 + 20)
+                    target_information = line, (x1, abs(y1 - 20), x2 - x1, 20), 1
 
+        # 按照y坐标升序排序，如果y坐标相同则按x坐标升序排序
+        contours = sorted(contours, key=lambda c: (cv2.boundingRect(c)[1], cv2.boundingRect(c)[0]))
+  
         # list for storing names of shapes 
         for contour in contours: 
             # Approximate contour to a polygon
             perimeter = cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, 0.01 * perimeter, True)
-
+            multiple = 1
 
             # Calculate aspect ratio and bounding box
             if len(approx) >= 4 and len(approx) <= 8:
@@ -484,25 +472,22 @@ class ImageHandler:
                 if dist_to_right_bottom < dist1:
                     dist1 = dist_to_right_bottom
 
-                 # 如果在内部且宽度差小于40，跳过
-                if target_in_rect:
-                    if w > 200 or h > 200:
-                        dist1 = dist1 * 1.5
-
                 if abs(x - target[0]) < target[2] or abs(y - target[1]) < target[3]:
-                    dist1 = dist1 * 0.5
-                
+                   
+                    multiple = multiple * 0.8
+
                 if target_information is not None:
                     current_control = target_information[1]
+                    target_multiple = target_information[2]
                     # 检查当前轮廓是否在current_control内部
                     if (x >= current_control[0] and y >= current_control[1] and 
                         x + w <= current_control[0] + current_control[2] and 
                         y + h <= current_control[1] + current_control[3]):
-                        dist1 = dist1 * 0.7
+                        multiple = multiple * target_multiple * 0.5
                     
-                if(dist1 < dist) and ((left_or_top_label == False) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
-                    dist = dist1
-                    target_information = approx, (x, y, w, h)
+                if(dist1 * multiple < dist) and ((left_or_top_label == False) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
+                    dist = dist1 
+                    target_information = approx, (x, y, w, h), multiple
         
 
         # displaying the image after drawing contours 
@@ -510,7 +495,7 @@ class ImageHandler:
             return None
         if self.debug_mode:
             cv2.drawContours(img, [target_information[0]], -1, (0, 255, 0), 1)
-            cv2.imshow('shapes', img) 
+            cv2.imshow('Targets', img) 
             cv2.waitKey(self.debug_image_show_milliseconds)
    
         return target_information[1]

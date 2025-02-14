@@ -517,7 +517,24 @@ class RPALite:
         locations = self.image_handler.find_texts_in_rects(img, text, filter_args_in_parent, parent_control)
         if(locations is None or len(locations) == 0):
             return None
-        elif exact_match and (len(locations[0]) < 2 or (not locations[0][1]) or (not (locations[0][1] in text) and not (text in locations[0][1]))):
+        elif exact_match: 
+            filtered_locations = []
+            for loc in locations:
+                target_text = loc[1]
+                # 条件1：文本相互包含检查
+                if text not in target_text and target_text not in text:
+                    continue
+                
+                # 条件2：文本长度比例检查
+                len_ratio = len(text) / len(target_text) if len(target_text) > 0 else 0
+                if not (0.75 <= len_ratio <= 1.3):
+                    continue
+                
+                filtered_locations.append(loc)
+            
+            if filtered_locations:
+                return [loc[0] for loc in filtered_locations]
+
             return None
         else:
             return [loc[0] for loc in locations]

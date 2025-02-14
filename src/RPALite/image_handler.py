@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Optional
 import logging
+import math
 from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
@@ -342,6 +343,104 @@ class ImageHandler:
         dist = 1000000
         a = 0
         target_information = None
+        distance_threshold = 30
+        
+        # 使用HoughLinesP检测图像中的直线，调整参数来检测孤立横线
+        # 霍夫变换检测线段
+        lines = cv2.HoughLinesP(edged, 1, np.pi/180, threshold=5, 
+                                minLineLength=10, maxLineGap=5)
+        angle_threshold  = 10
+        horizontal_lines = []
+        other_lines = []
+        
+        if lines is not None:
+            for line in lines:
+                x1, y1, x2, y2 = line[0]
+                dx = x2 - x1
+                dy = y2 - y1
+                if dx == 0 and dy == 0:
+                    continue  # 忽略零长度线段
+                
+                # 计算线段角度（转换为0~180度）
+                angle = math.degrees(math.atan2(dy, dx)) % 180
+                
+                # 分类为水平线段或其他线段
+                if dx > 100 and ((angle <= angle_threshold) or (angle >= 180 - angle_threshold)):
+                    horizontal_lines.append((x1, y1, x2, y2))
+                else:
+                    other_lines.append((x1, y1, x2, y2))
+        
+        # 收集所有其他线段的端点
+        other_endpoints = []
+        for line in other_lines:
+            other_endpoints.append((line[0], line[1]))
+            other_endpoints.append((line[2], line[3]))
+        
+        other_endpoints = np.array(other_endpoints)
+        
+        # 检查每个水平线段是否为孤立
+        isolated_horizontal = []
+        for h_line in horizontal_lines:
+            if h_line is None or len(h_line) != 4:
+                continue
+            x1, y1, x2, y2 = h_line
+            endpoints = [(x1, y1), (x2, y2)]
+            is_isolated = True
+            
+            # 检查每个端点是否附近有其他线段的端点
+            for (ex, ey) in endpoints:
+                if len(other_endpoints) == 0:
+                    # 没有其他线段，所有水平线段都是孤立的
+                    continue
+                # 计算距离
+                distances = np.sqrt((other_endpoints[:, 0] - ex)**2 + (other_endpoints[:, 1] - ey)**2)
+                if np.any(distances < distance_threshold):
+                    is_isolated = False
+                    break
+            
+            if is_isolated:
+                isolated_horizontal.append(h_line)
+        
+        lines = isolated_horizontal
+       
+        img_with_lines = img.copy()
+
+        # 在图像上绘制所有检测到的直线
+        if lines is not None:
+            for line in lines:
+                x1, y1, x2, y2 = line
+                # 绘制红色直线，线宽为2
+                cv2.line(img_with_lines, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+        # 显示带直线的图像
+        cv2.imshow('Detected Lines', img_with_lines)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        if lines is not None:
+            for line in lines:
+                x1, y1, x2, y2 = line
+                               
+                # 计算直线左端点与target的距离
+                dist_to_target1 = np.sqrt((x1 - target[0] - target[2])**2 + (y1 - target[1])**2)
+                dist_to_target2 = np.sqrt((x1 - target[0])**2 + (y2 - target[1])**2)
+
+                dist_to_target = dist_to_target1
+                if dist_to_target2 < dist_to_target1:
+                    dist_to_target = dist_to_target2
+                
+                # 如果距离大于100，跳过
+                if dist_to_target > 200:
+                    continue
+
+                if abs(x1 - target[0] - target[2]) < target[2] or abs(y1 - target[1] - target[3]) < target[3]:
+                    dist = dist * 0.5
+                    
+                # 如果当前距离小于最小距离，更新target_information
+                if dist_to_target < dist:
+                    dist = dist_to_target
+                    target_information = line, (x1, abs(y1 - 20), x2 - x1, y2 - y1 + 20)
+
         # list for storing names of shapes 
         for contour in contours: 
             # Approximate contour to a polygon
@@ -366,6 +465,16 @@ class ImageHandler:
                                     y + h <= target[1] + target[3])
                     if rect_in_target:
                         continue
+                
+                # 检查target矩形是否在当前boundingRect内部
+                target_in_rect = (target[0] >= x and target[1] >= y and
+                                target[0] + target[2] <= x + w and
+                                target[1] + target[3] <= y + h)
+                
+                # 如果在内部且宽度差小于40，跳过
+                if target_in_rect:
+                    if abs(w - target[2]) < 40:
+                        continue
    
                 dist_to_left_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]), float(target[1]+target[3])),True))
                 dist_to_right_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]+target[2]), float(target[1]+target[3])),True))
@@ -374,19 +483,27 @@ class ImageHandler:
                 if dist_to_right_bottom < dist1:
                     dist1 = dist_to_right_bottom
 
-                if abs(x - target[0]) < target[3] or abs(y - target[1]) < target[3]:
+                 # 如果在内部且宽度差小于40，跳过
+                if target_in_rect:
+                    if w > 200 or h > 200:
+                        dist1 = dist1 * 1.5
+
+                if abs(x - target[0]) < target[2] or abs(y - target[1]) < target[3]:
                     dist1 = dist1 * 0.5
                 
-                current_control = target_information[1]
-                # 检查当前轮廓是否在current_control内部
-                if (x >= current_control[0] and y >= current_control[1] and 
-                    x + w <= current_control[0] + current_control[2] and 
-                    y + h <= current_control[1] + current_control[3]):
+                if target_information is not None:
+                    current_control = target_information[1]
+                    # 检查当前轮廓是否在current_control内部
+                    if (x >= current_control[0] and y >= current_control[1] and 
+                        x + w <= current_control[0] + current_control[2] and 
+                        y + h <= current_control[1] + current_control[3]):
                         dist1 = dist1 * 0.7
                     
                 if(dist1 < dist) and ((left_or_top_label == False) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
                     dist = dist1
                     target_information = approx, (x, y, w, h)
+        
+
         # displaying the image after drawing contours 
         if(target_information is None):
             return None

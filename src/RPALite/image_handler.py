@@ -393,102 +393,88 @@ class ImageHandler:
                 isolated_horizontal.append(h_line)
         
         lines = isolated_horizontal
-       
-        img_with_lines = img.copy()
 
-        # 在图像上绘制所有检测到的直线
+        # 合并lines和contours到同一数组并排序
+        combined_elements = []
         if lines is not None:
-            for line in lines:
-                x1, y1, x2, y2 = line
-                # 绘制红色直线，线宽为2
-                cv2.line(img_with_lines, (x1, y1), (x2, y2), (255, 0, 0), 2)
-
-        if lines is not None:
-            for line in lines:
-                x1, y1, x2, y2 = line
-                               
-                # 计算直线左端点与target的距离
-                dist_to_target1 = np.sqrt((x1 - target[0] - target[2])**2 + (y1 - target[1])**2)
-                dist_to_target2 = np.sqrt((x1 - target[0])**2 + (y2 - target[1])**2)
-
-                dist_to_target = dist_to_target1
-                if dist_to_target2 < dist_to_target1:
-                    dist_to_target = dist_to_target2
-                
-                # 如果距离大于100，跳过
-                if dist_to_target > 200:
-                    continue
-
-                if abs(x1 - target[0] - target[2]) < target[2] or abs(y1 - target[1] - target[3]) < target[3]:
-                    dist = dist * 0.5
-                    
-                # 如果当前距离小于最小距离，更新target_information
-                if dist_to_target < dist:
-                    dist = dist_to_target
-                    target_information = line, (x1, abs(y1 - 20), x2 - x1, 20), 1
-
-        # 按照y坐标升序排序，如果y坐标相同则按x坐标升序排序
-        contours = sorted(contours, key=lambda c: (cv2.boundingRect(c)[1], cv2.boundingRect(c)[0]))
+            combined_elements.extend(('line', line) for line in lines)
+        combined_elements.extend(('contour', c) for c in contours)
+        
+        # 统一排序逻辑：按y坐标升序，y相同则按x升序
+        combined_elements.sort(key=lambda elem: (
+            elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1],  # y坐标
+            elem[1][0] if elem[0] == 'line' else cv2.boundingRect(elem[1])[0]   # x坐标
+        ))
   
-        # list for storing names of shapes 
-        for contour in contours: 
-            # Approximate contour to a polygon
-            perimeter = cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, 0.01 * perimeter, True)
+        for elem in combined_elements:
+            elem_type, data = elem
+            
+            # 统一获取元素的边界框信息
+            if elem_type == 'line':
+                # 对线段生成矩形区域（模拟轮廓）
+                x1, y1, x2, y2 = line
+                x, y, w, h = x1, y1 - 15, x2 - x1, 15
+
+                # 创建模拟的近似轮廓（矩形）
+                approx = np.array([[[x, y]], [[x + w, y]], [[x + w, y + h]], [[x, y + h]]], dtype=np.int32)
+            else:  # contour
+                # 原有轮廓处理逻辑
+                contour = data
+                perimeter = cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, 0.01 * perimeter, True)
+            
+            # 统一使用轮廓处理逻辑
+                if len(approx) >= 4 and len(approx) <= 8:
+                    x, y, w, h = cv2.boundingRect(approx)
+                
+            if h < 10 or w < 10:
+                continue
+
+            # 统一区域关系判断
+            target_area = target[2] * target[3]
+            rect_area = w * h
+            
+            if target_area > rect_area:
+                rect_in_target = (x >= target[0] and y >= target[1] and 
+                                x + w <= target[0] + target[2] and 
+                                y + h <= target[1] + target[3])
+                if rect_in_target:
+                    continue
+            
+            # 统一位置关系检查
+            target_in_rect = (target[0] >= x and target[1] >= y and
+                            target[0] + target[2] <= x + w and
+                            target[1] + target[3] <= y + h)
+            
+            if target_in_rect and abs(w - target[2]) < 40:
+                continue
+
+            # 统一距离计算（使用轮廓方式）
+            dist_to_left_bottom = abs(cv2.pointPolygonTest(approx, (float(target[0]), float(target[1]+target[3])), True))
+            dist_to_right_bottom = abs(cv2.pointPolygonTest(approx, (float(target[0]+target[2]), float(target[1]+target[3])), True))
+            dist1 = min(dist_to_left_bottom, dist_to_right_bottom)
+
+            # 统一权重调整逻辑
             multiple = 1
 
-            # Calculate aspect ratio and bounding box
-            if len(approx) >= 4 and len(approx) <= 8:
-                x, y, w, h = cv2.boundingRect(approx)
+            if abs(x - target[0]) < target[2] or abs(y - target[1]) < target[3]:
+                multiple *= 0.5
 
-                if(h<10 or w<10):
-                    #ignore too small shapes
-                    continue
-
-                target_area = target[2] * target[3]
-                rect_area = w * h
-                
-                if target_area > rect_area:
-                    rect_in_target = (x >= target[0] and y >= target[1] and 
-                                    x + w <= target[0] + target[2] and 
-                                    y + h <= target[1] + target[3])
-                    if rect_in_target:
-                        continue
-                
-                # 检查target矩形是否在当前boundingRect内部
-                target_in_rect = (target[0] >= x and target[1] >= y and
-                                target[0] + target[2] <= x + w and
-                                target[1] + target[3] <= y + h)
-                
-                # 如果在内部且宽度差小于40，跳过
-                if target_in_rect:
-                    if abs(w - target[2]) < 40:
-                        continue
-   
-                dist_to_left_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]), float(target[1]+target[3])),True))
-                dist_to_right_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]+target[2]), float(target[1]+target[3])),True))
-                
-                dist1 = dist_to_left_bottom 
-                if dist_to_right_bottom < dist1:
-                    dist1 = dist_to_right_bottom
-
-                if abs(x - target[0]) < target[2] or abs(y - target[1]) < target[3]:
-                   
-                    multiple = multiple * 0.8
-
-                if target_information is not None:
-                    current_control = target_information[1]
-                    target_multiple = target_information[2]
-                    # 检查当前轮廓是否在current_control内部
-                    if (x >= current_control[0] and y >= current_control[1] and 
-                        x + w <= current_control[0] + current_control[2] and 
-                        y + h <= current_control[1] + current_control[3]):
-                        multiple = multiple * target_multiple * 0.5
-                    
-                if(dist1 * multiple < dist) and ((left_or_top_label == False) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
-                    dist = dist1 
-                    target_information = approx, (x, y, w, h), multiple
-        
+            # 统一嵌套关系检查
+            if target_information is not None:
+                current_control = target_information[1]
+                target_multiple = target_information[2]
+                if (x >= current_control[0] and y >= current_control[1] and 
+                    x + w <= current_control[0] + current_control[2] and 
+                    y + h <= current_control[1] + current_control[3]):
+                    multiple_for_current_control = (w*h)/(current_control[2]*current_control[3])
+                    if multiple_for_current_control < 0.5:
+                        multiple_for_current_control = 0.5
+                    multiple *= multiple_for_current_control
+                            
+            if (dist1 * multiple < dist) and ((not left_or_top_label) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
+                dist = dist1 
+                target_information = (approx, (x, y, w, h), multiple)
 
         # displaying the image after drawing contours 
         if(target_information is None):

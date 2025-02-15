@@ -394,6 +394,20 @@ class ImageHandler:
         
         lines = isolated_horizontal
 
+        # 创建用于显示的图像副本
+        display_image = img.copy()
+        
+        # 绘制所有检测到的线段
+        for line in lines:
+            x1, y1, x2, y2 = line
+            # 使用绿色绘制线段，线宽为2
+            cv2.line(display_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        
+        # 显示结果图像
+        cv2.imshow("Detected Lines", display_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
         # 合并lines和contours到同一数组并排序
         combined_elements = []
         if lines is not None:
@@ -402,7 +416,7 @@ class ImageHandler:
         
         # 统一排序逻辑：按y坐标升序，y相同则按x升序
         combined_elements.sort(key=lambda elem: (
-            elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1],  # y坐标
+            int((elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1])/50),  # y坐标
             elem[1][0] if elem[0] == 'line' else cv2.boundingRect(elem[1])[0]   # x坐标
         ))
   
@@ -426,7 +440,9 @@ class ImageHandler:
             # 统一使用轮廓处理逻辑
                 if len(approx) >= 4 and len(approx) <= 8:
                     x, y, w, h = cv2.boundingRect(approx)
-                
+                else:
+                    continue
+
             if h < 10 or w < 10:
                 continue
 
@@ -457,7 +473,8 @@ class ImageHandler:
             # 统一权重调整逻辑
             multiple = 1
 
-            if abs(x - target[0]) < target[2] or abs(y - target[1]) < target[3]:
+            if (abs(x - target[0]) < target[2] or abs(y - target[1]) < 50) and h/target[3] < 3:
+                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 multiple *= 0.5
 
             # 统一嵌套关系检查
@@ -468,9 +485,14 @@ class ImageHandler:
                     x + w <= current_control[0] + current_control[2] and 
                     y + h <= current_control[1] + current_control[3]):
                     multiple_for_current_control = (w*h)/(current_control[2]*current_control[3])
-                    if multiple_for_current_control < 0.5:
+                    if multiple_for_current_control < 0.3:
                         multiple_for_current_control = 0.5
-                    multiple *= multiple_for_current_control
+                    elif multiple_for_current_control <= 0.85:
+                        multiple_for_current_control = 0.85
+                    else:
+                        multiple_for_current_control = 1
+
+                    multiple *= target_multiple * multiple_for_current_control
                             
             if (dist1 * multiple < dist) and ((not left_or_top_label) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
                 dist = dist1 
@@ -483,6 +505,7 @@ class ImageHandler:
             cv2.drawContours(img, [target_information[0]], -1, (0, 255, 0), 1)
             cv2.imshow('Targets', img) 
             cv2.waitKey(self.debug_image_show_milliseconds)
+            cv2.destroyAllWindows()
    
         return target_information[1]
     

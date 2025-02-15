@@ -323,8 +323,7 @@ class ImageHandler:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
       
         # setting threshold of gray image 
-        edged = cv2.Canny(gray, 50, 200, apertureSize = 5) 
-
+        edged = cv2.Canny(gray, 50, 150, apertureSize = 5) 
         # using a findContours() function 
         contours, _ = cv2.findContours( 
             edged, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
@@ -333,12 +332,14 @@ class ImageHandler:
         dist = 1000000
         a = 0
         target_information = None
-        distance_threshold = 30
+        distance_threshold = 20
         
         # 使用HoughLinesP检测图像中的直线，调整参数来检测孤立横线
         # 霍夫变换检测线段
-        lines = cv2.HoughLinesP(edged, 1, np.pi/180, threshold=5, 
-                                minLineLength=10, maxLineGap=5)
+        lines = cv2.HoughLinesP(edged, 1, np.pi/180, threshold=100, 
+                                minLineLength=50, maxLineGap=1)
+  
+
         angle_threshold  = 10
         horizontal_lines = []
         other_lines = []
@@ -360,53 +361,24 @@ class ImageHandler:
                         horizontal_lines.append((x1, y1, x2, y2))
                 else:
                     other_lines.append((x1, y1, x2, y2))
+    
+       
         
-        # 收集所有其他线段的端点
-        other_endpoints = []
-        for line in other_lines:
-            other_endpoints.append((line[0], line[1]))
-            other_endpoints.append((line[2], line[3]))
-        
-        other_endpoints = np.array(other_endpoints)
-        
-        # 检查每个水平线段是否为孤立
-        isolated_horizontal = []
-        for h_line in horizontal_lines:
-            if h_line is None or len(h_line) != 4:
-                continue
-            x1, y1, x2, y2 = h_line
-            endpoints = [(x1, y1), (x2, y2)]
-            is_isolated = True
-            
-            # 检查每个端点是否附近有其他线段的端点
-            for (ex, ey) in endpoints:
-                if len(other_endpoints) == 0:
-                    # 没有其他线段，所有水平线段都是孤立的
-                    continue
-                # 计算距离
-                distances = np.sqrt((other_endpoints[:, 0] - ex)**2 + (other_endpoints[:, 1] - ey)**2)
-                if np.any(distances < distance_threshold):
-                    is_isolated = False
-                    break
-            
-            if is_isolated:
-                isolated_horizontal.append(h_line)
-        
-        lines = isolated_horizontal
-
-        # 创建用于显示的图像副本
+        lines = horizontal_lines
+              # 创建用于显示的图像副本
         display_image = img.copy()
         
-        # 绘制所有检测到的线段
+           # 绘制所有检测到的线段
         for line in lines:
             x1, y1, x2, y2 = line
             # 使用绿色绘制线段，线宽为2
-            cv2.line(display_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.line(display_image, (x1, y1), (x2, y2), (0, 255, 0), 1)
         
         # 显示结果图像
         cv2.imshow("Detected Lines", display_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
 
         # 合并lines和contours到同一数组并排序
         combined_elements = []

@@ -363,15 +363,8 @@ class ImageHandler:
                     other_lines.append((x1, y1, x2, y2))
     
         lines = horizontal_lines
-              # 创建用于显示的图像副本
-        display_image = img.copy()
         
-           # 绘制所有检测到的线段
-        for line in lines:
-            x1, y1, x2, y2 = line
-            # 使用绿色绘制线段，线宽为2
-            cv2.line(display_image, (x1, y1), (x2, y2), (0, 255, 0), 1)
-        
+       
         # 合并lines和contours到同一数组并排序
         combined_elements = []
         if lines is not None:
@@ -381,8 +374,77 @@ class ImageHandler:
         # 统一排序逻辑：按y坐标升序，y相同则按x升序
         combined_elements.sort(key=lambda elem: (
             (elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1]),  # y坐标
+            1 if elem[0] == 'line' else 0,  # y坐标相同，矩形在前面
             elem[1][0] if elem[0] == 'line' else cv2.boundingRect(elem[1])[0]   # x坐标
         ))
+
+        # 新增处理逻辑
+        temp_contours = []
+        current_y = None
+        elements_to_remove = set()
+        
+        for i, elem in enumerate(combined_elements):
+            elem_type, data = elem
+            
+            # 获取当前元素的y坐标
+            if elem_type == 'line':
+                y = data[1]  # 取线段的y1坐标
+            else:
+                y = cv2.boundingRect(data)[1]
+                
+            # 如果是contour
+            if elem_type == 'contour':
+                if current_y is None or y != current_y:
+                    # 新的一行开始
+                    current_y = y
+                    temp_contours = [data]
+                else:
+                    # 同一行，添加到临时contours
+                    temp_contours.append(data)
+                    
+            # 如果是line
+            elif elem_type == 'line':
+                if y != current_y:
+                    # 不在当前行，跳过
+                    elements_to_remove.add(i)
+                    continue
+                    
+                # 检查是否被contours包含
+                x1, y1, x2, y2 = data
+                is_contained = False
+                for contour in temp_contours:
+                    # 获取contour的边界
+                    x, y, w, h = cv2.boundingRect(contour)
+                    # 检查线段是否在contour内
+                    if x <= x1 and x + w >= x2 and y <= y1 and y + h >= y2:
+                        is_contained = True
+                        break
+                        
+                if is_contained:
+                    elements_to_remove.add(i)
+                    
+        # 移除需要排除的元素
+        combined_elements = [elem for i, elem in enumerate(combined_elements) if i not in elements_to_remove]
+
+        # 创建用于显示的图像副本
+        display_image = img.copy()
+        
+        # 绘制所有检测到的线段
+       
+        for elem in combined_elements:
+            elem_type, data = elem
+            
+            # 统一获取元素的边界框信息
+            if elem_type == 'line':
+                # 对线段生成矩形区域（模拟轮廓）
+                x1, y1, x2, y2 = data
+                # 使用绿色绘制线段，线宽为2
+                cv2.line(display_image, (x1, y1), (x2, y2), (0, 0, 255), 1)
+        
+        cv2.imshow('Lines', display_image) 
+        cv2.waitKey(self.debug_image_show_milliseconds)
+        cv2.destroyAllWindows()
+
 
         for elem in combined_elements:
             elem_type, data = elem

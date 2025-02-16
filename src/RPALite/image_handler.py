@@ -388,19 +388,19 @@ class ImageHandler:
         
         # 统一排序逻辑：按y坐标升序，y相同则按x升序
         combined_elements.sort(key=lambda elem: (
-            int((elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1])/50),  # y坐标
+            (elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1]),  # y坐标
             elem[1][0] if elem[0] == 'line' else cv2.boundingRect(elem[1])[0]   # x坐标
         ))
-  
+        cv2.imshow('Targets', img) 
+
         for elem in combined_elements:
             elem_type, data = elem
             
             # 统一获取元素的边界框信息
             if elem_type == 'line':
                 # 对线段生成矩形区域（模拟轮廓）
-                x1, y1, x2, y2 = line
+                x1, y1, x2, y2 = data
                 x, y, w, h = x1, y1 - 15, x2 - x1, 15
-
                 # 创建模拟的近似轮廓（矩形）
                 approx = np.array([[[x, y]], [[x + w, y]], [[x + w, y + h]], [[x, y + h]]], dtype=np.int32)
             else:  # contour
@@ -446,8 +446,9 @@ class ImageHandler:
             multiple = 1
 
             if (abs(x - target[0]) < target[2] or abs(y - target[1]) < 50) and h/target[3] < 3:
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 multiple *= 0.5
+                if elem_type == 'line' and abs(y - target[1]) < 20:
+                    cv2.line(img, (x, y+h), (x + w, y+h), (255, 0, 0), 1)
 
             # 统一嵌套关系检查
             if target_information is not None:
@@ -457,6 +458,7 @@ class ImageHandler:
                     x + w <= current_control[0] + current_control[2] and 
                     y + h <= current_control[1] + current_control[3]):
                     multiple_for_current_control = (w*h)/(current_control[2]*current_control[3])
+
                     if multiple_for_current_control < 0.3:
                         multiple_for_current_control = 0.5
                     elif multiple_for_current_control <= 0.85:
@@ -466,15 +468,19 @@ class ImageHandler:
 
                     multiple *= target_multiple * multiple_for_current_control
                             
-            if (dist1 * multiple < dist) and ((not left_or_top_label) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
+            if (dist1 * multiple < dist * multiple) and ((not left_or_top_label) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
                 dist = dist1 
-                target_information = (approx, (x, y, w, h), multiple)
+                target_information = (approx, (x, y, w, h), 0.5 if multiple <= 0.5 else 1)
+                if w > 800 and w < 1600 and h < 20 and y > 300:
+
+                    cv2.line(img, (x, y), (x + w, y+h), (0, 0, 255), 1)
+
 
         # displaying the image after drawing contours 
         if(target_information is None):
             return None
         if self.debug_mode:
-            cv2.drawContours(img, [target_information[0]], -1, (0, 255, 0), 1)
+            #cv2.drawContours(img, [target_information[0]], -1, (0, 255, 0), 1)
             cv2.imshow('Targets', img) 
             cv2.waitKey(self.debug_image_show_milliseconds)
             cv2.destroyAllWindows()

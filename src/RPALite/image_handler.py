@@ -362,8 +362,6 @@ class ImageHandler:
                 else:
                     other_lines.append((x1, y1, x2, y2))
     
-       
-        
         lines = horizontal_lines
               # 创建用于显示的图像副本
         display_image = img.copy()
@@ -374,12 +372,6 @@ class ImageHandler:
             # 使用绿色绘制线段，线宽为2
             cv2.line(display_image, (x1, y1), (x2, y2), (0, 255, 0), 1)
         
-        # 显示结果图像
-        cv2.imshow("Detected Lines", display_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-
         # 合并lines和contours到同一数组并排序
         combined_elements = []
         if lines is not None:
@@ -391,7 +383,6 @@ class ImageHandler:
             (elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1]),  # y坐标
             elem[1][0] if elem[0] == 'line' else cv2.boundingRect(elem[1])[0]   # x坐标
         ))
-        cv2.imshow('Targets', img) 
 
         for elem in combined_elements:
             elem_type, data = elem
@@ -447,9 +438,8 @@ class ImageHandler:
 
             if (abs(x - target[0]) < target[2] or abs(y - target[1]) < 50) and h/target[3] < 3:
                 multiple *= 0.5
-                if elem_type == 'line' and abs(y - target[1]) < 20:
-                    cv2.line(img, (x, y+h), (x + w, y+h), (255, 0, 0), 1)
 
+            target_multiple = 1
             # 统一嵌套关系检查
             if target_information is not None:
                 current_control = target_information[1]
@@ -468,19 +458,15 @@ class ImageHandler:
 
                     multiple *= target_multiple * multiple_for_current_control
                             
-            if (dist1 * multiple < dist * multiple) and ((not left_or_top_label) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
+            if (dist1 * multiple < dist * target_multiple) and ((not left_or_top_label) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
                 dist = dist1 
                 target_information = (approx, (x, y, w, h), 0.5 if multiple <= 0.5 else 1)
-                if w > 800 and w < 1600 and h < 20 and y > 300:
-
-                    cv2.line(img, (x, y), (x + w, y+h), (0, 0, 255), 1)
-
-
+             
         # displaying the image after drawing contours 
         if(target_information is None):
             return None
         if self.debug_mode:
-            #cv2.drawContours(img, [target_information[0]], -1, (0, 255, 0), 1)
+            cv2.drawContours(img, [target_information[0]], -1, (0, 255, 0), 1)
             cv2.imshow('Targets', img) 
             cv2.waitKey(self.debug_image_show_milliseconds)
             cv2.destroyAllWindows()

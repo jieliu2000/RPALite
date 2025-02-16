@@ -21,7 +21,16 @@ class PaddleOCRHandler:
         
         # Initialize multiple PaddleOCR instances based on languages
         self.ocr_instances = []
+        
+        # Check if we have both English and other languages
+        has_english = 'en' in languages
+        has_other_languages = len(languages) > 1 or (len(languages) == 1 and languages[0] != 'en')
+        
         for lang in languages:
+            # Skip English initialization if we have other languages
+            if lang == 'en' and has_other_languages:
+                continue
+                
             # Only initialize unique language instances
             if lang not in [ocr.lang for ocr in self.ocr_instances]:
                 ocr = PaddleOCR(lang=lang, show_log=debug_mode)

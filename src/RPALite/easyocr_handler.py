@@ -34,7 +34,8 @@ class EasyOCRHandler:
             img_array = np.array(image)
             
         try:
-            results = self.reader.readtext(img_array)
+
+            results = self.reader.readtext(img_array, link_threshold  = 0.3, width_ths =0.3, batch_size=2, slope_ths=0.5)
             return results
             if self.debug_mode:
                 logger.debug(f"EasyOCR results: {results}")

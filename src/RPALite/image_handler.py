@@ -440,10 +440,10 @@ class ImageHandler:
                 x1, y1, x2, y2 = data
                 # 使用绿色绘制线段，线宽为2
                 cv2.line(display_image, (x1, y1), (x2, y2), (0, 0, 255), 1)
-        
-        cv2.imshow('Lines', display_image) 
-        cv2.waitKey(self.debug_image_show_milliseconds)
-        cv2.destroyAllWindows()
+        if self.debug_mode:
+            cv2.imshow('Lines', display_image) 
+            cv2.waitKey(self.debug_image_show_milliseconds)
+            cv2.destroyAllWindows()
 
 
         for elem in combined_elements:

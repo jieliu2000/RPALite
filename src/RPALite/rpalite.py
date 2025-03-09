@@ -1206,7 +1206,7 @@ class RPALite:
         Shows desktop and minimizes all windows.
         '''
         if self.platform == 'Windows':
-            self.send_keys('{VK_LWIN down}D{VK_LWIN}')
+            self.send_keys('{VK_LWIN down}D{VK_LWIN up}')
         elif self.platform == 'Darwin':
             # Use Mission Control shortcut for macOS
             self.send_keys('^%{UP}')

@@ -521,11 +521,11 @@ class RPALite:
             filtered_locations = []
             for loc in locations:
                 target_text = loc[1]
-                # 条件1：文本相互包含检查
+                # Condition 1: Check for text mutual inclusion
                 if text not in target_text and target_text not in text:
                     continue
                 
-                # 条件2：文本长度比例检查
+                # Condition 2: Check text length ratio
                 len_ratio = len(text) / len(target_text) if len(target_text) > 0 else 0
                 if not (0.75 <= len_ratio <= 1.3):
                     continue
@@ -777,7 +777,8 @@ class RPALite:
         return self.image_handler.find_all_image_locations(image, parent_image)
 
     def wait_until_image_shown(self, image, parent_image = None, timeout = 30):
-        '''
+        '''Wait until an image appears on screen or in a parent image.
+        
         Parameters
         ----------
         image: str or PIL image
@@ -785,23 +786,27 @@ class RPALite:
 
         parent_image: str or PIL image
             The image to search from. This can be the path of image or PIL image.
-
+            
+        timeout: int
+            Maximum time to wait in seconds.
+            
         Returns
         -------
         tuple
             The location of the image in the screen. The location is a tuple of (x, y, width, height).
+            None if the image is not found within the timeout period.
         '''
         start_time = datetime.now()
-        while(True):
+        while True:
             location = self.find_image_location(image, parent_image)
-            if(location is not None):
-                return location[0] 
+            if location is not None:
+                return location
             else:
                 diff = datetime.now() - start_time
                 if(diff.seconds > timeout):
                     raise AssertionError('Timeout waiting for image')
                 self.sleep(1)
-            return location
+                return location
 
     def click_by_text_inside_window(self, text, window_title, button='left', double_click= False):
         '''Click the positon of a string on screen. '''

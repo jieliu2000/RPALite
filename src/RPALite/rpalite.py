@@ -1126,7 +1126,7 @@ class RPALite:
             The path to the video file being recorded
         '''
         if self.screen_recording_thread is not None:
-            logger.warning("Screen recording is already in progress")
+            logger.warn("Screen recording is already in progress")
             return self.screen_recording_file
 
         if target_avi_file_path is None or target_avi_file_path == '':
@@ -1151,7 +1151,7 @@ class RPALite:
             The path to the recorded video file, or None if no recording was in progress
         '''
         if not self.screen_recording_thread:
-            logger.warning("No screen recording in progress")
+            logger.warn("No screen recording in progress")
             return None
 
         try:

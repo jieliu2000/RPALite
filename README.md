@@ -231,6 +231,73 @@ Test Notepad
     Close App    ${app}
 ```
 
+#### Advanced Features Example
+
+```robotframework
+*** Settings ***
+Library    RPALite
+Library    OperatingSystem
+
+*** Test Cases ***
+Login Form Automation
+    # Wait for text to appear with timeout
+    ${position} =    Wait Until Text Shown    Login    timeout=10
+
+    # Click on UI elements
+    Click By Text    Sign In
+
+    # Fill in form fields
+    Enter In Field    Username    my_user
+    Enter In Field    Password    my_password
+
+    # Take screenshot for verification
+    ${screenshot} =    Take Screenshot    filename=login_screen.png
+
+    # Wait for an image to appear on screen
+    Wait Until Image Shown    dashboard_icon.png    timeout=15
+
+    # Start screen recording
+    ${recording_path} =    Start Screen Recording    fps=15
+
+    # Perform test operations
+    Click By Text    Dashboard
+    Sleep    2
+
+    # Validate text exists on screen
+    Validate Text Exists    Welcome, my_user
+
+    # Stop recording
+    ${final_path} =    Stop Screen Recording
+    Log    Recording saved to: ${final_path}
+```
+
+#### Advanced Keyboard Input Example
+
+```robotframework
+*** Settings ***
+Library    RPALite
+
+*** Test Cases ***
+Keyboard Operations
+    # Simple text input
+    Input Text    Hello from Robot Framework!
+
+    # Special keys and combinations
+    Send Keys    {ENTER}
+    Send Keys    ^a    # Select all
+    Send Keys    ^c    # Copy
+    Send Keys    {TAB}
+    Send Keys    ^v    # Paste
+
+    # Function keys and modifiers
+    Send Keys    {F5}
+    Send Keys    %{F4}    # Alt+F4
+
+    # Get clipboard content
+    ${clipboard_text} =    Get Clipboard Text
+    Log    Clipboard contains: ${clipboard_text}
+```
+
 ## Contribution Guidelines
 
 If you wish to contribute code to RPALite, feel free to submit a Pull Request. Ensure your code style is consistent with the existing codebase and passes all tests in the tests directory. Additionally, make sure to update unit tests for any new or modified code.

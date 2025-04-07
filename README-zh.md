@@ -231,6 +231,73 @@ Library    RPALite
     Close App    ${app}
 ```
 
+#### 高级功能示例
+
+```robotframework
+*** Settings ***
+Library    RPALite
+Library    OperatingSystem
+
+*** Test Cases ***
+登录表单自动化
+    # 等待文本出现，设置超时时间
+    ${position} =    Wait Until Text Shown    登录    timeout=10
+
+    # 点击 UI 元素
+    Click By Text    登录
+
+    # 填写表单字段
+    Enter In Field    用户名    my_user
+    Enter In Field    密码    my_password
+
+    # 截图验证
+    ${screenshot} =    Take Screenshot    filename=login_screen.png
+
+    # 等待图像出现
+    Wait Until Image Shown    dashboard_icon.png    timeout=15
+
+    # 开始屏幕录制
+    ${recording_path} =    Start Screen Recording    fps=15
+
+    # 执行测试操作
+    Click By Text    控制面板
+    Sleep    2
+
+    # 验证屏幕上存在文本
+    Validate Text Exists    欢迎, my_user
+
+    # 停止录制
+    ${final_path} =    Stop Screen Recording
+    Log    录制保存到: ${final_path}
+```
+
+#### 高级键盘输入示例
+
+```robotframework
+*** Settings ***
+Library    RPALite
+
+*** Test Cases ***
+键盘操作
+    # 简单文本输入
+    Input Text    来自 Robot Framework 的问候！
+
+    # 特殊键和组合键
+    Send Keys    {ENTER}
+    Send Keys    ^a    # 全选
+    Send Keys    ^c    # 复制
+    Send Keys    {TAB}
+    Send Keys    ^v    # 粘贴
+
+    # 功能键和修饰符
+    Send Keys    {F5}
+    Send Keys    %{F4}    # Alt+F4
+
+    # 获取剪贴板内容
+    ${clipboard_text} =    Get Clipboard Text
+    Log    剪贴板内容: ${clipboard_text}
+```
+
 ## 贡献指南
 
 如果您想为 RPALite 贡献代码，欢迎提交 Pull Request。请确保您的代码风格与现有代码库一致，并通过 tests 目录中的所有测试。此外，请确保为任何新增或修改的代码更新单元测试。

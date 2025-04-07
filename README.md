@@ -11,6 +11,7 @@
 - [Introduction](#introduction)
 - [Features](#features)
 - [Platform Support](#platform-support)
+- [OCR Engine Options](#ocr-engine-options)
 - [Performance Optimization](#performance-optimization)
 - [Documentation](#documentation)
 - [Installation](#installation)
@@ -21,27 +22,55 @@
 
 ## Introduction
 
-RPALite is an open-source RPA (Robotic Process Automation) library. You can use RPALite through Python or [Robot Framework](https://robotframework.org/) to achieve various automation tasks.
+RPALite is an open-source RPA (Robotic Process Automation) library. You can use RPALite through Python or [Robot Framework](https://robotframework.org/) to achieve various automation tasks with minimal code.
 
-RPALite now supports Windows platform. Supporting for macOS and Linux is under development.
+RPALite provides powerful automation capabilities with a simple API, allowing you to automate UI interactions, data entry, and image-based operations across different applications.
+
+RPALite currently only supports the Windows platform. Support for macOS and Linux is under active development.
 
 ## Features
 
 RPALite supports the following operations:
 
-- Launching applications
-- Finding applications by name or ClassName
-- Closing applications
-- Mouse clicking on specific text
-- Locating and inputting into text boxes based on placeholders or labels
-- Mouse clicking based on coordinates
-- Support for left-click, right-click, and double-click operations
-- Locating controls based on control names, classes, or Automation IDs (Windows) and getting their coordinates
-- Image-based location. You can pass a partial screenshot to RPALite to return the coordinates of the corresponding part on the screen.
-- Screen recording capabilities
-- Clipboard operations
-- Advanced keyboard input support with special keys and combinations
-- Window management (maximize, minimize, show desktop)
+- **Application Management**
+
+  - Launching applications
+  - Finding applications by name or class name
+  - Closing applications (with force quit option)
+  - Window management (maximize, minimize, show desktop)
+
+- **Mouse Operations**
+
+  - Clicking by coordinates, text or images
+  - Support for left-click, right-click, and double-click operations
+  - Mouse press/release for drag and drop operations
+  - Scrolling operations
+  - Moving cursor to text elements
+
+- **Keyboard Operations**
+
+  - Text input at cursor position
+  - Advanced keyboard input with special keys and combinations
+  - Text field interaction based on labels
+
+- **Visual Automation**
+
+  - OCR-based text recognition (multiple language support)
+  - Image-based location and verification
+  - Finding all instances of an image on screen
+  - Waiting for text or images to appear/disappear
+  - Screen recording capabilities
+
+- **UI Automation**
+
+  - Finding controls by label, text vicinity, or automated IDs
+  - Flexible UI element locator system
+  - Control interaction based on element properties
+
+- **Utility Features**
+  - Clipboard operations (get/set)
+  - Screenshot capabilities
+  - Synchronization mechanisms (waits and sleeps)
 
 ## Platform Support
 
@@ -57,9 +86,39 @@ RPALite supports the following operations:
 - The code is not yet stable, so macOS-related features have been temporarily disabled
 - We are working to provide full macOS support in future releases
 
+### Linux (Planned)
+
+- Linux support is planned for future releases
+- Currently in early design phase
+
+## OCR Engine Options
+
+RPALite supports two OCR engines for text recognition:
+
+- **EasyOCR** (Default)
+
+  - Better multi-language support
+  - Suitable for general-purpose OCR tasks
+  - Larger model size
+
+- **PaddleOCR**
+  - Better performance for Chinese text
+  - Smaller model size
+  - Faster inference speed
+
+You can specify which engine to use during initialization:
+
+```python
+# Using the default (EasyOCR)
+rpa = RPALite()
+
+# Using PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr")
+```
+
 ## Performance Optimization
 
-The most time-consuming operations in RPALite are image recognition and OCR. For OCR, users could choose to use [EasyOCR](https://github.com/JaidedAI/EasyOCR) or [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR). Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
+The most time-consuming operations in RPALite are image recognition and OCR. Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
 
 ## Documentation
 
@@ -88,7 +147,7 @@ As mentioned earlier, you can use RPALite with Python or Robot Framework. Here a
 
 ### Python
 
-#### Windows Example
+#### Basic Example
 
 Below is an example of using RPALite to operate Windows Notepad:
 
@@ -108,7 +167,35 @@ app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
 ```
 
-### Advanced Keyboard Input Examples
+#### Advanced Features Example
+
+```python
+from RPALite import RPALite
+rpalite = RPALite()
+
+# Wait for text to appear with timeout
+position = rpalite.wait_until_text_shown("Login", timeout=10)
+
+# Click on a button identified by text
+rpalite.click_by_text("Sign In")
+
+# Work with form fields
+rpalite.enter_in_field("Username", "my_user")
+rpalite.enter_in_field("Password", "my_password")
+
+# Wait for an image to appear
+rpalite.wait_until_image_shown("dashboard_icon.png", timeout=15)
+
+# Start screen recording
+recording_path = rpalite.start_screen_recording(fps=15)
+
+# Perform some operations...
+
+# Stop recording
+rpalite.stop_screen_recording()
+```
+
+#### Advanced Keyboard Input Examples
 
 ```python
 # Simple text input
@@ -126,7 +213,7 @@ rpalite.send_keys("+(abc)")      # Shift+ABC (uppercase)
 
 ### Robot Framework
 
-#### Windows Example
+#### Basic Example
 
 Below is an example of using RPALite to operate Windows Notepad:
 

@@ -419,7 +419,7 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
 
-    def wait_until_text_disppears(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
+    def wait_until_text_disappears(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
         """
         Wait until a specific text disappears in the current screen. .
 
@@ -751,7 +751,7 @@ class RPALite:
         return self.image_handler.find_image_location(image, parent_image)
     
     def find_all_image_locations(self, image, parent_image = None):
-        '''Find all images in the parent image or the entire screen if no parent image is provided. This function will return the locations if the image exists, otherwise it will return None.
+        '''Find all images in the parent image or the entire screen if no parent image is provided. This function will return the locations if the image exists, otherwise it will return an empty list.
         
         Parameters
         ----------
@@ -764,7 +764,8 @@ class RPALite:
         Returns
         -------
         list
-            A list of locations of the image in the screen. Each location is a tuple of (x, y, width, height).
+            A list of locations of the image in the screen. Each location is a tuple of (x, y, width, height). 
+            If no matches are found, an empty list will be returned.
         '''
         if isinstance(image, str):
             image = PIL.Image.open(image)

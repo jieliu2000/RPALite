@@ -444,7 +444,7 @@ This will wait for up to 30 seconds for the text to appear, and will return the 
 Similarly, you can wait for text to disappear from the screen:
 
 ```python
-rpalite.wait_until_text_disppears("Text to wait for disappearing", timeout=30)
+rpalite.wait_until_text_disappears("Text to wait for disappearing", timeout=30)
 ```
 
 ## Clipboard Operations
@@ -495,6 +495,8 @@ locations = rpalite.find_all_image_locations("path/to/image.png")
 for loc in locations:
     print(f"Found image at: {loc}")
 ```
+
+If no matches are found, this function will return an empty list, not None.
 
 ### Waiting for an Image
 

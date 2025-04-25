@@ -53,9 +53,83 @@ RPALite 支持以下操作：
 
 ### macOS (开发中)
 
-- macOS 支持目前正在开发中
-- 代码尚未稳定，因此暂时禁用了 macOS 相关功能
-- 我们正在努力在未来的版本中提供完整的 macOS 支持
+- 现已提供基本的 macOS 自动化支持
+- 支持的主要功能：
+  - 应用程序启动和窗口管理
+  - 键盘和鼠标输入
+  - 屏幕捕获和 OCR 文本检测
+  - 剪贴板操作
+- 系统依赖项：
+  - pyobjc-core：核心 Objective-C 绑定
+  - pyobjc-framework-Cocoa：AppKit 和 Foundation 框架
+  - pyobjc-framework-Quartz：屏幕捕获和图像处理
+  - pyobjc-framework-ApplicationServices：辅助功能和用户输入
+  - 推荐 macOS 10.14 或更高版本
+- 系统依赖项安装：
+  ```bash
+  # 安装所需的 macOS 依赖项
+  pip install pyobjc-core pyobjc-framework-Cocoa pyobjc-framework-Quartz pyobjc-framework-ApplicationServices
+  ```
+- 已知限制：
+  - 尚未通过辅助功能框架实现 UI 元素识别
+  - 对特定应用程序的自动化支持有限
+  - 某些功能可能需要在系统设置 > 隐私与安全性中授予额外权限
+
+#### macOS 系统权限设置
+
+要在 macOS 上使用 RPALite，您需要在系统设置中授予必要的权限：
+
+1. **屏幕录制权限**：
+
+   - 前往系统设置 > 隐私与安全性 > 屏幕录制
+   - 将您的 Python 应用程序或终端添加到允许的应用程序列表中
+   - 此权限对于截图和 OCR 功能是必需的
+
+2. **辅助功能权限**：
+
+   - 前往系统设置 > 隐私与安全性 > 辅助功能
+   - 将您的 Python 应用程序或终端添加到允许的应用程序列表中
+   - 此权限对于鼠标和键盘模拟是必需的
+
+3. **自动化权限**：
+
+   - 首次尝试控制应用程序时，macOS 会提示请求权限
+   - 点击"好"以允许您的脚本控制目标应用程序
+   - 这些提示会针对您自动化的每个应用程序出现
+
+4. **常见问题**：
+   - 如果在授予权限后自动化仍然无法工作，请尝试重启终端或应用程序
+   - 对于从不同环境（IDE、终端）运行的脚本，每个环境都需要单独的权限
+   - 在某些情况下，您可能需要将 Python 本身添加到权限列表中
+
+注意：根据您的 macOS 版本，这些设置的确切路径可能略有不同。
+
+#### macOS 问题排查指南
+
+如果您在 macOS 上运行 RPALite 时遇到问题：
+
+1. **权限错误**：
+
+   - 确保您的终端/IDE 拥有所需的权限（参见 macOS 系统权限设置）
+   - 尝试使用管理员权限运行脚本：`sudo python your_script.py`
+   - 如果系统提示应用程序控制权限，请始终点击"好"
+
+2. **OCR 或截图问题**：
+
+   - 验证是否为您的终端/IDE 授予了屏幕录制权限
+   - 尝试使用不同的 OCR 引擎：`rpalite = RPALite(ocr_engine="paddleocr")`
+   - 如果文本识别效果不佳，请调整屏幕分辨率或增加字体大小
+
+3. **鼠标/键盘控制问题**：
+
+   - 验证是否授予了辅助功能权限
+   - 如果基于文本的点击失败，请使用绝对坐标进行点击
+   - 对于键盘输入问题，尝试使用 `send_keys()` 方法而不是 `input_text()`
+
+4. **应用程序启动问题**：
+   - 如果 `run_command()` 失败，请指定应用程序的完整路径
+   - 对于某些应用程序，使用带 `.app` 扩展名的完整名称：`"Calculator.app"`
+   - 检查应用程序包名称是否正确
 
 ### Linux
 
@@ -157,6 +231,36 @@ rpalite.click_text("=")
 # 验证结果
 result = rpalite.get_text_from_coordinates(100, 100)  # 根据您的计算器调整坐标
 assert result == "8"
+```
+
+#### macOS 示例
+
+以下是使用 RPALite 操作 macOS 计算器的示例：
+
+```python
+from RPALite import RPALite
+rpalite = RPALite()
+
+# 启动计算器
+rpalite.run_command("Calculator")
+
+# 点击数字 5
+rpalite.click_text("5")
+
+# 点击加号按钮
+rpalite.click_text("+")
+
+# 点击数字 3
+rpalite.click_text("3")
+
+# 点击等号按钮
+rpalite.click_text("=")
+
+# 获取结果（由于元素检测有限，使用剪贴板）
+rpalite.click_text("编辑")
+rpalite.click_text("拷贝")
+result = rpalite.get_clipboard_text()
+assert result.strip() == "8"
 ```
 
 ### 高级键盘输入示例

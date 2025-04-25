@@ -62,7 +62,7 @@ class RPALite:
         self.platform = platform.system()
         self.debug_mode = debug_mode
         self.ocr_engine = ocr_engine
-        if self.platform not in ['Windows', 'Linux']:
+        if self.platform not in ['Windows', 'Linux', 'Darwin']:
             raise Exception('This version currently only supports Windows, macOS and Linux. Other platforms will be supported in the future.')
         self.image_handler = ImageHandler(debug_mode, ocr_engine, languages)
         self.step_pause_interval = step_pause_interval
@@ -88,6 +88,13 @@ class RPALite:
             The return code of the command. 0 indicates success.
         """
         try:
+            if self.platform == 'Darwin' and not command.startswith('/') and '/' not in command:
+                # For macOS, if command is just an application name, use "open -a"
+                if not command.endswith('.app'):
+                    command = f"open -a '{command}'"
+                else:
+                    command = f"open '{command}'"
+                
             if noblock:
                 process = subprocess.Popen(command, shell=True)
                 return process.pid
@@ -363,27 +370,41 @@ class RPALite:
         return params
     
     def take_screenshot(self, all_screens = False, filename = None):
-        '''Take a screenshot and save it to a file. If the filename parameter is not specified, the screenshot will be saved to a file with a random name.
-        
+        '''
+        Take a screenshot of the current screen. If all_screens is True, take a screenshot of all screens.
+
         Parameters
         ----------
         all_screens : bool
-            Whether to take screenshots of all screens. If set to False, only the current screen will be taken.
+            If True, take a screenshot of all screens.
         
         filename : str
-            The filename to save the screenshot to. If not specified, this method will not save the screenshot to a file.
-        
+            If specified, save the screenshot to the file.
+            
         Returns
         -------
         PIL.Image
-            The screenshot image.
+            The screenshot image
         '''
-
-        img = PIL.ImageGrab.grab(all_screens=False)
-        
-        if filename is not None:
-            img.save(filename)
-        return img
+        try:
+            if self.platform == 'Darwin':
+                if all_screens:
+                    # Get all screens in macOS
+                    img = pyautogui.screenshot()
+                else:
+                    # Get main screen in macOS
+                    img = pyautogui.screenshot()
+            else:
+                # For Windows and Linux
+                img = pyautogui.screenshot()
+                
+            if filename:
+                img.save(filename)
+            
+            return img
+        except Exception as e:
+            logger.error(f"Failed to take screenshot: {e}")
+            return None
     
     def wait_until_text_shown(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
         '''
@@ -885,24 +906,32 @@ class RPALite:
 
 
     def mouse_press(self, button='left'):
-        '''Presses the mouse button.
+        '''
+        Presses the mouse button at the current position.
 
         Parameters:
         ----------
         button: str
             The mouse button to be pressed. Value could be 'left' or 'right'. Default is 'left'
         '''
-        pyautogui.mouseDown(button=button)
+        if self.platform == 'Darwin':
+            mouselib.press(button=button)
+        else:
+            pyautogui.mouseDown(button=button)
 
     def mouse_release(self, button='left'):
-        '''Releases the mouse button. 
+        '''
+        Releases the mouse button at the current position.
 
         Parameters:
         ----------
         button: str
             The mouse button to be released. Value could be 'left' or 'right'. Default is 'left'
         '''
-        pyautogui.mouseUp(button=button)
+        if self.platform == 'Darwin':
+            mouselib.release(button=button)
+        else:
+            pyautogui.mouseUp(button=button)
 
     def copy_text_to_clipboard(self, text):
         '''
@@ -913,13 +942,36 @@ class RPALite:
         text: str
             The text to be copied to the clipboard.
         '''
-        pyperclip.copy(text)
+        try:
+            if self.platform == 'Darwin':
+                # Use AppKit's pasteboard for better macOS compatibility
+                pb = AppKit.NSPasteboard.generalPasteboard()
+                pb.clearContents()
+                ns_string = AppKit.NSString.stringWithString_(text)
+                pb.setString_forType_(ns_string, AppKit.NSPasteboardTypeString)
+            else:
+                pyperclip.copy(text)
+        except Exception as e:
+            logger.error(f"Failed to copy text to clipboard: {e}")
+            # Fall back to pyperclip
+            pyperclip.copy(text)
 
     def get_clipboard_text(self):
         '''
         Returns the text in the clipboard.
         '''
-        return pyperclip.paste()
+        try:
+            if self.platform == 'Darwin':
+                # Use AppKit's pasteboard for better macOS compatibility
+                pb = AppKit.NSPasteboard.generalPasteboard()
+                content = pb.stringForType_(AppKit.NSPasteboardTypeString)
+                return content or ''
+            else:
+                return pyperclip.paste()
+        except Exception as e:
+            logger.error(f"Failed to get clipboard text: {e}")
+            # Fall back to pyperclip
+            return pyperclip.paste()
 
 
     def scroll(self, times = 1, sleep = None):

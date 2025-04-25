@@ -53,9 +53,83 @@ RPALite supports the following operations:
 
 ### macOS (Under Development)
 
-- macOS support is currently under development
-- The code is not yet stable, so macOS-related features have been temporarily disabled
-- We are working to provide full macOS support in future releases
+- Basic macOS automation support is now available
+- Key features supported:
+  - Application launching and window management
+  - Keyboard and mouse input
+  - Screen capture and OCR text detection
+  - Clipboard operations
+- System dependencies:
+  - pyobjc-core: Core Objective-C bindings
+  - pyobjc-framework-Cocoa: AppKit and Foundation frameworks
+  - pyobjc-framework-Quartz: Screen capture and image processing
+  - pyobjc-framework-ApplicationServices: Accessibility and user input
+  - macOS 10.14 or later recommended
+- Installation of system dependencies:
+  ```bash
+  # Install required macOS dependencies
+  pip install pyobjc-core pyobjc-framework-Cocoa pyobjc-framework-Quartz pyobjc-framework-ApplicationServices
+  ```
+- Known limitations:
+  - No UI element identification through accessibility frameworks yet
+  - Limited support for application-specific automation
+  - Some features may require additional permissions in System Settings > Privacy & Security
+
+#### macOS System Permission Setup
+
+To use RPALite on macOS, you need to grant the necessary permissions in System Settings:
+
+1. **Screen Recording Permission**:
+
+   - Go to System Settings > Privacy & Security > Screen Recording
+   - Add your Python application or terminal to the allowed applications list
+   - This permission is required for taking screenshots and OCR functionality
+
+2. **Accessibility Permission**:
+
+   - Go to System Settings > Privacy & Security > Accessibility
+   - Add your Python application or terminal to the allowed applications list
+   - This permission is required for mouse and keyboard simulation
+
+3. **Automation Permission**:
+
+   - The first time you try to control an application, macOS will prompt for permission
+   - Click "OK" to allow your script to control the target application
+   - These prompts appear per-application that you automate
+
+4. **Common Issues**:
+   - If automation doesn't work after granting permissions, try restarting your terminal or application
+   - For scripts running from different environments (IDEs, terminals), each environment needs separate permissions
+   - In some cases, you may need to add Python itself to the permissions list
+
+Note: The exact path to these settings may vary slightly depending on your macOS version.
+
+#### macOS Troubleshooting Tips
+
+If you encounter issues when running RPALite on macOS:
+
+1. **Permission Errors**:
+
+   - Ensure your terminal/IDE has the required permissions (see macOS System Permission Setup)
+   - Try running your script with administrator privileges using `sudo python your_script.py`
+   - If prompted for application control, always click "OK"
+
+2. **OCR or Screenshot Issues**:
+
+   - Verify Screen Recording permission is granted for your terminal/IDE
+   - Try using a different OCR engine: `rpalite = RPALite(ocr_engine="paddleocr")`
+   - For poor text recognition, adjust screen resolution or increase font size
+
+3. **Mouse/Keyboard Control Issues**:
+
+   - Verify Accessibility permission is granted
+   - Use absolute coordinates for clicking if text-based clicking fails
+   - For keyboard input issues, try using `send_keys()` method instead of `input_text()`
+
+4. **Application Launch Problems**:
+   - Specify the full path to the application if `run_command()` fails
+   - For some apps, use the full name with `.app` extension: `"Calculator.app"`
+   - Check if the application bundle name is correct
 
 ### Linux
 
@@ -157,6 +231,36 @@ rpalite.click_text("=")
 # Verify result
 result = rpalite.get_text_from_coordinates(100, 100)  # Adjust coordinates based on your calculator
 assert result == "8"
+```
+
+#### macOS Example
+
+Below is an example of using RPALite to operate macOS Calculator:
+
+```python
+from RPALite import RPALite
+rpalite = RPALite()
+
+# Launch Calculator
+rpalite.run_command("Calculator")
+
+# Click on number 5
+rpalite.click_text("5")
+
+# Click on plus button
+rpalite.click_text("+")
+
+# Click on number 3
+rpalite.click_text("3")
+
+# Click on equals button
+rpalite.click_text("=")
+
+# Get the result (using clipboard since element detection is limited)
+rpalite.click_text("Edit")
+rpalite.click_text("Copy")
+result = rpalite.get_clipboard_text()
+assert result.strip() == "8"
 ```
 
 ### Advanced Keyboard Input Examples

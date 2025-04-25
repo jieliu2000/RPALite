@@ -25,7 +25,13 @@ pywinauto>=0.6.8; sys_platform == 'win32'
 uiautomation>=2.0.0; sys_platform == 'win32'
 
 # macOS
-pyobjc>=8.0; sys_platform == 'darwin'
+# pyobjc>=8.0; sys_platform == 'darwin'  # Full package no longer needed
+
+# macOS specific dependencies
+pyobjc-core>=8.0,<9.0; sys_platform == 'darwin'
+pyobjc-framework-Cocoa>=8.0,<9.0; sys_platform == 'darwin'  # Foundation, AppKit
+pyobjc-framework-Quartz>=8.0,<9.0; sys_platform == 'darwin'  # Screen capture, CoreGraphics
+pyobjc-framework-ApplicationServices>=8.0,<9.0; sys_platform == 'darwin'  # Accessibility, User input
 
 # Testing & Development
 pytest>=6.2.5

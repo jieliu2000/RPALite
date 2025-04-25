@@ -57,9 +57,30 @@ RPALite 支持以下操作：
 - 代码尚未稳定，因此暂时禁用了 macOS 相关功能
 - 我们正在努力在未来的版本中提供完整的 macOS 支持
 
+### Linux
+
+- 支持基于 X11 的桌面环境的完整自动化
+- 需要 X Window System (X11) 和图形桌面环境
+- 系统依赖项：
+  - xdotool：用于键盘和鼠标模拟
+  - wmctrl：用于窗口管理
+  - python-xlib：用于 X11 交互
+- 系统依赖项安装：
+
+  ```bash
+  # Ubuntu/Debian
+  sudo apt-get install xdotool wmctrl python3-xlib
+
+  # CentOS/RHEL
+  sudo yum install xdotool wmctrl python3-xlib
+
+  # Arch Linux
+  sudo pacman -S xdotool wmctrl python-xlib
+  ```
+
 ## 性能优化
 
-RPALite 中最耗时的操作是图像识别和 OCR。对于 OCR，用户可以选择使用 [EasyOCR](https://github.com/JaidedAI/EasyOCR)或者 [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 进行文本识别。EasyOCR和PaddleOCR 在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。
+RPALite 中最耗时的操作是图像识别和 OCR。对于 OCR，用户可以选择使用 [EasyOCR](https://github.com/JaidedAI/EasyOCR)或者 [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 进行文本识别。EasyOCR 和 PaddleOCR 在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。
 
 ## 文档
 
@@ -106,6 +127,36 @@ rpalite.input_text("这是一个使用 RPALite 的演示。\n")
 # 查找记事本应用并关闭它
 app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
+```
+
+#### Linux 示例
+
+以下是使用 RPALite 操作 Linux 计算器的示例：
+
+```python
+from RPALite import RPALite
+rpalite = RPALite()
+
+# 启动计算器
+rpalite.launch_application("gnome-calculator")  # GNOME 桌面环境
+# 或
+rpalite.launch_application("kcalc")  # KDE 桌面环境
+
+# 点击数字 5
+rpalite.click_text("5")
+
+# 点击加号按钮
+rpalite.click_text("+")
+
+# 点击数字 3
+rpalite.click_text("3")
+
+# 点击等号按钮
+rpalite.click_text("=")
+
+# 验证结果
+result = rpalite.get_text_from_coordinates(100, 100)  # 根据您的计算器调整坐标
+assert result == "8"
 ```
 
 ### 高级键盘输入示例

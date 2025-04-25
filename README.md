@@ -57,6 +57,27 @@ RPALite supports the following operations:
 - The code is not yet stable, so macOS-related features have been temporarily disabled
 - We are working to provide full macOS support in future releases
 
+### Linux
+
+- Full automation support for X11-based desktop environments
+- Requires X Window System (X11) and a graphical desktop environment
+- System dependencies:
+  - xdotool: For keyboard and mouse simulation
+  - wmctrl: For window management
+  - python-xlib: For X11 interaction
+- Installation of system dependencies:
+
+  ```bash
+  # Ubuntu/Debian
+  sudo apt-get install xdotool wmctrl python3-xlib
+
+  # CentOS/RHEL
+  sudo yum install xdotool wmctrl python3-xlib
+
+  # Arch Linux
+  sudo pacman -S xdotool wmctrl python-xlib
+  ```
+
 ## Performance Optimization
 
 The most time-consuming operations in RPALite are image recognition and OCR. For OCR, users could choose to use [EasyOCR](https://github.com/JaidedAI/EasyOCR) or [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR). Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
@@ -106,6 +127,36 @@ rpalite.input_text("This is a demo using RPALite.\n")
 # Find the Notepad app and close it
 app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
+```
+
+#### Linux Example
+
+Below is an example of using RPALite to operate Linux Calculator:
+
+```python
+from RPALite import RPALite
+rpalite = RPALite()
+
+# Launch Calculator
+rpalite.launch_application("gnome-calculator")  # For GNOME
+# or
+rpalite.launch_application("kcalc")  # For KDE
+
+# Click on number 5
+rpalite.click_text("5")
+
+# Click on plus button
+rpalite.click_text("+")
+
+# Click on number 3
+rpalite.click_text("3")
+
+# Click on equals button
+rpalite.click_text("=")
+
+# Verify result
+result = rpalite.get_text_from_coordinates(100, 100)  # Adjust coordinates based on your calculator
+assert result == "8"
 ```
 
 ### Advanced Keyboard Input Examples

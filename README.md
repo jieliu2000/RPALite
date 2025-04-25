@@ -82,27 +82,46 @@ To use RPALite on macOS, you need to grant the necessary permissions in System S
 1. **Screen Recording Permission**:
 
    - Go to System Settings > Privacy & Security > Screen Recording
-   - Add your Python application or terminal to the allowed applications list
+   - Click the "+" button to add applications
+   - For Terminal:
+     - Navigate to `/Applications/Utilities/Terminal.app`
+     - Select Terminal and click "Open"
+   - For VSCode:
+     - Navigate to `/Applications/Visual Studio Code.app` (or your custom installation location)
+     - Select VSCode and click "Open"
+   - Restart Terminal or VSCode after adding them
    - This permission is required for taking screenshots and OCR functionality
 
 2. **Accessibility Permission**:
 
    - Go to System Settings > Privacy & Security > Accessibility
-   - Add your Python application or terminal to the allowed applications list
+   - Click the "+" button to add applications
+   - For Terminal:
+     - Navigate to `/Applications/Utilities/Terminal.app`
+     - Select Terminal and click "Open"
+   - For VSCode:
+     - Navigate to `/Applications/Visual Studio Code.app`
+     - Select VSCode and click "Open"
+   - Make sure the checkboxes next to Terminal and VSCode are checked
    - This permission is required for mouse and keyboard simulation
 
 3. **Automation Permission**:
 
-   - The first time you try to control an application, macOS will prompt for permission
-   - Click "OK" to allow your script to control the target application
-   - These prompts appear per-application that you automate
+   - These permissions are requested dynamically when your script attempts to control an application
+   - When prompted, click "OK" to allow your script to control the target application
+   - To pre-approve applications (optional):
+     - Go to System Settings > Privacy & Security > Automation
+     - You'll see a list of applications that can control other apps
+     - Check the boxes for the apps you want to allow Terminal or VSCode to control
 
-4. **Common Issues**:
-   - If automation doesn't work after granting permissions, try restarting your terminal or application
-   - For scripts running from different environments (IDEs, terminals), each environment needs separate permissions
-   - In some cases, you may need to add Python itself to the permissions list
+4. **Adding Python Directly (Alternative Method)**:
+   - If running scripts directly with Python and not through Terminal/VSCode:
+     - Find your Python installation (usually in `/usr/local/bin/python3` or within a virtual environment)
+     - Add this Python executable to both Screen Recording and Accessibility permissions
+   - If using Homebrew Python:
+     - Add `/opt/homebrew/bin/python3` (for Apple Silicon) or `/usr/local/bin/python3` (for Intel Macs)
 
-Note: The exact path to these settings may vary slightly depending on your macOS version.
+Note: The exact path to these settings may vary slightly depending on your macOS version. In older macOS versions, these settings are in System Preferences > Security & Privacy > Privacy.
 
 #### macOS Troubleshooting Tips
 

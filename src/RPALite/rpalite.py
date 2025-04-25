@@ -17,6 +17,7 @@ from datetime import datetime
 from .image_handler import ImageHandler
 import os
 import subprocess
+from typing import List
 
 # Import platform-specific dependencies
 if platform.system() == 'Windows':
@@ -49,23 +50,19 @@ class RPALite:
         The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
     '''
 
-    def __init__(self, step_pause_interval = 3, debug_mode = False, ocr_engine="paddleocr", languages = ['en']):
+    def __init__(self, debug_mode: bool = False, ocr_engine: str = "easyocr", languages: List[str] = ['en'],
+                 step_pause_interval: int = 3):
         """
-        Parameters
-        ----------
-        debug_mode : bool
-            Indicates whether the debug mode is enabled. If it is enabled, the library will output more detailed information and show some images for debugging. The default value is False.
-        
-        step_pause_interval : int
-            The default pause interval in seconds after each step. The defaul value of this attribue is 3 seconds.    
-        
-        languages : arr of str
-            The languages to be used for OCR. The default value is [en'], which is English. Please refer to the language list(https://www.jaided.ai/easyocr) of EasyOCR(https://github.com/JaidedAI/EasyOCR) for more information.
+        Initialize the RPALite class.
+        :param debug_mode: Whether to enable debug mode
+        :param ocr_engine: OCR engine to use (easyocr or paddleocr)
+        :param languages: Languages for OCR
+        :param step_pause_interval: Time to wait between steps
         """
         self.platform = platform.system()
         self.debug_mode = debug_mode
         self.ocr_engine = ocr_engine
-        if self.platform not in ['Windows', 'Darwin', 'Linux']:
+        if self.platform not in ['Windows', 'Linux']:
             raise Exception('This version currently only supports Windows, macOS and Linux. Other platforms will be supported in the future.')
         self.image_handler = ImageHandler(debug_mode, ocr_engine, languages)
         self.step_pause_interval = step_pause_interval
@@ -191,7 +188,7 @@ class RPALite:
             return self.image_handler.find_control_near_position(img, location[0])
     
 
-    def find_control_by_label(self, label):
+    def find_control_by_label(self, label, image = None):
         '''Finds a control by the label text. This function will return the control if it exists, otherwise it will return None.
         Please note that the "window" or "control" in RPALite refers to a rectangle region which can be located on the system screen. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle.
 
@@ -200,12 +197,19 @@ class RPALite:
         label : str
             The label text of the control. It can only be a single line string. Text matching is essentially fuzzy matching based on OCR technology. Therefore matching is case sensitive. 
        
+        image : PIL image
+            Indicates the image to be searched. If it is None, the function will take a screenshot of the current screen.
+
         Returns
         -------
         tuple
             A tuple of the control that matches the title. The returned tuple represents the rectangle of the control. The data structure is (x, y, width, height), while x is the left coordinate and y is the top coordinate of the rectangle. Returns None if no control is found.
         '''
-        img = self.take_screenshot()
+        if image is None:
+            img = self.take_screenshot()
+        else:
+            img = image
+            
         location = self.image_handler.find_texts_in_image(img, label)
         if(location is None or location[0] is None):
             return None
@@ -268,8 +272,26 @@ class RPALite:
         rect = control.BoundingRectangle
 
         return (rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
+    
+    def click_control_by_label(self, label, button='left', double_click=False):
+        '''Click on a control by the label text. The label text is the text displayed on the control or near the control.
+        
+        Parameters
+        ----------
+        label : str
+            The label text of the control. It can only be a single line string. Text matching is essentially fuzzy matching based on OCR technology. Therefore matching is case sensitive. 
+        
+        button : str
+            The mouse button to be clicked. Value could be 'left' or 'right'. Default is 'left'.
+        
+        double_click : bool
+            Whether to perform a double click. Default is False.
+        '''
+        position = self.find_control_by_label(label)
+        if position is not None:
+            self.click_by_position(position[0] + int(position[2] / 2), position[1] + int(position[3] / 2), button, double_click)
 
-    def click_control(self, app, class_name=None, title=None, automate_id=None, click_position='center', button='left', double_click=False):
+    def click_control(self, app, class_name=None, title=None, automate_id=None, click_position='center-left', button='left', double_click=False):
         """
         Find the center, left or right position of the control then click it.
 
@@ -294,9 +316,13 @@ class RPALite:
         position = self.find_control(app, class_name, title, automate_id)
         if click_position == 'center':
             self.click_by_position(int(position[0]) + int(position[2]) // 2, int(position[1]) + int(position[3]) // 2, button, double_click)
-        if click_position == 'left':
+        elif click_position == 'center-left':
+            self.click_by_position(int(position[0]) + int(position[2]) // 3, int(position[1]) + int(position[3]) // 2, button, double_click)
+        elif click_position == 'center-right':
+            self.click_by_position(int(position[0]) + int(position[2]) * 2 // 3, int(position[1]) + int(position[3]) // 2, button, double_click)
+        elif click_position == 'left':
             self.click_by_position(int(position[0]) + 5, int(position[1]) + int(position[3]) // 2, button, double_click)
-        if click_position == 'right':
+        elif click_position == 'right':
             self.click_by_position(int(position[0]) + (position[2]) - 5, int(position[1]) + int(position[3]) // 2, button, double_click)
 
     @not_keyword
@@ -354,51 +380,10 @@ class RPALite:
         '''
 
         img = PIL.ImageGrab.grab(all_screens=False)
+        
         if filename is not None:
             img.save(filename)
         return img
-
-
-    @deprecated("This function has been deprecated, use wait_until_text_shown instead.")
-    def wait_until_text_exists(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
-        '''
-        Wait until a specific text exists in the current screen. This function will return the location if the text exists, otherwise it will return None.
-        
-        Parameters
-        ----------
-        text : str
-            The text to wait for.
-            
-        filter_args_in_parent : dict
-            The filter arguments to filter the parent control. This is used to find the parent control of the text. If not specified, the parent control will be considered during search.
-        
-        parent_control : uiautomation control
-            The parent control to search in. If not specified, the function will search all controls.
-        
-        search_in_image : PIL.Image
-            The image to search in. If not specified, the function will take a screenshot and search in the screenshot.
-        
-        timeout : int
-            The timeout in seconds. If the text is not found within the timeout, an AssertionError will be raised.
-
-        Returns
-        -------
-        tuple
-            The location of the text in the screen. The location is a tuple of (x, y, width, height).
-
-        '''
-
-        start_time = datetime.now()
-        while(True):
-            location = self.find_text_positions(text, filter_args_in_parent, parent_control, search_in_image)
-            if(location is not None):
-                return location[0] 
-            else:
-                diff = datetime.now() - start_time
-                if(diff.seconds > timeout):
-                    raise AssertionError('Timeout waiting for text: ' + text)
-                self.sleep(1)
-                search_in_image = None
     
     def wait_until_text_shown(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
         '''
@@ -538,7 +523,24 @@ class RPALite:
         locations = self.image_handler.find_texts_in_rects(img, text, filter_args_in_parent, parent_control)
         if(locations is None or len(locations) == 0):
             return None
-        elif exact_match and (len(locations[0]) < 2 or (not locations[0][1]) or (not (locations[0][1] in text) and not (text in locations[0][1]))):
+        elif exact_match: 
+            filtered_locations = []
+            for loc in locations:
+                target_text = loc[1]
+                # 条件1：文本相互包含检查
+                if text not in target_text and target_text not in text:
+                    continue
+                
+                # 条件2：文本长度比例检查
+                len_ratio = len(text) / len(target_text) if len(target_text) > 0 else 0
+                if not (0.75 <= len_ratio <= 1.3):
+                    continue
+                
+                filtered_locations.append(loc)
+            
+            if filtered_locations:
+                return [loc[0] for loc in filtered_locations]
+
             return None
         else:
             return [loc[0] for loc in locations]
@@ -704,7 +706,7 @@ class RPALite:
                 position = self.find_control(app, automate_id=automate_id)
                 return position
              
-            return self.wait_until_text_exists(location_description)
+            return self.wait_until_text_shown(location_description)
 
     def click(self, locator=None,  button='left', double_click= False, app = None):
         '''Click on a control. The parameter could be a locator or the control's text (like the button text or the field name)'''
@@ -871,7 +873,7 @@ class RPALite:
         Clicks the center position of a string on screen. 
         '''
         logger.debug('Click by text:', text)
-        location = self.wait_until_text_exists(text, filter_args_in_parent)
+        location = self.wait_until_text_shown(text, filter_args_in_parent)
         if(location is not None and location[0]):
             self.click_by_position(int(location[0]) + int(location[2]) // 2, int(location[1]) + int(location[3]) // 2, button, double_click)
         self.sleep()
@@ -940,7 +942,7 @@ class RPALite:
         '''
         Move mouse to the center position of a string on screen. 
         '''
-        position = self.wait_until_text_exists(text, filter_args_in_parent, parent_control, search_in_image, timeout)
+        position = self.wait_until_text_shown(text, filter_args_in_parent, parent_control, search_in_image, timeout)
         self.mouse_move(int(position[0]) + int(position[2]) // 2, int(position[1]) + int(position[3]) // 2)
 
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
@@ -1101,6 +1103,7 @@ class RPALite:
         result = ''
         current_y = 999999
         for i, (location, target_text) in enumerate(text_arr):
+            target_text = target_text.strip()
             if(location[1] < current_y):
                 if i > 0:
                     target_text = ' ' + target_text    
@@ -1128,10 +1131,11 @@ class RPALite:
     
         '''
         img = self.take_screenshot()
-        location = self.wait_until_text_exists(field_name)
+        location = self.wait_until_text_exists(field_name, search_in_image=img)
         if(location is None):
             logger.error('Cannot find field:', field_name)
             return
+
         (x,y,w,h) = self.image_handler.find_control_near_position(img, location, True)
         self.click_by_position(x+3, y+3)
         self.input_text(text)

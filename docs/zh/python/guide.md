@@ -1,8 +1,13 @@
-# 在 Python 中使用 RPALite
+# Python 编程指南
 
-可以通过以下链接直接跳转到对应的部分：
+## 目录
 
-- [安装 RPALite](#安装)
+- [简介](#简介)
+- [平台支持](#平台支持)
+- [安装](#安装)
+- [基本用法](#基本用法)
+- [高级功能](#高级功能)
+- [故障排除](#故障排除)
 - [创建 RPALite 对象](#创建-RPALite-对象)
 - [程序应用操作](#程序应用操作)
   - [查找应用](#查找应用)
@@ -33,6 +38,89 @@
   - [录屏](#录屏)
     - [开始录屏](#开始录屏)
     - [结束录屏](#结束录屏)
+
+## 简介
+
+本指南详细介绍了如何在 Python 中使用 RPALite。RPALite 是一个开源的 RPA（机器人流程自动化）库，允许您通过 Python 自动化各种任务。
+
+### 平台支持
+
+RPALite 目前支持以下平台：
+
+- **Windows**：完整的自动化支持，包括 UI 控件
+- **macOS (开发中)**：基本自动化支持正在开发中
+
+## OCR 引擎配置
+
+RPALite 支持两种 OCR 引擎：
+
+- **EasyOCR**（默认）
+  - 支持更多语言
+  - 更适合通用 OCR 任务
+  - 模型体积较大
+- **PaddleOCR**
+  - 对中文文本识别效果更好
+  - 模型体积更小
+  - 推理速度更快
+
+你可以在初始化 RPALite 时配置 OCR 引擎：
+
+```python
+# 使用 PaddleOCR（默认）
+rpalite = RPALite(ocr_engine="paddleocr")
+
+# 使用 EasyOCR
+rpalite = RPALite(ocr_engine="easyocr")
+```
+
+### 安装
+
+要安装 RPALite，请使用 pip：
+
+```bash
+pip install RPALite
+```
+
+### 基本用法
+
+以下是一个使用 RPALite 的简单 Python 示例：
+
+```python
+from RPALite import RPALite
+
+# 初始化 RPALite
+rpalite = RPALite()
+
+# 显示桌面
+rpalite.show_desktop()
+
+# 运行记事本并输入文本
+rpalite.run_command("notepad.exe")
+rpalite.input_text("Hello from RPALite!")
+
+# 查找并关闭记事本
+app = rpalite.find_application(".*Notepad")
+rpalite.close_app(app)
+```
+
+### 高级功能
+
+RPALite 提供了许多高级功能，包括：
+
+- 图像识别
+- OCR（光学字符识别）支持多种引擎
+- 窗口管理
+- 剪贴板操作
+- 键盘和鼠标控制
+
+### 故障排除
+
+如果遇到任何问题：
+
+1. 确保您具有所需的权限
+2. 检查日志文件中的错误信息
+3. 验证所有依赖项是否正确安装
+4. 对于 Windows，如果需要，请确保您具有管理员权限
 
 ## 安装
 

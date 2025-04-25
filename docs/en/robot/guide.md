@@ -1,46 +1,117 @@
 # Using the RPALite Library in Robot Framework
 
-You can directly jump to the corresponding section via the following links:
+## Table of Contents
 
+- [Introduction](#introduction)
+- [Platform Support](#platform-support)
+- [OCR Engine Configuration](#ocr-engine-configuration)
 - [Installation](#installation)
-- [Importing the RPALite Library](#importing-the-rpalite-library)
+- [Basic Usage](#basic-usage)
+- [Advanced Features](#advanced-features)
+- [Troubleshooting](#troubleshooting)
 - [Application Operations](#application-operations)
   - [Finding an Application](#finding-an-application)
   - [Launching an Application](#launching-an-application)
   - [Closing an Application](#closing-an-application)
   - [Maximizing a Window](#maximizing-a-window)
-  - [Sleeping](#sleeping)
-- [Simulating Mouse Actions](#simulating-mouse-actions)
+- [Mouse Operations](#mouse-operations)
+  - [Getting Cursor Position](#getting-cursor-position)
+  - [Moving Mouse](#moving-mouse)
   - [Clicking by Coordinates](#clicking-by-coordinates)
   - [Clicking by Text](#clicking-by-text)
   - [Clicking by Image](#clicking-by-image)
-- [Simulating Keyboard Actions](#simulating-keyboard-actions)
-  - [Typing Text at the Current Cursor Position](#typing-text-at-the-current-cursor-position)
-  - [Sending Key Strokes](#sending-key-strokes)
+- [Keyboard Operations](#keyboard-operations)
+  - [Typing Text](#typing-text)
+  - [Sending Keys](#sending-keys)
+  - [Validating Text](#validating-text)
+  - [Finding Text Positions](#finding-text-positions)
+- [Clipboard Operations](#clipboard-operations)
+  - [Getting Clipboard Text](#getting-clipboard-text)
+  - [Setting Clipboard Text](#setting-clipboard-text)
 - [Global Operations](#global-operations)
-  - [Sleeping](#sleeping)
-  - [Getting Screen Dimensions](#getting-screen-dimensions)
-  - [Taking a Screenshot](#taking-a-screenshot)
-  - [Showing the Desktop](#showing-the-desktop)
-  - [Screen Recording](#screen-recording)
-    - [Starting a Screen Recording](#starting-a-screen-recording)
-    - [Stopping a Screen Recording](#stopping-a-screen-recording)
+  - [Sleep](#sleep)
+  - [Show Desktop](#show-desktop)
+  - [Get Screen Size](#get-screen-size)
+  - [Take Screenshot](#take-screenshot)
 
-## Installation
+## Introduction
 
-You can install RPALite through pip:
+This guide provides detailed information on how to use RPALite with Robot Framework. RPALite is an open-source RPA (Robotic Process Automation) library that allows you to automate various tasks through Robot Framework.
+
+### Platform Support
+
+RPALite currently supports the following platforms:
+
+- **Windows**: Full automation support including UI controls
+- **macOS (Under Development)**: Basic automation support is under development
+
+### OCR Engine Configuration
+
+RPALite supports two OCR engines:
+
+- **EasyOCR** (Default)
+  - Supports more languages out of the box
+  - Better for general purpose OCR
+  - Larger model size
+- **PaddleOCR**
+  - Better performance for Chinese text recognition
+  - Smaller model size
+  - Faster inference speed
+
+You can configure the OCR engine when initializing RPALite:
+
+```robotframework
+*** Settings ***
+Library    RPALite    ocr_engine=easyocr    # Use EasyOCR (default)
+
+*** Settings ***
+Library    RPALite    ocr_engine=paddleocr  # Use PaddleOCR
+```
+
+### Installation
+
+To install RPALite, use pip:
 
 ```bash
 pip install RPALite
 ```
 
-## Importing the RPALite Library
+### Basic Usage
 
-You can import the RPALite library with the following code:
+Here's a simple example of using RPALite with Robot Framework:
 
 ```robotframework
+*** Settings ***
 Library    RPALite
+
+*** Test Cases ***
+Test Notepad
+    Send Keys    {VK_LWIN down}D{VK_LWIN up}
+    Run Command    notepad.exe
+    ${app} =     Find Application    .*Notepad
+    Maximize Window    ${app}
+    Input Text    This is a demo using RPALite.
+    Close App    ${app}
 ```
+
+### Advanced Features
+
+RPALite provides many advanced features including:
+
+- Image recognition
+- OCR (Optical Character Recognition) with support for multiple engines
+- Window management
+- Clipboard operations
+- Keyboard and mouse control
+
+### Troubleshooting
+
+If you encounter any issues:
+
+1. Ensure you have the required permissions
+2. Check the log files for error messages
+3. Verify that all dependencies are properly installed
+4. For Windows, ensure you have administrative privileges if required
 
 ## Application Operations
 
@@ -83,108 +154,89 @@ ${app} =     Find Application    .*Notepad
 Maximize Window    ${app}
 ```
 
-## Simulating Mouse Actions
+## Mouse Operations
 
-RPALite supports various mouse simulation actions, such as clicking on text, images, and coordinates.
-
-### Clicking by Coordinates
-
-You can use the following code to click at specific coordinates:
+### Getting Cursor Position
 
 ```robotframework
-Click By Position    10    20
+${position} =    Get Cursor Position
+Log    Cursor position: ${position}
+```
+
+### Moving Mouse
+
+```robotframework
+Move Mouse    100    200    # Move to absolute position
 ```
 
 ### Clicking by Text
 
 ```robotframework
-Click By Text    Text to click
+Click By Text    Click me    # Clicks on text that matches "Click me"
 ```
 
-### Clicking by Image
+## Keyboard Operations
 
-You can use the following code to click an image:
+### Typing Text
 
 ```robotframework
-Click By Image    path/to/image.png
+Input Text    Hello World    # Types "Hello World" at current cursor position
 ```
 
-## Simulating Keyboard Actions
-
-### Typing Text at the Current Cursor Position
-
-You can use the following code to input a piece of text:
+### Sending Keys
 
 ```robotframework
-Input Text    This is a demo using RPALite.
+Send Keys    {ENTER}    # Sends Enter key
+Send Keys    ^c         # Sends Ctrl+C
+Send Keys    %{F4}      # Sends Alt+F4
 ```
 
-### Sending Key Strokes
-
-You can simulate pressing a key on the keyboard with the following code:
+### Finding Text Positions
 
 ```robotframework
-Send Keys    {VK_LWIN down}D{VK_LWIN up}
+${positions} =    Find Text Positions    Text to find
+Log    Text positions: ${positions}
+```
+
+## Clipboard Operations
+
+### Getting Clipboard Text
+
+```robotframework
+${text} =    Get Clipboard Text
+Log    Clipboard content: ${text}
+```
+
+### Setting Clipboard Text
+
+```robotframework
+Copy Text To Clipboard    This is a test
 ```
 
 ## Global Operations
 
-### Sleeping
-
-You can simulate a program sleep with the following code:
+### Sleep
 
 ```robotframework
-Sleep    1
+Sleep    5    # Sleep for 5 seconds
 ```
 
-The `Sleep` function accepts an integer parameter indicating how many seconds RPALite should sleep. This parameter is optional, and the default value is the `step_pause_interval` attribute of the rpalite object.
-
-As mentioned earlier, this value cannot be set to 0 because after simulating mouse or keyboard actions, Windows or the program being operated also needs some time to respond. Otherwise, the likelihood of issues occurring will greatly increase. If you set this parameter to 0, RPALite will directly use the value of `step_pause_interval`. If you set the `step_pause_interval` attribute of RPALite to 0, RPALite will skip the sleep operation.
-
-### Showing the Desktop
+### Show Desktop
 
 ```robotframework
 Show Desktop
 ```
 
-### Getting Screen Dimensions
+### Get Screen Size
 
 ```robotframework
-${size} = Get Screen Size
-${log_message} =  Format String    Screen size: {0} ${size}
-Log    ${log_message}
+${size} =    Get Screen Size
+Log    Screen size: ${size}
 ```
 
-The `get_screen_size` function returns a tuple representing the screen dimensions. For example, (1920, 1080) indicates a screen width of 1920 pixels and a height of 1080 pixels.
-
-### Taking a Screenshot
+### Take Screenshot
 
 ```robotframework
-${pil_image} =    Take Screenshot
-```
-
-The `Take Screenshot` function returns a PIL image object representing a screenshot of the current screen. It has two optional parameters:
-
-- `all_screens`: A Boolean value, defaulting to False, which means taking a screenshot of only the current screen. If set to True, it takes a screenshot of all screens. This parameter is very useful in multi-monitor environments.
-- `filename`: A string representing the path to save the screenshot file. If this parameter is specified, RPALite will save the screenshot to the designated file. When this string is None, RPALite does not save the screenshot. Regardless of whether this parameter is specified, the `Take Screenshot` function always returns a PIL image object.
-
-### Screen Recording
-
-#### Starting a Screen Recording
-
-```robotframework
-Start Screen Recording
-```
-
-The `Start Screen Recording` function initiates screen recording and starts capturing the screen. It has two optional parameters:
-
-- `target_avi_file_path`: A string representing the path to save the screen recording file (in AVI format). If this parameter is specified, RPALite will save the recording content to the designated file. When this string is None, RPALite creates a temporary file in the temporary directory to store the recording content. Regardless of whether this parameter is specified, the `Start Screen Recording` function always returns a string representing the path of the recording file.
-- `fps`: An integer representing the frame rate of the recording. The default value is 10.
-
-`start_screen_recording` currently only supports saving recordings in AVI format.
-
-#### Stopping a Screen Recording
-
-```robotframework
-Stop Screen Recording
+${image} =    Take Screenshot
+Take Screenshot    filename=screenshot.png    # Save to file
 ```

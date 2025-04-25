@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Optional
 import logging
+import math
 from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
@@ -22,13 +23,13 @@ class ImageHandler:
             self.ocr_handler = EasyOCRHandler(languages, debug_mode)
         pass
     
-    def check_point_inide_rect(self, point, rect):
+    def check_point_inide_rect(self, point, rect):  # Should probably be "inside_rect"
         '''Check if a point is in a rect. The point's coordinates are (x, y). The rect's coordinates are (x, y, width, height).'''
         if point is None or rect is None:
             return False
         # If the point is inside the rectangle
         return rect[0] <= point[0] and rect[1] <= point[1] and rect[0] + rect[2] >= point[0] and rect[1] + rect[3] >= point[1]
-
+    
     def check_point_inide_rects(self, point, rects):
         '''Check if a point is in the rects list. The point's coordinates are (x, y). The rects's coordinates are (x, y, width, height).'''
         if point is None or rects is None or len(rects) == 0:
@@ -113,8 +114,29 @@ class ImageHandler:
             if location is not None:
                 return True
         return False
+    
+
+
 
     def read_text(self, image):
+        
+        img_array = np.array(image)
+        
+        cv_image = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)        
+        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        
+        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+        
+        low_contrast_mask = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                                cv2.THRESH_BINARY_INV, 11, 2)
+        
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        enhanced_borders = cv2.morphologyEx(low_contrast_mask, cv2.MORPH_CLOSE, kernel)
+        
+        enhanced_borders = cv2.cvtColor(enhanced_borders, cv2.COLOR_GRAY2BGR)
+        enhanced_borders = cv2.GaussianBlur(enhanced_borders, (3, 3), 0)
+        img_array = cv2.addWeighted(cv_image, 0.9, enhanced_borders, 0.1, 0)
+
         arr = self.ocr_handler.find_texts_in_image(image)
         return arr
 
@@ -173,9 +195,6 @@ class ImageHandler:
         Returns the location information, format is (top_x, top_y, width, height) of the text in the image.
         If the text is not found, returns None.
         '''
-        if self.debug_mode:
-            cv2.imshow('shapes', np.array(image)) 
-            cv2.waitKey(0)
         
         arr = self.read_text(image)
         
@@ -244,10 +263,6 @@ class ImageHandler:
         a = 0
         target_information = None
 
-        if self.debug_mode:
-                cv2.drawContours(img, contours, -1, (0, 255, 0), 1)  
-                cv2.imshow('shapes', img) 
-                cv2.waitKey(0)
         # list for storing names of shapes 
         for contour in contours: 
             # Approximate contour to a polygon
@@ -278,9 +293,6 @@ class ImageHandler:
         return target_information[1]
     
     def find_texts_inside_rect(self, image, target_text, rect):
-        if self.debug_mode:
-                    cv2.imshow('shapes', np.array(image)) 
-                    cv2.waitKey(0)
         
         text_arr = self.read_text(image)
         results = []
@@ -294,7 +306,6 @@ class ImageHandler:
 
                 results.append( (location, target_text))
 
-          
         #cv2.destroyAllWindows()
 
         if len(results) == 0:
@@ -305,14 +316,15 @@ class ImageHandler:
     def find_window_near_position(self, image, target):
         return self.find_control_near_position(image, target)
 
-    def find_control_near_position(self, image, target, label_target = False):
+
+    
+    def find_control_near_position(self, image, target, left_or_top_label = False, text_label_match_ration = 1.0):
         img = np.array(image)
         # converting image into grayscale image 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
       
         # setting threshold of gray image 
-        edged = cv2.Canny(gray, 50, 200, apertureSize = 5) 
-
+        edged = cv2.Canny(gray, 50, 150, apertureSize = 5) 
         # using a findContours() function 
         contours, _ = cv2.findContours( 
             edged, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
@@ -321,37 +333,206 @@ class ImageHandler:
         dist = 1000000
         a = 0
         target_information = None
-        # list for storing names of shapes 
-        for contour in contours: 
-            # Approximate contour to a polygon
-            perimeter = cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, 0.01 * perimeter, True)
+        distance_threshold = 20
+        
+        # 使用HoughLinesP检测图像中的直线，调整参数来检测孤立横线
+        # 霍夫变换检测线段
+        lines = cv2.HoughLinesP(edged, 1, np.pi/180, threshold=100, 
+                                minLineLength=50, maxLineGap=1)
+  
 
-            # Calculate aspect ratio and bounding box
-            if len(approx) == 4:
-                x, y, w, h = cv2.boundingRect(approx)
+        angle_threshold  = 10
+        horizontal_lines = []
+        other_lines = []
+        
+        if lines is not None:
+            for line in lines:
+                x1, y1, x2, y2 = line[0]
+                dx = x2 - x1
+                dy = y2 - y1
+                if dx == 0 and dy == 0:
+                    continue  # 忽略零长度线段
+                
+                # 计算线段角度（转换为0~180度）
+                angle = math.degrees(math.atan2(dy, dx)) % 180
+                
+                # 分类为水平线段或其他线段
+                if (angle <= angle_threshold) or (angle >= 180 - angle_threshold):
+                    if dx > 100:
+                        horizontal_lines.append((x1, y1, x2, y2))
+                else:
+                    other_lines.append((x1, y1, x2, y2))
+    
+        lines = horizontal_lines
+        
+       
+        # 合并lines和contours到同一数组并排序
+        combined_elements = []
+        if lines is not None:
+            combined_elements.extend(('line', line) for line in lines)
+        combined_elements.extend(('contour', c) for c in contours)
+        
+        # 统一排序逻辑：按y坐标升序，y相同则按x升序
+        combined_elements.sort(key=lambda elem: (
+            (elem[1][1] if elem[0] == 'line' else cv2.boundingRect(elem[1])[1]),  # y坐标
+            1 if elem[0] == 'line' else 0,  # y坐标相同，矩形在前面
+            elem[1][0] if elem[0] == 'line' else cv2.boundingRect(elem[1])[0]   # x坐标
+        ))
 
-                if(h<10 and w<10):
-                    #ignore too small shapes
+        # 新增处理逻辑
+        temp_contours = []
+        current_y = None
+        elements_to_remove = set()
+        
+        for i, elem in enumerate(combined_elements):
+            elem_type, data = elem
+            
+            # 获取当前元素的y坐标
+            if elem_type == 'line':
+                y = data[1]  # 取线段的y1坐标
+            else:
+                y = cv2.boundingRect(data)[1]
+                
+            # 如果是contour
+            if elem_type == 'contour':
+                if current_y is None or y != current_y:
+                    # 新的一行开始
+                    current_y = y
+                    temp_contours = [data]
+                else:
+                    # 同一行，添加到临时contours
+                    temp_contours.append(data)
+                    
+            # 如果是line
+            elif elem_type == 'line':
+                if y != current_y:
+                    # 不在当前行，跳过
+                    elements_to_remove.add(i)
+                    continue
+                    
+                # 检查是否被contours包含
+                x1, y1, x2, y2 = data
+                is_contained = False
+                for contour in temp_contours:
+                    # 获取contour的边界
+                    x, y, w, h = cv2.boundingRect(contour)
+                    # 检查线段是否在contour内
+                    if x <= x1 and x + w >= x2 and y <= y1 and y + h >= y2:
+                        is_contained = True
+                        break
+                        
+                if is_contained:
+                    elements_to_remove.add(i)
+                    
+        # 移除需要排除的元素
+        combined_elements = [elem for i, elem in enumerate(combined_elements) if i not in elements_to_remove]
+
+        # 创建用于显示的图像副本
+        display_image = img.copy()
+        
+        # 绘制所有检测到的线段
+       
+        for elem in combined_elements:
+            elem_type, data = elem
+            
+            # 统一获取元素的边界框信息
+            if elem_type == 'line':
+                # 对线段生成矩形区域（模拟轮廓）
+                x1, y1, x2, y2 = data
+                # 使用绿色绘制线段，线宽为2
+                cv2.line(display_image, (x1, y1), (x2, y2), (0, 0, 255), 1)
+        
+        cv2.imshow('Lines', display_image) 
+        cv2.waitKey(self.debug_image_show_milliseconds)
+        cv2.destroyAllWindows()
+
+
+        for elem in combined_elements:
+            elem_type, data = elem
+            
+            # 统一获取元素的边界框信息
+            if elem_type == 'line':
+                # 对线段生成矩形区域（模拟轮廓）
+                x1, y1, x2, y2 = data
+                x, y, w, h = x1, y1 - 15, x2 - x1, 15
+                # 创建模拟的近似轮廓（矩形）
+                approx = np.array([[[x, y]], [[x + w, y]], [[x + w, y + h]], [[x, y + h]]], dtype=np.int32)
+            else:  # contour
+                # 原有轮廓处理逻辑
+                contour = data
+                perimeter = cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, 0.01 * perimeter, True)
+            
+            # 统一使用轮廓处理逻辑
+                if len(approx) >= 4 and len(approx) <= 8:
+                    x, y, w, h = cv2.boundingRect(approx)
+                else:
                     continue
 
-                dist_to_left_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]), float(target[1]+target[3])),True))
-                dist_to_right_bottom = abs(cv2.pointPolygonTest(contour,(float(target[0]+target[2]), float(target[1]+target[3])),True))
+            if h < 10 or w < 10:
+                continue
 
-                dist1 = dist_to_left_bottom 
-                if dist_to_right_bottom < dist1:
-                    dist1 = dist_to_right_bottom
+            # 统一区域关系判断
+            target_area = target[2] * target[3]
+            rect_area = w * h
+            
+            if target_area > rect_area:
+                rect_in_target = (x >= target[0] and y >= target[1] and 
+                                x + w <= target[0] + target[2] and 
+                                y + h <= target[1] + target[3])
+                if rect_in_target:
+                    continue
+            
+            # 统一位置关系检查
+            target_in_rect = (target[0] >= x and target[1] >= y and
+                            target[0] + target[2] <= x + w and
+                            target[1] + target[3] <= y + h)
+            
+            if target_in_rect and abs(w - target[2]) < 40:
+                continue
 
-                if(dist1 < dist) and ((label_target == False) or (label_target and (target[0] + target[2] < x  or target[1] + target[3] < y ))):
-                    dist = dist1
-                    target_information = approx, (x, y, w, h)
+            # 统一距离计算（使用轮廓方式）
+            dist_to_left_bottom = abs(cv2.pointPolygonTest(approx, (float(target[0]), float(target[1]+target[3])), True))
+            dist_to_right_bottom = abs(cv2.pointPolygonTest(approx, (float(target[0]+target[2]), float(target[1]+target[3])), True))
+            dist1 = min(dist_to_left_bottom, dist_to_right_bottom)
+
+            # 统一权重调整逻辑
+            multiple = 1
+
+            if (abs(x - target[0]) < target[2] or abs(y - target[1]) < 50) and h/target[3] < 3:
+                multiple *= 0.5
+
+            target_multiple = 1
+            # 统一嵌套关系检查
+            if target_information is not None:
+                current_control = target_information[1]
+                target_multiple = target_information[2]
+                if (x >= current_control[0] and y >= current_control[1] and 
+                    x + w <= current_control[0] + current_control[2] and 
+                    y + h <= current_control[1] + current_control[3]):
+                    multiple_for_current_control = (w*h)/(current_control[2]*current_control[3])
+
+                    if multiple_for_current_control < 0.3:
+                        multiple_for_current_control = 0.5
+                    elif multiple_for_current_control <= 0.85:
+                        multiple_for_current_control = 0.85
+                    else:
+                        multiple_for_current_control = 1
+
+                    multiple *= target_multiple * multiple_for_current_control
+                            
+            if (dist1 * multiple < dist * target_multiple) and ((not left_or_top_label) or (left_or_top_label and ((target[0] + target[2])/2 < x  or (target[1] + target[3])/2 < y ))):
+                dist = dist1 
+                target_information = (approx, (x, y, w, h), 0.5 if multiple <= 0.5 else 1)
+             
         # displaying the image after drawing contours 
         if(target_information is None):
             return None
         if self.debug_mode:
             cv2.drawContours(img, [target_information[0]], -1, (0, 255, 0), 1)
-            cv2.imshow('shapes', img) 
+            cv2.imshow('Targets', img) 
             cv2.waitKey(self.debug_image_show_milliseconds)
+            cv2.destroyAllWindows()
    
         return target_information[1]
     

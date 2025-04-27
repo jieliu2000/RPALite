@@ -64,17 +64,17 @@ try:
     
     # Clear any previous calculations (press 'Clear' or 'AC' button)
     print("Clearing calculator...")
-    rpalite.click_text("AC")  # For newer macOS Calculator
+    rpalite.click_by_text("AC")  # For newer macOS Calculator
     # If the above doesn't work, try these alternatives:
     # rpalite.click_text("Clear")  # For older macOS Calculator
     # rpalite.click_text("C")      # Another possible label
     
     # Perform a simple calculation: 5 + 3 = 8
     print("Performing calculation: 5 + 3...")
-    rpalite.click_text("5")
-    rpalite.click_text("+")
-    rpalite.click_text("3")
-    rpalite.click_text("=")
+    rpalite.click_by_text("5")
+    rpalite.click_by_text("+")
+    rpalite.click_by_text("3")
+    rpalite.click_by_text("=")
     
     # Copy the result to clipboard
     print("Copying result to clipboard...")

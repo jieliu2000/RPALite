@@ -11,7 +11,6 @@ import PIL
 import time
 import pyautogui
 import pyperclip
-import keyboard as keyboardlib
 import cv2
 from datetime import datetime
 from .image_handler import ImageHandler

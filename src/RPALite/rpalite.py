@@ -27,8 +27,7 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':  # macOS
     from Quartz import *
     from AppKit import *
-    import mouse as mouselib
-    import keyboard  # Use keyboard module instead of pywinauto.keyboard
+    # Use pyautogui for mouse and keyboard on macOS instead of mouse/keyboard modules
 elif platform.system() == 'Linux':
     import mouse as mouselib
     import keyboard
@@ -914,10 +913,7 @@ class RPALite:
         button: str
             The mouse button to be pressed. Value could be 'left' or 'right'. Default is 'left'
         '''
-        if self.platform == 'Darwin':
-            mouselib.press(button=button)
-        else:
-            pyautogui.mouseDown(button=button)
+        pyautogui.mouseDown(button=button)
 
     def mouse_release(self, button='left'):
         '''
@@ -928,10 +924,7 @@ class RPALite:
         button: str
             The mouse button to be released. Value could be 'left' or 'right'. Default is 'left'
         '''
-        if self.platform == 'Darwin':
-            mouselib.release(button=button)
-        else:
-            pyautogui.mouseUp(button=button)
+        pyautogui.mouseUp(button=button)
 
     def copy_text_to_clipboard(self, text):
         '''
@@ -986,13 +979,21 @@ class RPALite:
         sleep: float
             The time to sleep in seconds after scrolling. 
         '''
-        mouselib.wheel(times)
+        if self.platform == 'Darwin':
+            # In pyautogui, positive values scroll up, and negative values scroll down
+            # But we want the opposite, so we negate the value
+            pyautogui.scroll(-times)
+        else:
+            mouselib.wheel(times)
+            
         sleep_seconds = sleep if sleep is not None else self.step_pause_interval
         self.sleep(sleep_seconds)
-        pass
 
     def mouse_move(self, x:int, y:int):
-        mouse.move((x, y))
+        if self.platform == 'Darwin':
+            pyautogui.moveTo(x, y)
+        else:
+            mouse.move((x, y))
         self.sleep()
         
     def move_mouse_to_the_middle_of_text(self, text, filter_args_in_parent=None, parent_control=None, search_in_image=None, timeout=30):
@@ -1016,12 +1017,20 @@ class RPALite:
             else:
                 mouse.click(button, (x,y))
         elif self.platform == 'Darwin':
-            mouselib.move(x, y)
+            pyautogui.moveTo(x, y)
             self.sleep(1)
             if double_click:
-                mouselib.double_click(button)
+                pyautogui.doubleClick(button=button)
             else:
-                mouselib.click(button)
+                pyautogui.click(button=button)
+        else:
+            # Linux
+            mouse.move((x, y))
+            self.sleep(1)
+            if double_click:
+                mouse.double_click(button, (x, y))
+            else:
+                mouse.click(button, (x,y))
                 
         self.sleep()
 
@@ -1030,7 +1039,7 @@ class RPALite:
         Simulate keyboard input. Supports both simple text input and special key combinations.
         
         For Windows, it uses pywinauto's send_keys format.
-        For macOS, it converts the keys to keyboard module format.
+        For macOS, it converts the keys to pyautogui format.
         
         Parameters
         ----------
@@ -1046,11 +1055,11 @@ class RPALite:
         if self.platform == 'Windows':
             keyboard.send_keys(keys)
         elif self.platform == 'Darwin':
-            # Convert pywinauto key mappings to keyboard module format
+            # Convert pywinauto key mappings to pyautogui format
             key_mapping = {
                 # Special keys
                 '{ENTER}': 'enter',
-                '{ESC}': 'esc',
+                '{ESC}': 'escape',
                 '{UP}': 'up',
                 '{DOWN}': 'down',
                 '{LEFT}': 'left', 
@@ -1061,8 +1070,8 @@ class RPALite:
                 '{DELETE}': 'delete',
                 '{HOME}': 'home',
                 '{END}': 'end',
-                '{PAGEUP}': 'page up',
-                '{PAGEDOWN}': 'page down',
+                '{PAGEUP}': 'pageup',
+                '{PAGEDOWN}': 'pagedown',
                 
                 # Modifier keys
                 '{VK_SHIFT}': 'shift',
@@ -1093,38 +1102,73 @@ class RPALite:
                 '#': 'command'  # Add command key for macOS
             }
             
-            processed_keys = keys
+            # For complex key combinations
+            modifiers = []
+            text_to_type = ""
             
-            # Convert special key combinations first
-            for old, new in key_mapping.items():
-                processed_keys = processed_keys.replace(old, new)
-            
-            # Handle modifier combinations
-            for mod, mod_name in modifier_mapping.items():
-                # Look for patterns like '^a', '%b', etc.
-                if mod in processed_keys:
-                    # Handle cases like '^(abc)' - multiple keys with same modifier
-                    while f'{mod}(' in processed_keys:
-                        start = processed_keys.find(f'{mod}(')
-                        end = processed_keys.find(')', start)
-                        if end == -1:
-                            break
-                        keys_in_parens = processed_keys[start+2:end]
-                        processed_keys = (processed_keys[:start] + 
-                                       f'{mod_name}+' + keys_in_parens +
-                                       processed_keys[end+1:])
+            i = 0
+            while i < len(keys):
+                # Check for modifiers
+                if i < len(keys) and keys[i] in modifier_mapping:
+                    mod = keys[i]
+                    mod_name = modifier_mapping[mod]
+                    
+                    # Check for parenthesized expression
+                    if i + 1 < len(keys) and keys[i + 1] == '(':
+                        # Find matching closing parenthesis
+                        close_paren = keys.find(')', i + 2)
+                        if close_paren != -1:
+                            # Get the keys inside parentheses
+                            keys_inside = keys[i + 2:close_paren]
+                            # Add modifier to the list
+                            modifiers.append(mod_name)
+                            # Process keys inside with the modifiers
+                            for char in keys_inside:
+                                pyautogui.hotkey(*modifiers, char)
+                                self.sleep(0.1)
+                            # Reset modifiers
+                            modifiers = []
+                            # Move past the closing parenthesis
+                            i = close_paren + 1
+                            continue
+                    else:
+                        # Single character with modifier
+                        modifiers.append(mod_name)
+                        i += 1
+                        continue
                 
-                    # Handle single character modifiers like '^c'
-                    processed_keys = processed_keys.replace(f'{mod}', f'{mod_name}+')
+                # Check for special key sequences in curly braces
+                if i < len(keys) and keys[i] == '{':
+                    end_brace = keys.find('}', i)
+                    if end_brace != -1:
+                        key_name = keys[i + 1:end_brace]
+                        if key_name in key_mapping:
+                            if modifiers:
+                                # Use hotkey for key combinations
+                                pyautogui.hotkey(*modifiers, key_mapping[key_name])
+                                modifiers = []
+                            else:
+                                # Use press for single keys
+                                pyautogui.press(key_mapping[key_name])
+                        i = end_brace + 1
+                        continue
+                
+                # Regular character
+                if modifiers:
+                    # Character with modifiers
+                    if i < len(keys):
+                        pyautogui.hotkey(*modifiers, keys[i])
+                        modifiers = []
+                else:
+                    # Plain character, collect for efficiency
+                    if i < len(keys) and keys[i] not in modifier_mapping and keys[i] != '{':
+                        text_to_type += keys[i]
+                    
+                i += 1
             
-            # Split into individual commands and execute them
-            commands = processed_keys.split()
-            for cmd in commands:
-                try:
-                    keyboard.send(cmd)
-                    self.sleep(0.1)  # Small delay between commands
-                except Exception as e:
-                    logger.error(f"Failed to send keys '{cmd}': {str(e)}")
+            # Type any collected text
+            if text_to_type:
+                pyautogui.write(text_to_type)
                 
             self.sleep()
 
@@ -1139,7 +1183,10 @@ class RPALite:
         text : str
             Text to type
         '''
-        keyboardlib.write(text, delay=0.2)
+        if self.platform == 'Darwin':
+            pyautogui.write(text, interval=0.2)
+        else:
+            keyboardlib.write(text, delay=0.2)
         self.sleep(seconds)
 
     def get_text_field_value(self, field_name):

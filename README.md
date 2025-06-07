@@ -11,15 +11,15 @@
 - [Introduction](#introduction)
 - [Features](#features)
 - [Platform Support](#platform-support)
-- [OCR Engine Options](#ocr-engine-options)
-  - [Automatic Language Detection](#automatic-language-detection)
-  - [Manual Language Configuration](#manual-language-configuration)
-- [Performance Optimization](#performance-optimization)
-- [Documentation](#documentation)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
   - [Python](#python)
   - [Robot Framework](#robot-framework)
+- [Documentation](#documentation)
+- [OCR Engine Options](#ocr-engine-options)
+  - [Automatic Language Detection](#automatic-language-detection)
+  - [Manual Language Configuration](#manual-language-configuration)
+- [Performance Optimization](#performance-optimization)
 - [Contribution Guidelines](#contribution-guidelines)
 
 ## Introduction
@@ -144,17 +144,6 @@ rpa = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr"])
 ## Performance Optimization
 
 The most time-consuming operations in RPALite are image recognition and OCR. Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
-
-## Documentation
-
-In the following sections, we provide a [Quick Start Guide](#quick-start) to give you a basic understanding of RPALite.
-
-Here are links to more detailed documentation:
-
-- [Programming Guide for Using RPALite in Python](docs/en/python/guide.md)
-- [Programming Guide for Using RPALite in Robot Framework](docs/en/robot/guide.md)
-
-In addition to the above documents, we provide an English version of the Robot Framework Library documentation, which you can access through the [Online Robot Framework Documentation](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html). If you prefer to view it locally, you can open the [Robot Framework Library documentation in the project directory](docs/en/robot/RPALite.html).
 
 ## Installation
 
@@ -322,6 +311,15 @@ Keyboard Operations
     ${clipboard_text} =    Get Clipboard Text
     Log    Clipboard contains: ${clipboard_text}
 ```
+
+## Documentation
+
+Here are links to detailed documentation:
+
+- [Programming Guide for Using RPALite in Python](docs/en/python/guide.md)
+- [Programming Guide for Using RPALite in Robot Framework](docs/en/robot/guide.md)
+
+In addition to the above documents, we provide an English version of the Robot Framework Library documentation, which you can access through the [Online Robot Framework Documentation](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html). If you prefer to view it locally, you can open the [Robot Framework Library documentation in the project directory](docs/en/robot/RPALite.html).
 
 ## Contribution Guidelines
 

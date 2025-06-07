@@ -11,15 +11,15 @@
 - [简介](#简介)
 - [功能特性](#功能特性)
 - [平台支持](#平台支持)
-- [OCR 引擎选项](#OCR引擎选项)
-  - [自动语言检测](#自动语言检测)
-  - [手动语言配置](#手动语言配置)
-- [性能优化](#性能优化)
-- [文档](#文档)
 - [安装](#安装)
 - [快速入门](#快速入门)
   - [Python](#python)
   - [Robot Framework](#robot-framework)
+- [文档](#文档)
+- [OCR 引擎选项](#OCR引擎选项)
+  - [自动语言检测](#自动语言检测)
+  - [手动语言配置](#手动语言配置)
+- [性能优化](#性能优化)
 - [贡献指南](#贡献指南)
 
 ## 简介
@@ -92,69 +92,6 @@ RPALite 支持以下操作：
 
 - Linux 支持计划在未来版本中提供
 - 目前处于早期设计阶段
-
-## OCR 引擎选项
-
-RPALite 支持两种 OCR 引擎进行文本识别：
-
-- **EasyOCR**（默认）
-
-  - 更好的多语言支持
-  - 适合通用 OCR 任务
-  - 模型体积较大
-
-- **PaddleOCR**
-  - 对中文文本识别效果更好
-  - 模型体积更小
-  - 推理速度更快
-
-您可以在初始化时指定使用哪个引擎：
-
-```python
-# 使用默认引擎（EasyOCR）
-rpa = RPALite()
-
-# 使用PaddleOCR
-rpa = RPALite(ocr_engine="paddleocr")
-```
-
-### 语言配置
-
-#### 自动语言检测
-
-RPALite 会自动检测您操作系统的显示语言，并为 OCR 引擎添加相应的语言支持。如果您的系统设置为中文，将自动添加中文语言支持以提高文本识别准确性。此功能适用于 EasyOCR 和 PaddleOCR 引擎。
-
-#### 手动语言配置
-
-您也可以手动指定 OCR 识别的语言：
-
-```python
-# 对于 EasyOCR
-rpa = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "fr"])
-
-# 对于 PaddleOCR
-rpa = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr"])
-```
-
-**语言代码参考：**
-
-- **EasyOCR**：[支持的语言](https://github.com/JaidedAI/EasyOCR#supported-languages)
-- **PaddleOCR**：[语言支持](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_ch/multi_languages.md)
-
-## 性能优化
-
-RPALite 中最耗时的操作是图像识别和 OCR。这两种 OCR 引擎在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。
-
-## 文档
-
-在这份文档的后面部分，我们提供了[快速入门](#快速入门)，让你可以对 RPALite 有一个简单直接的了解。
-
-以下是更详细的文档链接：
-
-- [Python 中使用 RPALite 的编程指南](docs/zh/python/guide.md)
-- [Robot Framework 中使用 RPALite 的编程指南](docs/zh/robot/guide.md)
-
-除了以上文档以外，我们提供一份英文的 Robot Framework Library 文档，你可以通过[在线 Robot Framework 文档](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html)访问。如果你希望在本地打开，可以直接打开[项目目录下的 Robot Framework Library 文档](docs/en/robot/RPALite.html)。
 
 ## 安装
 
@@ -322,6 +259,65 @@ Library    RPALite
     ${clipboard_text} =    Get Clipboard Text
     Log    剪贴板内容: ${clipboard_text}
 ```
+
+## 文档
+
+以下是更详细的文档链接：
+
+- [Python 中使用 RPALite 的编程指南](docs/zh/python/guide.md)
+- [Robot Framework 中使用 RPALite 的编程指南](docs/zh/robot/guide.md)
+
+除了以上文档以外，我们提供一份英文的 Robot Framework Library 文档，你可以通过[在线 Robot Framework 文档](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html)访问。如果你希望在本地打开，可以直接打开[项目目录下的 Robot Framework Library 文档](docs/en/robot/RPALite.html)。
+
+## OCR 引擎选项
+
+RPALite 支持两种 OCR 引擎进行文本识别：
+
+- **EasyOCR**（默认）
+
+  - 更好的多语言支持
+  - 适合通用 OCR 任务
+  - 模型体积较大
+
+- **PaddleOCR**
+  - 对中文文本识别效果更好
+  - 模型体积更小
+  - 推理速度更快
+
+您可以在初始化时指定使用哪个引擎：
+
+```python
+# 使用默认引擎（EasyOCR）
+rpa = RPALite()
+
+# 使用PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr")
+```
+
+### 自动语言检测
+
+RPALite 会自动检测您操作系统的显示语言，并为 OCR 引擎添加相应的语言支持。如果您的系统设置为中文，将自动添加中文语言支持以提高文本识别准确性。此功能适用于 EasyOCR 和 PaddleOCR 引擎。
+
+### 手动语言配置
+
+您也可以手动指定 OCR 识别的语言：
+
+```python
+# 对于 EasyOCR
+rpa = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "fr"])
+
+# 对于 PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr"])
+```
+
+**语言代码参考：**
+
+- **EasyOCR**：[支持的语言](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- **PaddleOCR**：[语言支持](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_ch/multi_languages.md)
+
+## 性能优化
+
+RPALite 中最耗时的操作是图像识别和 OCR。这两种 OCR 引擎在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。
 
 ## 贡献指南
 

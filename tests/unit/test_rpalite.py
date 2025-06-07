@@ -9,6 +9,8 @@ from github_release_downloader import check_and_download_updates, GitHubRepo
 from pathlib import Path
 import re
 import platform
+import locale
+from unittest.mock import patch
 
 
 logger = logging.getLogger(__name__)
@@ -193,6 +195,161 @@ class TestRPALite:
         difference = end - start
         assert difference.total_seconds() >= 5
         print("Finished testing sleep...")
+
+    def test_add_chinese_support_if_needed_non_chinese_system(self):
+        """Test _add_chinese_support_if_needed with non-Chinese system language"""
+        print("Testing _add_chinese_support_if_needed with non-Chinese system...")
+        
+        with patch('locale.getlocale') as mock_getlocale, \
+             patch('locale.getdefaultlocale') as mock_getdefaultlocale:
+            # Mock English system
+            mock_getlocale.return_value = ('en_US', 'UTF-8')
+            mock_getdefaultlocale.return_value = ('en_US', 'UTF-8')
+            
+            # Test with EasyOCR
+            languages = ['en']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'easyocr')
+            assert result == ['en']  # Should remain unchanged
+            
+            # Test with PaddleOCR
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'paddleocr')
+            assert result == ['en']  # Should remain unchanged
+            
+        print("Finished testing _add_chinese_support_if_needed with non-Chinese system...")
+
+    def test_add_chinese_support_if_needed_chinese_system_easyocr(self):
+        """Test _add_chinese_support_if_needed with Chinese system and EasyOCR"""
+        print("Testing _add_chinese_support_if_needed with Chinese system and EasyOCR...")
+        
+        with patch('locale.getlocale') as mock_getlocale, \
+             patch('locale.getdefaultlocale') as mock_getdefaultlocale:
+            # Mock Chinese system
+            mock_getlocale.return_value = ('zh_CN', 'UTF-8')
+            mock_getdefaultlocale.return_value = ('zh_CN', 'UTF-8')
+            
+            # Test with initial English only
+            languages = ['en']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'easyocr')
+            assert 'en' in result
+            assert 'ch_sim' in result
+            assert len(result) == 2  # Only 'en' and 'ch_sim' for EasyOCR
+            
+            # Test with existing Chinese language
+            languages = ['en', 'ch_sim']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'easyocr')
+            assert 'en' in result
+            assert 'ch_sim' in result
+            assert len(result) == 2  # Should not duplicate ch_sim
+            
+            # Test without English initially
+            languages = ['fr']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'easyocr')
+            assert 'en' in result  # Should add 'en' for EasyOCR compatibility
+            assert 'ch_sim' in result
+            assert 'fr' in result
+            assert len(result) == 3
+            
+        print("Finished testing _add_chinese_support_if_needed with Chinese system and EasyOCR...")
+
+    def test_add_chinese_support_if_needed_chinese_system_paddleocr(self):
+        """Test _add_chinese_support_if_needed with Chinese system and PaddleOCR"""
+        print("Testing _add_chinese_support_if_needed with Chinese system and PaddleOCR...")
+        
+        with patch('locale.getlocale') as mock_getlocale, \
+             patch('locale.getdefaultlocale') as mock_getdefaultlocale:
+            # Mock Chinese system
+            mock_getlocale.return_value = ('zh_TW', 'UTF-8')
+            mock_getdefaultlocale.return_value = ('zh_TW', 'UTF-8')
+            
+            # Test with initial English only
+            languages = ['en']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'paddleocr')
+            assert 'en' in result
+            assert 'ch' in result
+            assert len(result) == 2  # Only 'en' and 'ch' for PaddleOCR
+            
+            # Test with existing Chinese language
+            languages = ['en', 'ch']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'paddleocr')
+            assert 'en' in result
+            assert 'ch' in result
+            assert len(result) == 2  # Should not duplicate ch
+            
+            # Test without English initially
+            languages = ['fr']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'paddleocr')
+            assert 'ch' in result
+            assert 'fr' in result
+            assert len(result) == 2  # Only 'fr' and 'ch' for PaddleOCR
+            
+        print("Finished testing _add_chinese_support_if_needed with Chinese system and PaddleOCR...")
+
+    def test_add_chinese_support_if_needed_various_chinese_variants(self):
+        """Test _add_chinese_support_if_needed with various Chinese locale variants"""
+        print("Testing _add_chinese_support_if_needed with various Chinese variants...")
+        
+        chinese_locales = ['zh_CN', 'zh_TW', 'zh_HK', 'zh_SG', 'zh', 'Chinese_China']
+        
+        for locale_name in chinese_locales:
+            with patch('locale.getlocale') as mock_getlocale, \
+                 patch('locale.getdefaultlocale') as mock_getdefaultlocale:
+                mock_getlocale.return_value = (locale_name, 'UTF-8')
+                mock_getdefaultlocale.return_value = (locale_name, 'UTF-8')
+                
+                languages = ['en']
+                result = self.rpalite._add_chinese_support_if_needed(languages, 'easyocr')
+                assert 'ch_sim' in result, f"Failed for locale: {locale_name}"
+                assert len(result) >= 2, f"Not enough languages added for locale: {locale_name}"
+                
+        print("Finished testing _add_chinese_support_if_needed with various Chinese variants...")
+
+    def test_add_chinese_support_if_needed_exception_handling(self):
+        """Test _add_chinese_support_if_needed exception handling"""
+        print("Testing _add_chinese_support_if_needed exception handling...")
+        
+        with patch('locale.getlocale') as mock_getlocale, \
+             patch('locale.getdefaultlocale') as mock_getdefaultlocale:
+            # Mock exception in both locale functions
+            mock_getlocale.side_effect = Exception("Mocked exception")
+            mock_getdefaultlocale.side_effect = Exception("Mocked exception")
+            
+            languages = ['en']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'easyocr')
+            assert result == ['en']  # Should return original list on exception
+            
+        print("Finished testing _add_chinese_support_if_needed exception handling...")
+
+    def test_add_chinese_support_if_needed_none_locale(self):
+        """Test _add_chinese_support_if_needed with None locale"""
+        print("Testing _add_chinese_support_if_needed with None locale...")
+        
+        with patch('locale.getlocale') as mock_getlocale, \
+             patch('locale.getdefaultlocale') as mock_getdefaultlocale:
+            # Mock None locale
+            mock_getlocale.return_value = (None, None)
+            mock_getdefaultlocale.return_value = (None, None)
+            
+            languages = ['en']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'easyocr')
+            assert result == ['en']  # Should return original list when locale is None
+            
+        print("Finished testing _add_chinese_support_if_needed with None locale...")
+
+    def test_add_chinese_support_if_needed_unsupported_ocr_engine(self):
+        """Test _add_chinese_support_if_needed with unsupported OCR engine"""
+        print("Testing _add_chinese_support_if_needed with unsupported OCR engine...")
+        
+        with patch('locale.getlocale') as mock_getlocale, \
+             patch('locale.getdefaultlocale') as mock_getdefaultlocale:
+            # Mock Chinese system
+            mock_getlocale.return_value = ('zh_CN', 'UTF-8')
+            mock_getdefaultlocale.return_value = ('zh_CN', 'UTF-8')
+            
+            languages = ['en']
+            result = self.rpalite._add_chinese_support_if_needed(languages, 'unsupported_ocr')
+            assert result == ['en']  # Should return original list for unsupported OCR engine
+            
+        print("Finished testing _add_chinese_support_if_needed with unsupported OCR engine...")
 
 
     @classmethod

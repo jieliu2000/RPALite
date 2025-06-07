@@ -5,6 +5,8 @@
 - [Introduction](#introduction)
 - [Platform Support](#platform-support)
 - [OCR Engine Configuration](#ocr-engine-configuration)
+  - [Automatic Language Detection](#automatic-language-detection)
+  - [Manual Language Configuration](#manual-language-configuration)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Advanced Features](#advanced-features)

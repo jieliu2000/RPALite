@@ -12,6 +12,8 @@
 - [Features](#features)
 - [Platform Support](#platform-support)
 - [OCR Engine Options](#ocr-engine-options)
+  - [Automatic Language Detection](#automatic-language-detection)
+  - [Manual Language Configuration](#manual-language-configuration)
 - [Performance Optimization](#performance-optimization)
 - [Documentation](#documentation)
 - [Installation](#installation)

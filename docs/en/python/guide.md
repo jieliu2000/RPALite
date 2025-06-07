@@ -91,6 +91,97 @@ rpalite = RPALite(ocr_engine="easyocr")
 rpalite = RPALite(ocr_engine="paddleocr")
 ```
 
+### Automatic Language Detection
+
+RPALite includes an intelligent automatic language detection feature that checks your operating system's display language and automatically adds appropriate language support for OCR engines.
+
+#### How It Works
+
+When you initialize RPALite, the library automatically:
+
+1. **Detects System Language**: Uses Python's `locale` module to determine your operating system's default language settings
+2. **Identifies Chinese Systems**: Recognizes various Chinese locale variants including:
+   - `zh_CN` (Simplified Chinese - China)
+   - `zh_TW` (Traditional Chinese - Taiwan)
+   - `zh_HK` (Traditional Chinese - Hong Kong)
+   - `zh_SG` (Simplified Chinese - Singapore)
+   - `zh` (Generic Chinese)
+3. **Adds Language Support**: Automatically adds appropriate Chinese language codes based on the OCR engine:
+   - **EasyOCR**: Adds `ch_sim` (Simplified Chinese) and ensures `en` (English) is present for compatibility
+   - **PaddleOCR**: Adds `ch` (Simplified Chinese)
+
+#### Example Usage
+
+```python
+# On a Chinese system, this automatically includes Chinese language support
+rpalite = RPALite()
+
+# Explicitly specify languages (this overrides automatic detection)
+rpalite = RPALite(languages=["en", "fr", "ch_sim"])
+
+# On a Chinese system with PaddleOCR
+rpalite = RPALite(ocr_engine="paddleocr")  # Automatically includes 'ch'
+```
+
+#### Benefits
+
+- **Improved Accuracy**: Better text recognition for your system's primary language
+- **Zero Configuration**: Works automatically without manual language setup
+- **Backward Compatibility**: Existing code continues to work unchanged
+- **Fallback Handling**: Gracefully handles errors and falls back to original language list if detection fails
+
+#### Manual Language Configuration
+
+If you need to override the automatic detection or configure specific languages, you can specify the `languages` parameter explicitly:
+
+```python
+# Override automatic detection with custom languages
+rpalite = RPALite(languages=["en", "ja", "ko"])  # Japanese and Korean
+
+# Multi-language setup for EasyOCR
+rpalite = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "ch_tra", "fr", "de"])
+
+# Multi-language setup for PaddleOCR
+rpalite = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr", "spanish"])
+```
+
+#### Finding Language Codes
+
+Each OCR engine uses different language codes. Here's how to find the correct codes:
+
+**EasyOCR Language Codes:**
+
+- Official documentation: [EasyOCR Supported Languages](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- Common examples:
+  - `en` - English
+  - `ch_sim` - Chinese Simplified
+  - `ch_tra` - Chinese Traditional
+  - `fr` - French
+  - `de` - German
+  - `ja` - Japanese
+  - `ko` - Korean
+  - `th` - Thai
+  - `vi` - Vietnamese
+
+**PaddleOCR Language Codes:**
+
+- Official documentation: [PaddleOCR Multi-language Support](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_en/multi_languages_en.md)
+- Common examples:
+  - `en` - English
+  - `ch` - Chinese
+  - `french` - French
+  - `german` - German
+  - `korean` - Korean
+  - `japan` - Japanese
+  - `it` - Italian
+  - `spanish` - Spanish
+
+**Important Notes:**
+
+- EasyOCR requires English (`en`) to be included when using Chinese languages for compatibility
+- PaddleOCR uses different naming conventions than EasyOCR
+- Always refer to the official documentation for the most up-to-date language support
+
 ### Installation
 
 To install RPALite, use pip:

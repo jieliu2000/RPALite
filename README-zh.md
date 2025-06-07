@@ -116,6 +116,29 @@ rpa = RPALite()
 rpa = RPALite(ocr_engine="paddleocr")
 ```
 
+### 语言配置
+
+#### 自动语言检测
+
+RPALite 会自动检测您操作系统的显示语言，并为 OCR 引擎添加相应的语言支持。如果您的系统设置为中文，将自动添加中文语言支持以提高文本识别准确性。此功能适用于 EasyOCR 和 PaddleOCR 引擎。
+
+#### 手动语言配置
+
+您也可以手动指定 OCR 识别的语言：
+
+```python
+# 对于 EasyOCR
+rpa = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "fr"])
+
+# 对于 PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr"])
+```
+
+**语言代码参考：**
+
+- **EasyOCR**：[支持的语言](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- **PaddleOCR**：[语言支持](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_ch/multi_languages.md)
+
 ## 性能优化
 
 RPALite 中最耗时的操作是图像识别和 OCR。这两种 OCR 引擎在具有独立显卡和 CUDA 支持的计算机上运行效率更高。如果您发现 RPALite 运行缓慢，请考虑在具有独立显卡和 CUDA 支持的计算机上运行，并安装适当版本的 PyTorch。

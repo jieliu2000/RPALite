@@ -91,6 +91,97 @@ rpalite = RPALite(ocr_engine="easyocr")
 rpalite = RPALite(ocr_engine="paddleocr")
 ```
 
+### 自动语言检测
+
+RPALite 包含智能的自动语言检测功能，可以检查您操作系统的显示语言并自动为 OCR 引擎添加相应的语言支持。
+
+#### 工作原理
+
+当您初始化 RPALite 时，库会自动：
+
+1. **检测系统语言**：使用 Python 的 `locale` 模块确定您操作系统的默认语言设置
+2. **识别中文系统**：识别各种中文语言环境变体，包括：
+   - `zh_CN`（简体中文 - 中国）
+   - `zh_TW`（繁体中文 - 台湾）
+   - `zh_HK`（繁体中文 - 香港）
+   - `zh_SG`（简体中文 - 新加坡）
+   - `zh`（通用中文）
+3. **添加语言支持**：根据 OCR 引擎自动添加相应的中文语言代码：
+   - **EasyOCR**：添加 `ch_sim`（简体中文）并确保包含 `en`（英文）以保证兼容性
+   - **PaddleOCR**：添加 `ch`（简体中文）
+
+#### 使用示例
+
+```python
+# 在中文系统上，这会自动包含中文语言支持
+rpalite = RPALite()
+
+# 显式指定语言（这会覆盖自动检测）
+rpalite = RPALite(languages=["en", "fr", "ch_sim"])
+
+# 在中文系统上使用 PaddleOCR
+rpalite = RPALite(ocr_engine="paddleocr")  # 自动包含 'ch'
+```
+
+#### 优势
+
+- **提高准确性**：为您系统的主要语言提供更好的文本识别
+- **零配置**：无需手动语言设置即可自动工作
+- **向后兼容**：现有代码无需修改即可继续工作
+- **错误处理**：优雅地处理错误，在检测失败时回退到原始语言列表
+
+#### 手动语言配置
+
+如果您需要覆盖自动检测或配置特定语言，可以显式指定 `languages` 参数：
+
+```python
+# 使用自定义语言覆盖自动检测
+rpalite = RPALite(languages=["en", "ja", "ko"])  # 日文和韩文
+
+# EasyOCR 多语言设置
+rpalite = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "ch_tra", "fr", "de"])
+
+# PaddleOCR 多语言设置
+rpalite = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr", "spanish"])
+```
+
+#### 查找语言代码
+
+每个 OCR 引擎使用不同的语言代码。以下是查找正确代码的方法：
+
+**EasyOCR 语言代码：**
+
+- 官方文档：[EasyOCR 支持的语言](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- 常见示例：
+  - `en` - 英语
+  - `ch_sim` - 简体中文
+  - `ch_tra` - 繁体中文
+  - `fr` - 法语
+  - `de` - 德语
+  - `ja` - 日语
+  - `ko` - 韩语
+  - `th` - 泰语
+  - `vi` - 越南语
+
+**PaddleOCR 语言代码：**
+
+- 官方文档：[PaddleOCR 多语言支持](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_ch/multi_languages.md)
+- 常见示例：
+  - `en` - 英语
+  - `ch` - 中文
+  - `french` - 法语
+  - `german` - 德语
+  - `korean` - 韩语
+  - `japan` - 日语
+  - `it` - 意大利语
+  - `spanish` - 西班牙语
+
+**重要说明：**
+
+- EasyOCR 在使用中文语言时需要包含英语（`en`）以确保兼容性
+- PaddleOCR 使用与 EasyOCR 不同的命名约定
+- 请始终参考官方文档获取最新的语言支持信息
+
 ### 安装
 
 要安装 RPALite，请使用 pip：

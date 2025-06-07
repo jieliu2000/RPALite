@@ -97,6 +97,42 @@ Library    RPALite    ocr_engine=paddleocr  # 使用PaddleOCR
 Library    RPALite    debug_mode=${TRUE}    languages=["zh", "en"]    step_pause_interval=5
 ```
 
+#### 自动语言检测
+
+RPALite 会自动检测您操作系统的显示语言，并为 OCR 引擎添加相应的语言支持。如果您的系统设置为中文，将自动添加中文语言支持以提高文本识别准确性。
+
+**优势：**
+
+- 为您系统的主要语言提供更好的文本识别
+- 无需配置 - 自动工作
+- 与现有的 Robot Framework 脚本向后兼容
+
+#### 手动语言配置
+
+您可以在导入库时手动指定语言：
+
+```robotframework
+*** Settings ***
+# 自动语言检测（默认）
+Library    RPALite
+
+# EasyOCR 手动语言配置
+Library    RPALite    ocr_engine=easyocr    languages=["en", "ch_sim", "fr", "de"]
+
+# PaddleOCR 手动语言配置
+Library    RPALite    ocr_engine=paddleocr    languages=["en", "ch", "french", "spanish"]
+
+# 使用特定语言覆盖自动检测
+Library    RPALite    languages=["en", "ja", "ko"]
+```
+
+**语言代码参考：**
+
+- **EasyOCR**：[支持的语言](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- **PaddleOCR**：[语言支持](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_ch/multi_languages.md)
+
+有关语言配置的更详细信息，请参阅 Python 编程指南。
+
 ### 安装
 
 使用 pip 安装 RPALite：

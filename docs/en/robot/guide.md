@@ -97,6 +97,42 @@ You can also configure other parameters like debug mode, languages, and step pau
 Library    RPALite    debug_mode=${TRUE}    languages=["en", "fr"]    step_pause_interval=5
 ```
 
+#### Automatic Language Detection
+
+RPALite automatically detects your operating system's display language and adds appropriate language support for OCR engines. If your system is set to Chinese, Chinese language support will be automatically added to improve text recognition accuracy.
+
+**Benefits:**
+
+- Better text recognition for your system's primary language
+- Zero configuration required - works automatically
+- Backward compatible with existing Robot Framework scripts
+
+#### Manual Language Configuration
+
+You can manually specify languages when importing the library:
+
+```robotframework
+*** Settings ***
+# Automatic language detection (default)
+Library    RPALite
+
+# Manual language configuration for EasyOCR
+Library    RPALite    ocr_engine=easyocr    languages=["en", "ch_sim", "fr", "de"]
+
+# Manual language configuration for PaddleOCR
+Library    RPALite    ocr_engine=paddleocr    languages=["en", "ch", "french", "spanish"]
+
+# Override automatic detection with specific languages
+Library    RPALite    languages=["en", "ja", "ko"]
+```
+
+**Language Code References:**
+
+- **EasyOCR**: [Supported Languages](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- **PaddleOCR**: [Language Support](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_en/multi_languages_en.md)
+
+For more detailed information about language configuration, refer to the Python Programming Guide.
+
 ### Installation
 
 To install RPALite, use pip:

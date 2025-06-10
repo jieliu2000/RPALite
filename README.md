@@ -207,58 +207,6 @@ If you encounter issues when running RPALite on macOS:
 - Linux support is planned for future releases
 - Currently in early design phase
 
-## OCR Engine Options
-
-RPALite supports two OCR engines for text recognition:
-
-- **EasyOCR** (Default)
-
-  - Better multi-language support
-  - Suitable for general-purpose OCR tasks
-  - Larger model size
-
-- **PaddleOCR**
-  - Better performance for Chinese text
-  - Smaller model size
-  - Faster inference speed
-
-You can specify which engine to use during initialization:
-
-```python
-# Using the default (EasyOCR)
-rpa = RPALite()
-
-# Using PaddleOCR
-rpa = RPALite(ocr_engine="paddleocr")
-```
-
-### Language Configuration
-
-#### Automatic Language Detection
-
-RPALite automatically detects your operating system's display language and adds appropriate language support for OCR engines. For example, if your system is set to Chinese, Chinese language support will be automatically added to improve text recognition accuracy. This feature works with both EasyOCR and PaddleOCR engines.
-
-#### Manual Language Configuration
-
-You can also manually specify languages for OCR recognition:
-
-```python
-# For EasyOCR
-rpa = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "fr"])
-
-# For PaddleOCR
-rpa = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr"])
-```
-
-**Language Code References:**
-
-- **EasyOCR**: [Supported Languages](https://github.com/JaidedAI/EasyOCR#supported-languages)
-- **PaddleOCR**: [Language Support](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_en/multi_languages_en.md)
-
-## Performance Optimization
-
-The most time-consuming operations in RPALite are image recognition and OCR. Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
-
 ## Installation
 
 You can install RPALite via pip:
@@ -466,6 +414,58 @@ Here are links to detailed documentation:
 - [Programming Guide for Using RPALite in Robot Framework](docs/en/robot/guide.md)
 
 In addition to the above documents, we provide an English version of the Robot Framework Library documentation, which you can access through the [Online Robot Framework Documentation](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html). If you prefer to view it locally, you can open the [Robot Framework Library documentation in the project directory](docs/en/robot/RPALite.html).
+
+## OCR Engine Options
+
+RPALite supports two OCR engines for text recognition:
+
+- **EasyOCR** (Default)
+
+  - Better multi-language support
+  - Suitable for general-purpose OCR tasks
+  - Larger model size
+
+- **PaddleOCR**
+  - Better performance for Chinese text
+  - Smaller model size
+  - Faster inference speed
+
+You can specify which engine to use during initialization:
+
+```python
+# Using the default (EasyOCR)
+rpa = RPALite()
+
+# Using PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr")
+```
+
+### Language Configuration
+
+#### Automatic Language Detection
+
+RPALite automatically detects your operating system's display language and adds appropriate language support for OCR engines. For example, if your system is set to Chinese, Chinese language support will be automatically added to improve text recognition accuracy. This feature works with both EasyOCR and PaddleOCR engines.
+
+#### Manual Language Configuration
+
+You can also manually specify languages for OCR recognition:
+
+```python
+# For EasyOCR
+rpa = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "fr"])
+
+# For PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr"])
+```
+
+**Language Code References:**
+
+- **EasyOCR**: [Supported Languages](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- **PaddleOCR**: [Language Support](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_en/multi_languages_en.md)
+
+## Performance Optimization
+
+The most time-consuming operations in RPALite are image recognition and OCR. Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
 
 ## Contribution Guidelines
 

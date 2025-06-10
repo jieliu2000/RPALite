@@ -11,37 +11,68 @@
 - [Introduction](#introduction)
 - [Features](#features)
 - [Platform Support](#platform-support)
-- [Performance Optimization](#performance-optimization)
-- [Documentation](#documentation)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
   - [Python](#python)
   - [Robot Framework](#robot-framework)
+- [Documentation](#documentation)
+- [OCR Engine Options](#ocr-engine-options)
+  - [Automatic Language Detection](#automatic-language-detection)
+  - [Manual Language Configuration](#manual-language-configuration)
+- [Performance Optimization](#performance-optimization)
 - [Contribution Guidelines](#contribution-guidelines)
 
 ## Introduction
 
-RPALite is an open-source RPA (Robotic Process Automation) library. You can use RPALite through Python or [Robot Framework](https://robotframework.org/) to achieve various automation tasks.
+RPALite is an open-source RPA (Robotic Process Automation) library. You can use RPALite through Python or [Robot Framework](https://robotframework.org/) to achieve various automation tasks with minimal code.
 
-RPALite now supports Windows platform. Supporting for macOS and Linux is under development.
+RPALite provides powerful automation capabilities with a simple API, allowing you to automate UI interactions, data entry, and image-based operations across different applications.
+
+RPALite currently only supports the Windows platform. Support for macOS and Linux is under active development.
 
 ## Features
 
 RPALite supports the following operations:
 
-- Launching applications
-- Finding applications by name or ClassName
-- Closing applications
-- Mouse clicking on specific text
-- Locating and inputting into text boxes based on placeholders or labels
-- Mouse clicking based on coordinates
-- Support for left-click, right-click, and double-click operations
-- Locating controls based on control names, classes, or Automation IDs (Windows) and getting their coordinates
-- Image-based location. You can pass a partial screenshot to RPALite to return the coordinates of the corresponding part on the screen.
-- Screen recording capabilities
-- Clipboard operations
-- Advanced keyboard input support with special keys and combinations
-- Window management (maximize, minimize, show desktop)
+- **Application Management**
+
+  - Launching applications
+  - Finding applications by name or class name
+  - Closing applications (with force quit option)
+  - Window management (maximize, minimize, show desktop)
+
+- **Mouse Operations**
+
+  - Clicking by coordinates, text or images
+  - Support for left-click, right-click, and double-click operations
+  - Mouse press/release for drag and drop operations
+  - Scrolling operations
+  - Moving cursor to text elements
+
+- **Keyboard Operations**
+
+  - Text input at cursor position
+  - Advanced keyboard input with special keys and combinations
+  - Text field interaction based on labels
+
+- **Visual Automation**
+
+  - OCR-based text recognition (multiple language support)
+  - Image-based location and verification
+  - Finding all instances of an image on screen
+  - Waiting for text or images to appear/disappear
+  - Screen recording capabilities
+
+- **UI Automation**
+
+  - Finding controls by label, text vicinity, or automated IDs
+  - Flexible UI element locator system
+  - Control interaction based on element properties
+
+- **Utility Features**
+  - Clipboard operations (get/set)
+  - Screenshot capabilities
+  - Synchronization mechanisms (waits and sleeps)
 
 ## Platform Support
 
@@ -171,20 +202,62 @@ If you encounter issues when running RPALite on macOS:
   sudo pacman -S xdotool wmctrl python-xlib
   ```
 
+### Linux (Planned)
+
+- Linux support is planned for future releases
+- Currently in early design phase
+
+## OCR Engine Options
+
+RPALite supports two OCR engines for text recognition:
+
+- **EasyOCR** (Default)
+
+  - Better multi-language support
+  - Suitable for general-purpose OCR tasks
+  - Larger model size
+
+- **PaddleOCR**
+  - Better performance for Chinese text
+  - Smaller model size
+  - Faster inference speed
+
+You can specify which engine to use during initialization:
+
+```python
+# Using the default (EasyOCR)
+rpa = RPALite()
+
+# Using PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr")
+```
+
+### Language Configuration
+
+#### Automatic Language Detection
+
+RPALite automatically detects your operating system's display language and adds appropriate language support for OCR engines. For example, if your system is set to Chinese, Chinese language support will be automatically added to improve text recognition accuracy. This feature works with both EasyOCR and PaddleOCR engines.
+
+#### Manual Language Configuration
+
+You can also manually specify languages for OCR recognition:
+
+```python
+# For EasyOCR
+rpa = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "fr"])
+
+# For PaddleOCR
+rpa = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr"])
+```
+
+**Language Code References:**
+
+- **EasyOCR**: [Supported Languages](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- **PaddleOCR**: [Language Support](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_en/multi_languages_en.md)
+
 ## Performance Optimization
 
-The most time-consuming operations in RPALite are image recognition and OCR. For OCR, users could choose to use [EasyOCR](https://github.com/JaidedAI/EasyOCR) or [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR). Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
-
-## Documentation
-
-In the following sections, we provide a [Quick Start Guide](#quick-start) to give you a basic understanding of RPALite.
-
-Here are links to more detailed documentation:
-
-- [Programming Guide for Using RPALite in Python](docs/en/python/guide.md)
-- [Programming Guide for Using RPALite in Robot Framework](docs/en/robot/guide.md)
-
-In addition to the above documents, we provide an English version of the Robot Framework Library documentation, which you can access through the [Online Robot Framework Documentation](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html). If you prefer to view it locally, you can open the [Robot Framework Library documentation in the project directory](docs/en/robot/RPALite.html).
+The most time-consuming operations in RPALite are image recognition and OCR. Both OCR engines run more efficiently on computers with dedicated GPUs and CUDA support. If you find RPALite running slowly, consider running it on a computer with a dedicated GPU and CUDA support and installing the appropriate version of PyTorch.
 
 ## Installation
 
@@ -202,7 +275,7 @@ As mentioned earlier, you can use RPALite with Python or Robot Framework. Here a
 
 ### Python
 
-#### Windows Example
+#### Basic Example
 
 Below is an example of using RPALite to operate Windows Notepad:
 
@@ -300,7 +373,7 @@ rpalite.send_keys("+(abc)")      # Shift+ABC (uppercase)
 
 ### Robot Framework
 
-#### Windows Example
+#### Basic Example
 
 Below is an example of using RPALite to operate Windows Notepad:
 
@@ -317,6 +390,82 @@ Test Notepad
     Input Text    This is a demo using RPALite.
     Close App    ${app}
 ```
+
+#### Advanced Features Example
+
+```robotframework
+*** Settings ***
+Library    RPALite
+Library    OperatingSystem
+
+*** Test Cases ***
+Login Form Automation
+    # Wait for text to appear with timeout
+    ${position} =    Wait Until Text Shown    Login    timeout=10
+
+    # Click on UI elements
+    Click By Text    Sign In
+
+    # Fill in form fields
+    Enter In Field    Username    my_user
+    Enter In Field    Password    my_password
+
+    # Take screenshot for verification
+    ${screenshot} =    Take Screenshot    filename=login_screen.png
+
+    # Wait for an image to appear on screen
+    Wait Until Image Shown    dashboard_icon.png    timeout=15
+
+    # Start screen recording
+    ${recording_path} =    Start Screen Recording    fps=15
+
+    # Perform test operations
+    Click By Text    Dashboard
+    Sleep    2
+
+    # Validate text exists on screen
+    Validate Text Exists    Welcome, my_user
+
+    # Stop recording
+    ${final_path} =    Stop Screen Recording
+    Log    Recording saved to: ${final_path}
+```
+
+#### Advanced Keyboard Input Example
+
+```robotframework
+*** Settings ***
+Library    RPALite
+
+*** Test Cases ***
+Keyboard Operations
+    # Simple text input
+    Input Text    Hello from Robot Framework!
+
+    # Special keys and combinations
+    Send Keys    {ENTER}
+    Send Keys    ^a    # Select all
+    Send Keys    ^c    # Copy
+    Send Keys    {TAB}
+    Send Keys    ^v    # Paste
+
+    # Function keys and modifiers
+    Send Keys    {F5}
+    Send Keys    %{F4}    # Alt+F4
+
+    # Get clipboard content
+    ${clipboard_text} =    Get Clipboard Text
+    Log    Clipboard contains: ${clipboard_text}
+```
+
+## Documentation
+
+Here are links to detailed documentation:
+
+- [Programming Guide for Using RPALite in Python](docs/en/python/guide.md)
+- [Programming Guide for Using RPALite in Robot Framework](docs/en/robot/guide.md)
+
+In addition to the above documents, we provide an English version of the Robot Framework Library documentation, which you can access through the [Online Robot Framework Documentation](https://jieliu2000.github.io/RPALite/docs/en/robot/RPALite.html). If you prefer to view it locally, you can open the [Robot Framework Library documentation in the project directory](docs/en/robot/RPALite.html).
 
 ## Contribution Guidelines
 

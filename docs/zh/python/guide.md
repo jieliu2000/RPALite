@@ -4,22 +4,29 @@
 
 - [简介](#简介)
 - [平台支持](#平台支持)
+- [OCR 引擎配置](#OCR引擎配置)
+  - [自动语言检测](#自动语言检测)
+  - [手动语言配置](#手动语言配置)
+  - [查找语言代码](#查找语言代码)
 - [安装](#安装)
 - [基本用法](#基本用法)
 - [高级功能](#高级功能)
 - [故障排除](#故障排除)
 - [创建 RPALite 对象](#创建-RPALite-对象)
 - [程序应用操作](#程序应用操作)
-  - [查找应用](#查找应用)
   - [启动应用](#启动应用)
+  - [查找应用](#查找应用)
   - [关闭应用](#关闭应用)
   - [最大化窗口](#最大化窗口)
 - [模拟鼠标操作](#模拟鼠标操作)
   - [得到当前光标坐标](#得到当前光标坐标)
   - [移动鼠标到指定位置](#移动鼠标到指定位置)
+  - [移动鼠标到文本](#移动鼠标到文本)
   - [按坐标点击](#按坐标点击)
   - [点击文本](#点击文本)
   - [点击图片](#点击图片)
+  - [鼠标按下和释放](#鼠标按下和释放)
+  - [滚轮操作](#滚轮操作)
 - [键盘/文本操作](#键盘文本操作)
   - [在当前光标位置输入文本](#在当前光标位置输入文本)
   - [发送按键](#发送按键)
@@ -27,17 +34,31 @@
   - [根据字段名称模拟输入文本](#根据字段名称模拟输入文本)
   - [校验文本是否存在](#校验文本是否存在)
   - [获取文本的坐标](#获取文本的坐标)
+  - [等待文本出现](#等待文本出现)
+  - [等待文本消失](#等待文本消失)
 - [剪贴板操作](#剪贴板操作)
   - [获取剪贴板文本](#获取剪贴板文本)
   - [把文本复制到剪贴板](#把文本复制到剪贴板)
+- [图像操作](#图像操作)
+  - [查找图像](#查找图像)
+  - [查找所有图像实例](#查找所有图像实例)
+  - [等待图像出现](#等待图像出现)
+- [控件操作](#控件操作)
+  - [通过标签查找控件](#通过标签查找控件)
+  - [查找文本附近的控件](#查找文本附近的控件)
+  - [通过标签点击控件](#通过标签点击控件)
+  - [通过自动化 ID 查找控件](#通过自动化ID查找控件)
+- [窗口操作](#窗口操作)
+  - [通过标题查找窗口](#通过标题查找窗口)
+- [屏幕录制](#屏幕录制)
+  - [开始录屏](#开始录屏)
+  - [结束录屏](#结束录屏)
 - [全局操作](#全局操作)
   - [休眠](#休眠)
   - [获取屏幕尺寸](#获取屏幕尺寸)
   - [屏幕截图](#屏幕截图)
   - [显示桌面](#显示桌面)
-  - [录屏](#录屏)
-    - [开始录屏](#开始录屏)
-    - [结束录屏](#结束录屏)
+  - [通用定位器](#通用定位器)
 
 ## 简介
 
@@ -48,7 +69,7 @@
 RPALite 目前支持以下平台：
 
 - **Windows**：完整的自动化支持，包括 UI 控件
-- **macOS (开发中)**：基本自动化支持正在开发中
+- **macOS (开发中)**：基本自动化支持已实现，但有一些限制
 
 ## OCR 引擎配置
 
@@ -66,12 +87,103 @@ RPALite 支持两种 OCR 引擎：
 你可以在初始化 RPALite 时配置 OCR 引擎：
 
 ```python
-# 使用 PaddleOCR（默认）
-rpalite = RPALite(ocr_engine="paddleocr")
-
-# 使用 EasyOCR
+# 使用 EasyOCR（默认）
 rpalite = RPALite(ocr_engine="easyocr")
+
+# 使用 PaddleOCR
+rpalite = RPALite(ocr_engine="paddleocr")
 ```
+
+### 自动语言检测
+
+RPALite 包含智能的自动语言检测功能，可以检查您操作系统的显示语言并自动为 OCR 引擎添加相应的语言支持。
+
+#### 工作原理
+
+当您初始化 RPALite 时，库会自动：
+
+1. **检测系统语言**：使用 Python 的 `locale` 模块确定您操作系统的默认语言设置
+2. **识别中文系统**：识别各种中文语言环境变体，包括：
+   - `zh_CN`（简体中文 - 中国）
+   - `zh_TW`（繁体中文 - 台湾）
+   - `zh_HK`（繁体中文 - 香港）
+   - `zh_SG`（简体中文 - 新加坡）
+   - `zh`（通用中文）
+3. **添加语言支持**：根据 OCR 引擎自动添加相应的中文语言代码：
+   - **EasyOCR**：添加 `ch_sim`（简体中文）并确保包含 `en`（英文）以保证兼容性
+   - **PaddleOCR**：添加 `ch`（简体中文）
+
+#### 使用示例
+
+```python
+# 在中文系统上，这会自动包含中文语言支持
+rpalite = RPALite()
+
+# 显式指定语言（这会覆盖自动检测）
+rpalite = RPALite(languages=["en", "fr", "ch_sim"])
+
+# 在中文系统上使用 PaddleOCR
+rpalite = RPALite(ocr_engine="paddleocr")  # 自动包含 'ch'
+```
+
+#### 优势
+
+- **提高准确性**：为您系统的主要语言提供更好的文本识别
+- **零配置**：无需手动语言设置即可自动工作
+- **向后兼容**：现有代码无需修改即可继续工作
+- **错误处理**：优雅地处理错误，在检测失败时回退到原始语言列表
+
+#### 手动语言配置
+
+如果您需要覆盖自动检测或配置特定语言，可以显式指定 `languages` 参数：
+
+```python
+# 使用自定义语言覆盖自动检测
+rpalite = RPALite(languages=["en", "ja", "ko"])  # 日文和韩文
+
+# EasyOCR 多语言设置
+rpalite = RPALite(ocr_engine="easyocr", languages=["en", "ch_sim", "ch_tra", "fr", "de"])
+
+# PaddleOCR 多语言设置
+rpalite = RPALite(ocr_engine="paddleocr", languages=["en", "ch", "fr", "spanish"])
+```
+
+#### 查找语言代码
+
+每个 OCR 引擎使用不同的语言代码。以下是查找正确代码的方法：
+
+**EasyOCR 语言代码：**
+
+- 官方文档：[EasyOCR 支持的语言](https://github.com/JaidedAI/EasyOCR#supported-languages)
+- 常见示例：
+  - `en` - 英语
+  - `ch_sim` - 简体中文
+  - `ch_tra` - 繁体中文
+  - `fr` - 法语
+  - `de` - 德语
+  - `ja` - 日语
+  - `ko` - 韩语
+  - `th` - 泰语
+  - `vi` - 越南语
+
+**PaddleOCR 语言代码：**
+
+- 官方文档：[PaddleOCR 多语言支持](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_ch/multi_languages.md)
+- 常见示例：
+  - `en` - 英语
+  - `ch` - 中文
+  - `french` - 法语
+  - `german` - 德语
+  - `korean` - 韩语
+  - `japan` - 日语
+  - `it` - 意大利语
+  - `spanish` - 西班牙语
+
+**重要说明：**
+
+- EasyOCR 在使用中文语言时需要包含英语（`en`）以确保兼容性
+- PaddleOCR 使用与 EasyOCR 不同的命名约定
+- 请始终参考官方文档获取最新的语言支持信息
 
 ### 安装
 
@@ -112,6 +224,9 @@ RPALite 提供了许多高级功能，包括：
 - 窗口管理
 - 剪贴板操作
 - 键盘和鼠标控制
+- 屏幕录制
+- 控件查找和自动化
+- 文本和图像的等待机制
 
 ### 故障排除
 
@@ -177,6 +292,7 @@ rpalite = RPALite()
 RPALite 的构造函数包含多个可选参数：
 
 - `debug_mode`: 布尔值，默认值为 False。如果为 True，则 RPALite 会输出调试信息，在一些需要图像识别的地方，会显示图像中元素的标记等
+- `ocr_engine`: 字符串，默认值为 "easyocr"。指定使用的 OCR 引擎（可以是 "easyocr" 或 "paddleocr"）
 - `step_pause_interval`: 整数。含义为每个模拟操作后等待的时间。默认值为 **3** 秒。这个值不能设定为 0，这主要是因为在鼠标或者键盘模拟动作以后，Windows 或者你所操作的程序本身也需要一点时间进行响应，否则程序出问题的可能性会大大增加。
 - `languages`: 字符串列表，表示 RPALite 会使用哪些语言来进行 OCR 识别。默认值为 `["en"]`也就是英语，你可以通过传入其他语言代码来指定使用其他语言的键盘输入。关于支持的语言列表，可以参考[EasyOCR 文档中的语言列表](https://www.jaided.ai/easyocr)
 
@@ -208,7 +324,7 @@ app = rpalite.find_application(".*Notepad")
 find_application 支持通过以下参数查找一个应用：
 
 - `title`: 字符串，表示应用标题需要匹配的正则表达式，
-- `classname`: 字符串，表示应用类名。如果需要查找应用的类名，可以使用 [Accessibility Insights for Windows 工具](https://accessibilityinsights.io/)查看
+- `class_name`: 字符串，表示应用类名。如果需要查找应用的类名，可以使用 [Accessibility Insights for Windows 工具](https://accessibilityinsights.io/)查看
 
 ### 关闭应用
 
@@ -217,6 +333,12 @@ find_application 支持通过以下参数查找一个应用：
 ```python
 app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
+```
+
+你也可以通过设置 `force_quit` 参数为 True 来强制关闭应用：
+
+```python
+rpalite.close_app(app, force_quit=True)
 ```
 
 ### 最大化窗口
@@ -228,6 +350,12 @@ app = rpalite.find_application(".*Notepad")
 rpalite.maximize_window(app)
 ```
 
+如果你想最大化应用中的特定窗口，可以指定窗口标题模式：
+
+```python
+rpalite.maximize_window(app, window_title_pattern="文档 - 记事本")
+```
+
 ## 模拟鼠标操作
 
 RPALite 支持通过多种鼠标模拟操作，譬如点击文本，点击图片，点击坐标等
@@ -236,7 +364,7 @@ RPALite 支持通过多种鼠标模拟操作，譬如点击文本，点击图片
 
 ```python
 position = rpalite.get_cursor_position()
-print(f"Current mouse position: {position}")
+print(f"当前鼠标位置: {position}")
 ```
 
 得到的坐标为元组形式(x, y)，例如 (10, 20)表示横坐标为 10，纵坐标为 20。注意，这里的坐标是相对于屏幕左上角的坐标。
@@ -249,20 +377,48 @@ rpalite.mouse_move(10, 20)
 
 参数为横坐标 x, 纵坐标 y。屏幕左上角为(0, 0)
 
+### 移动鼠标到文本
+
+```python
+rpalite.move_mouse_to_the_middle_of_text("要移动到的文本")
+```
+
+这个函数会将鼠标光标移动到屏幕上指定文本的中心位置。
+
 ### 按坐标点击
 
 ```python
 rpalite.click_by_position(10, 20)
 ```
 
-其中第一个参数为 横坐标 x,第二个参数为纵坐标 y。屏幕左上角为(0, 0)
+其中第一个参数为横坐标 x，第二个参数为纵坐标 y。屏幕左上角为(0, 0)
+
+你也可以指定按钮和双击参数：
+
+```python
+# 右键点击
+rpalite.click_by_position(10, 20, button='right')
+
+# 左键双击
+rpalite.click_by_position(10, 20, double_click=True)
+```
 
 ### 点击文本
 
 你可以使用以下代码点击文本：
 
 ```python
-rpalite.click_by_text("Text to click")
+rpalite.click_by_text("要点击的文本")
+```
+
+你也可以指定按钮（左键或右键）以及是否双击：
+
+```python
+# 右键点击文本
+rpalite.click_by_text("要点击的文本", button='right')
+
+# 左键双击文本
+rpalite.click_by_text("要点击的文本", double_click=True)
 ```
 
 ### 点击图片
@@ -270,10 +426,50 @@ rpalite.click_by_text("Text to click")
 你可以使用以下代码点击图片：
 
 ```python
-rpalite.click_by_image("path/to/image.png")
+rpalite.click_by_image("图片/路径.png")
 ```
 
-RPALite 会使用 OpenCV 在屏幕上查找对应的图片，如果找到则点击该图片的左上角。
+你也可以指定按钮（左键或右键）以及是否双击：
+
+```python
+# 右键点击图片
+rpalite.click_by_image("图片/路径.png", button='right')
+
+# 左键双击图片
+rpalite.click_by_image("图片/路径.png", double_click=True)
+```
+
+RPALite 会使用 OpenCV 在屏幕上查找对应的图片，如果找到则点击该图片的中心位置。
+
+### 鼠标按下和释放
+
+你可以分别模拟鼠标按钮的按下和释放：
+
+```python
+# 按下左键
+rpalite.mouse_press(button='left')
+
+# 在按住按钮的同时移动鼠标（用于拖放操作）
+rpalite.mouse_move(100, 200)
+
+# 释放左键
+rpalite.mouse_release(button='left')
+```
+
+### 滚轮操作
+
+你可以使用以下代码操作鼠标滚轮：
+
+```python
+# 向上滚动3次
+rpalite.scroll(3)
+
+# 向下滚动2次
+rpalite.scroll(-2)
+
+# 滚动后自定义等待时间
+rpalite.scroll(1, sleep=1)
+```
 
 ## 键盘/文本操作
 
@@ -282,17 +478,23 @@ RPALite 会使用 OpenCV 在屏幕上查找对应的图片，如果找到则点�
 你可以使用以下代码输入一段文本：
 
 ```python
-rpalite.input_text("This is a demo using RPALite.\n")
+rpalite.input_text("这是使用RPALite的演示。\n")
 ```
 
 如同上面代码所示，input_text 函数不会自动换行，你需要自己添加换行符。
 如果你需要在某个特定位置输入文本，可以首先用 mouse_move 函数移动到指定位置，然后再输入文本。
 
+你也可以指定输入文本后等待的时间：
+
+```python
+rpalite.input_text("这是使用RPALite的演示。\n", seconds=5)
+```
+
 ### 获取字段的值
 
 ```python
-value = rpalite.get_text_field_value("Field name")
-print(f"Value of field: {value}")
+value = rpalite.get_text_field_value("字段名称")
+print(f"字段值: {value}")
 ```
 
 RPALite 使用 OCR 和 AI 图像技术识别对应的字段和字段的值。由于这种识别并不总是准确的，这个函数可能会有一定的概率出现误差或者错误。在实际的使用中，需要根据实际情况进行调整。
@@ -300,7 +502,7 @@ RPALite 使用 OCR 和 AI 图像技术识别对应的字段和字段的值。由
 ### 根据字段名称模拟输入文本
 
 ```python
-rpalite.enter_in_field("Field name", "New value")
+rpalite.enter_in_field("字段名称", "新值")
 ```
 
 `enter_in_field`函数有两个参数：
@@ -318,25 +520,65 @@ RPALite 使用 OCR 和 AI 图像技术识别对应的字段和文本框位置。
 rpalite.send_keys("{VK_LWIN down}D{VK_LWIN up}")
 ```
 
+对于 Windows，它使用 pywinauto 的 send_keys 格式。对于 macOS，它会将按键转换为 keyboard 模块格式。
+
+按键格式示例：
+
+- `"Hello World"` - 输入文本
+- `"^c"` - Ctrl+C
+- `"%{F4}"` - Alt+F4
+- `"{ENTER}"` - 按回车键
+- `"+(abc)"` - Shift+ABC（大写）
+
 ### 校验文本是否存在
 
 ```python
-rpalite.validate_text_exists("Text to check")
+rpalite.validate_text_exists("要检查的文本")
 ```
 
 你可能注意到在上面的代码中`validate_text_exists`并没有返回值，这是因为如果文本不存在，该函数会直接抛出一个 AssertionError 异常。
+
+你可以通过设置`throw_exception_when_failed`为 False 来禁用异常抛出：
+
+```python
+result = rpalite.validate_text_exists("要检查的文本", throw_exception_when_failed=False)
+```
 
 RPALite 使用 OCR 技术来识别文本，这种识别并不总是准确的，而且我们的识别都只是识别单行文本，所以一方面这个函数可能会识别出错，另一方面无法识别多行文本。你在实际的使用中，需要根据实际情况进行调整。
 
 ### 获取文本的坐标
 
 ```python
-positions = rpalite.find_text_positions("Text to find")
-print(f"Text positions: {positions}")
-print(f"First matched text position: {positions[0]}")
+positions = rpalite.find_text_positions("要查找的文本")
+print(f"文本位置: {positions}")
+print(f"第一个匹配文本的位置: {positions[0]}")
 ```
 
 注意`find_text_positions`函数返回的是一个列表，表示文本在屏幕上的位置。其中列表中的每一项都是一个结构为 (x, y, width, height) 的元组，表示文本在屏幕上的位置。x, y 表示文本的左上角坐标，width 和 height 分别表示识别出来的文本的宽度和高度。
+
+你可以使用精确匹配来提高准确性：
+
+```python
+positions = rpalite.find_text_positions("要查找的文本", exact_match=True)
+```
+
+### 等待文本出现
+
+你可以等待文本在屏幕上出现，并设置超时时间：
+
+```python
+position = rpalite.wait_until_text_shown("要等待的文本", timeout=30)
+```
+
+这将最多等待 30 秒，直到文本出现。如果找到文本，将返回文本的位置；如果在超时时间内未找到，将引发 AssertionError。
+
+### 等待文本消失
+
+类似地，你可以等待文本从屏幕上消失：
+
+```python
+rpalite.wait_until_text_disappears("要等待消失的文本", timeout=30)
+```
 
 ## 剪贴板操作
 
@@ -344,13 +586,140 @@ print(f"First matched text position: {positions[0]}")
 
 ```python
 text = rpalite.get_clipboard_text()
-print(f"Clipboard content: {text}")
+print(f"剪贴板内容: {text}")
 ```
 
 ### 把文本复制到剪贴板
 
 ```python
-rpalite.copy_text_to_clipboard("This is a demo using RPALite.")
+rpalite.copy_text_to_clipboard("这是使用RPALite的演示。")
+```
+
+## 图像操作
+
+### 查找图像
+
+你可以在屏幕上查找图像：
+
+```python
+location = rpalite.find_image_location("图片/路径.png")
+```
+
+或者直接使用 PIL Image 对象：
+
+```python
+from PIL import Image
+img = Image.open("图片/路径.png")
+location = rpalite.find_image_location(img)
+```
+
+你也可以在另一个图像中搜索：
+
+```python
+location = rpalite.find_image_location("要查找的图片.png", "在此图片中查找.png")
+```
+
+### 查找所有图像实例
+
+要查找屏幕上某个图像的所有实例：
+
+```python
+locations = rpalite.find_all_image_locations("图片/路径.png")
+for loc in locations:
+    print(f"在以下位置找到图像: {loc}")
+```
+
+如果未找到匹配项，此函数将返回空列表，而不是 None。
+
+### 等待图像出现
+
+你可以等待图像在屏幕上出现：
+
+```python
+location = rpalite.wait_until_image_shown("图片/路径.png", timeout=30)
+```
+
+## 控件操作
+
+### 通过标签查找控件
+
+```python
+control = rpalite.find_control_by_label("标签文本")
+print(f"控件位置: {control}")
+```
+
+### 查找文本附近的控件
+
+```python
+control = rpalite.find_control_near_text("控件附近的文本")
+print(f"控件位置: {control}")
+```
+
+### 通过标签点击控件
+
+```python
+rpalite.click_control_by_label("按钮标签")
+```
+
+使用右键点击或双击：
+
+```python
+rpalite.click_control_by_label("按钮标签", button="right", double_click=True)
+```
+
+### 通过自动化 ID 查找控件
+
+对于 Windows 应用程序，你可以使用其自动化属性查找控件：
+
+```python
+app = rpalite.find_application("记事本")
+control = rpalite.find_control(app, class_name="Edit", title="文本编辑器")
+```
+
+然后你可以点击控件的特定部分：
+
+```python
+rpalite.click_control(app, class_name="Edit", click_position="center")
+```
+
+点击位置选项包括'center'（中心）、'center-left'（中左）、'center-right'（中右）、'left'（左侧）和'right'（右侧）。
+
+## 窗口操作
+
+### 通过标题查找窗口
+
+```python
+windows = rpalite.find_windows_by_title("窗口标题")
+```
+
+## 屏幕录制
+
+### 开始录屏
+
+你可以将屏幕录制到 AVI 文件：
+
+```python
+video_path = rpalite.start_screen_recording("输出.avi")
+```
+
+如果你不指定文件路径，RPALite 将在临时目录中创建一个随机文件：
+
+```python
+video_path = rpalite.start_screen_recording()
+print(f"录制到: {video_path}")
+```
+
+你也可以指定每秒帧数：
+
+```python
+video_path = rpalite.start_screen_recording(fps=30)
+```
+
+### 结束录屏
+
+```python
+final_path = rpalite.stop_screen_recording()
+print(f"录制保存到: {final_path}")
 ```
 
 ## 全局操作
@@ -375,7 +744,7 @@ rpalite.show_desktop()
 
 ```python
 size = rpalite.get_screen_size()
-print(f"Screen size: {size}")
+print(f"屏幕尺寸: {size}")
 ```
 
 `get_screen_size`函数返回一个元组，表示屏幕的尺寸。例如 (1920, 1080) 表示屏幕宽度为 1920 像素，高度为 1080 像素。
@@ -389,25 +758,41 @@ pil_image = rpalite.take_screenshot()
 `take_screenshot`函数返回一个 PIL 图像对象，表示当前屏幕的截图。它有两个可选的参数：
 
 - `all_screens`: 布尔值，默认值为 False，意思是只截取当前屏幕的截图。如果为 True，则截取所有屏幕的截图。这个参数在多屏幕环境中很有用。
-- `filename`: 字符串，表示要保存的截图文件的路径。如果这个参数被指定了，那么 RPALite 会将截图保存到指定的文件中。这个字符串为 None 时，RPALite 不会保存截图。无论是否指定了这个参数，`take_screenshot`函数都会返回一个 PIL 图像对象。
-
-### 录屏
-
-#### 开始录屏
+- `filename`: 字符串，表示要保存的截图文件的路径。如果这个参数被指定了，那么 RPALite 会将截图保存到指定的文件中。这个字符串为 None 时，RPALite 不会保存截图。
 
 ```python
-rpalite.start_screen_recording()
+# 截图并保存到文件
+rpalite.take_screenshot(filename="截图.png")
+
+# 捕获所有屏幕
+rpalite.take_screenshot(all_screens=True)
 ```
 
-`start_screen_recording`函数会启动录屏功能，并开始录制屏幕。它有两个可选参数：
+### 通用定位器
 
-- `target_avi_file_path`: 字符串，表示要保存录屏文件（AVI 格式）的路径。如果这个参数被指定了，那么 RPALite 会将录屏内容保存到指定的文件中。这个字符串为 None 时，RPALite 会在临时目录中创建一个临时文件来保存录屏内容。无论是否指定了这个参数，`start_screen_recording`函数都会返回一个字符串，表示录屏文件的路径。
-- `fps`: 整数，表示录屏的帧率。默认值为 10。
-
-start_screen_recording 目前只支持保存为 AVI 格式的录屏文件。
-
-#### 结束录屏
+RPALite 提供了一个通用的`locate`函数，可以以不同方式查找对象：
 
 ```python
-rpalite.stop_screen_recording()
+# 通过文本定位
+position = rpalite.locate("确定按钮")
+
+# 通过图像路径定位
+position = rpalite.locate("image:图片/路径.png")
+
+# 通过自动化ID定位（仅Windows）
+app = rpalite.find_application("记事本")
+position = rpalite.locate("automateId:EditControl", app=app)
+```
+
+你也可以使用通用的`click`函数，它可以与这些定位器一起工作：
+
+```python
+# 点击文本
+rpalite.click("确定按钮")
+
+# 点击图像
+rpalite.click("image:图片/路径.png")
+
+# 通过自动化ID点击
+rpalite.click("automateId:EditControl", app=app)
 ```

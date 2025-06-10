@@ -16,6 +16,7 @@ from datetime import datetime
 from .image_handler import ImageHandler
 import os
 import subprocess
+import locale
 from typing import List
 
 # Import platform-specific dependencies
@@ -66,6 +67,82 @@ class RPALite:
         self.step_pause_interval = step_pause_interval
         self.screen_recording_thread = None
         self.screen_recording_file = None
+
+    @not_keyword
+    def _add_chinese_support_if_needed(self, languages: List[str], ocr_engine: str) -> List[str]:
+        """
+        Check if the operating system language is Chinese and add Chinese support based on OCR engine type
+        
+        Parameters
+        ----------
+        languages : List[str]
+            Current language list
+        ocr_engine : str
+            OCR engine type
+            
+        Returns
+        -------
+        List[str]
+            Updated language list
+        """
+        try:
+            # Get system default language settings
+            try:
+                # Use the newer recommended approach first
+                system_lang = locale.getlocale()[0]
+                if system_lang is None:
+                    # Fallback to getdefaultlocale if getlocale returns None
+                    system_lang = locale.getdefaultlocale()[0]
+            except (AttributeError, OSError):
+                # Fallback for compatibility
+                system_lang = locale.getdefaultlocale()[0]
+            
+            # Check if it's a Chinese system (Simplified or Traditional)
+            is_chinese = False
+            chinese_variants = ['zh_CN', 'zh_TW', 'zh_HK', 'zh_SG', 'zh', 'Chinese']
+            
+            if system_lang:
+                for variant in chinese_variants:
+                    if variant.lower() in system_lang.lower():
+                        is_chinese = True
+                        break
+            
+            # If not Chinese system, return original language list
+            if not is_chinese:
+                return languages
+            
+            # Create a copy of the language list
+            new_languages = languages.copy()
+            
+            # Add corresponding Chinese language codes based on OCR engine type
+            if ocr_engine.lower() == "easyocr":
+                # EasyOCR Chinese codes - Note: EasyOCR requires 'en' with Chinese languages
+                # Ensure 'en' is present for compatibility
+                if 'en' not in new_languages:
+                    new_languages.append('en')
+                
+                # Add Chinese languages
+                chinese_codes = ['ch_sim']  # Start with simplified Chinese only to avoid conflicts
+                for code in chinese_codes:
+                    if code not in new_languages:
+                        new_languages.append(code)
+                        
+            elif ocr_engine.lower() == "paddleocr":
+                # PaddleOCR Chinese codes
+                chinese_codes = ['ch']  # Simplified and Traditional Chinese
+                for code in chinese_codes:
+                    if code not in new_languages:
+                        new_languages.append(code)
+            
+            if self.debug_mode:
+                logger.info(f"Chinese system detected, automatically added Chinese language support: {new_languages}")
+                
+            return new_languages
+            
+        except Exception as e:
+            if self.debug_mode:
+                logger.warn(f"Error checking system language, using original language list: {e}")
+            return languages
         
 
     def run_command(self, command, noblock = True):
@@ -444,7 +521,7 @@ class RPALite:
                 self.sleep(1)
                 search_in_image = None
 
-    def wait_until_text_disppears(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
+    def wait_until_text_disappears(self, text, filter_args_in_parent=None, parent_control = None, search_in_image = None, timeout = 30):
         """
         Wait until a specific text disappears in the current screen. .
 
@@ -807,7 +884,7 @@ class RPALite:
         return self.image_handler.find_image_location(image, parent_image)
     
     def find_all_image_locations(self, image, parent_image = None):
-        '''Find all images in the parent image or the entire screen if no parent image is provided. This function will return the locations if the image exists, otherwise it will return None.
+        '''Find all images in the parent image or the entire screen if no parent image is provided. This function will return the locations if the image exists, otherwise it will return an empty list.
         
         Parameters
         ----------
@@ -820,7 +897,8 @@ class RPALite:
         Returns
         -------
         list
-            A list of locations of the image in the screen. Each location is a tuple of (x, y, width, height).
+            A list of locations of the image in the screen. Each location is a tuple of (x, y, width, height). 
+            If no matches are found, an empty list will be returned.
         '''
         if isinstance(image, str):
             image = PIL.Image.open(image)

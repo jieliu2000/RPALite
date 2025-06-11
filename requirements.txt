@@ -38,6 +38,9 @@ pytest>=6.2.5
 pytest-md>=0.2.0
 pytest-emoji>=0.2.0
 build>=1.2.1
+semantic-version>=2.8.0
+PyGithub>=1.55.0
+requests>=2.25.0
 
 # Utilities
 github-release-downloader>=1.1.0

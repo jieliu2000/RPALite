@@ -21,6 +21,7 @@
   - [手动语言配置](#手动语言配置)
 - [性能优化](#性能优化)
 - [贡献指南](#贡献指南)
+- [macOS 配置指南](#macos-配置指南)
 
 ## 简介
 
@@ -90,96 +91,9 @@ RPALite 支持以下操作：
   - 键盘和鼠标输入
   - 屏幕捕获和 OCR 文本检测
   - 剪贴板操作
-- 系统依赖项：
-  - pyobjc-core：核心 Objective-C 绑定
-  - pyobjc-framework-Cocoa：AppKit 和 Foundation 框架
-  - pyobjc-framework-Quartz：屏幕捕获和图像处理
-  - pyobjc-framework-ApplicationServices：辅助功能和用户输入
-  - 推荐 macOS 10.14 或更高版本
-- 系统依赖项安装：
-  ```bash
-  # 安装所需的 macOS 依赖项
-  pip install pyobjc-core pyobjc-framework-Cocoa pyobjc-framework-Quartz pyobjc-framework-ApplicationServices
-  ```
-- 已知限制：
-  - 尚未通过辅助功能框架实现 UI 元素识别
-  - 对特定应用程序的自动化支持有限
-  - 某些功能可能需要在系统设置 > 隐私与安全性中授予额外权限
-
-#### macOS 系统权限设置
-
-要在 macOS 上使用 RPALite，您需要在系统设置中授予必要的权限：
-
-1. **屏幕录制权限**：
-
-   - 前往系统设置 > 隐私与安全性 > 屏幕录制
-   - 点击"+"按钮添加应用程序
-   - 对于终端(Terminal)：
-     - 导航到 `/Applications/Utilities/Terminal.app`（应用程序/实用工具/终端）
-     - 选择终端并点击"打开"
-   - 对于 VSCode：
-     - 导航到 `/Applications/Visual Studio Code.app`（或您的自定义安装位置）
-     - 选择 VSCode 并点击"打开"
-   - 添加后重启终端或 VSCode
-   - 此权限对于截图和 OCR 功能是必需的
-
-2. **辅助功能权限**：
-
-   - 前往系统设置 > 隐私与安全性 > 辅助功能
-   - 点击"+"按钮添加应用程序
-   - 对于终端(Terminal)：
-     - 导航到 `/Applications/Utilities/Terminal.app`（应用程序/实用工具/终端）
-     - 选择终端并点击"打开"
-   - 对于 VSCode：
-     - 导航到 `/Applications/Visual Studio Code.app`
-     - 选择 VSCode 并点击"打开"
-   - 确保终端和 VSCode 旁边的复选框已勾选
-   - 此权限对于鼠标和键盘模拟是必需的
-
-3. **自动化权限**：
-
-   - 当您的脚本尝试控制应用程序时，系统会动态请求这些权限
-   - 当系统提示时，点击"好"以允许您的脚本控制目标应用程序
-   - 要预先批准应用程序（可选）：
-     - 前往系统设置 > 隐私与安全性 > 自动化
-     - 您将看到可以控制其他应用程序的应用程序列表
-     - 勾选您希望允许终端或 VSCode 控制的应用程序旁边的复选框
-
-4. **直接添加 Python（替代方法）**：
-   - 如果您直接使用 Python 运行脚本而不是通过终端/VSCode：
-     - 找到您的 Python 安装位置（通常在 `/usr/local/bin/python3` 或虚拟环境中）
-     - 将此 Python 可执行文件添加到屏幕录制和辅助功能权限中
-   - 如果使用 Homebrew 安装的 Python：
-     - 添加 `/opt/homebrew/bin/python3`（对于 Apple Silicon）或 `/usr/local/bin/python3`（对于 Intel Mac）
-
-注意：根据您的 macOS 版本，这些设置的确切路径可能略有不同。在较旧的 macOS 版本中，这些设置在系统偏好设置 > 安全性与隐私 > 隐私中。
-
-#### macOS 问题排查指南
-
-如果您在 macOS 上运行 RPALite 时遇到问题：
-
-1. **权限错误**：
-
-   - 确保您的终端/IDE 拥有所需的权限（参见 macOS 系统权限设置）
-   - 尝试使用管理员权限运行脚本：`sudo python your_script.py`
-   - 如果系统提示应用程序控制权限，请始终点击"好"
-
-2. **OCR 或截图问题**：
-
-   - 验证是否为您的终端/IDE 授予了屏幕录制权限
-   - 尝试使用不同的 OCR 引擎：`rpalite = RPALite(ocr_engine="paddleocr")`
-   - 如果文本识别效果不佳，请调整屏幕分辨率或增加字体大小
-
-3. **鼠标/键盘控制问题**：
-
-   - 验证是否授予了辅助功能权限
-   - 如果基于文本的点击失败，请使用绝对坐标进行点击
-   - 对于键盘输入问题，尝试使用 `send_keys()` 方法而不是 `input_text()`
-
-4. **应用程序启动问题**：
-   - 如果 `run_command()` 失败，请指定应用程序的完整路径
-   - 对于某些应用程序，使用带 `.app` 扩展名的完整名称：`"Calculator.app"`
-   - 检查应用程序包名称是否正确
+- **重要提示**：需要系统权限（屏幕录制、辅助功能、自动化）
+- **配置指南**：详细设置说明请参见 [macOS 配置指南](#macos-配置指南)
+- 已知限制：UI 元素识别和特定应用程序自动化支持有限
 
 ### Linux
 
@@ -251,66 +165,6 @@ rpalite.input_text("这是一个使用 RPALite 的演示。\n")
 # 查找记事本应用并关闭它
 app = rpalite.find_application(".*Notepad")
 rpalite.close_app(app)
-```
-
-#### Linux 示例
-
-以下是使用 RPALite 操作 Linux 计算器的示例：
-
-```python
-from RPALite import RPALite
-rpalite = RPALite()
-
-# 启动计算器
-rpalite.launch_application("gnome-calculator")  # GNOME 桌面环境
-# 或
-rpalite.launch_application("kcalc")  # KDE 桌面环境
-
-# 点击数字 5
-rpalite.click_text("5")
-
-# 点击加号按钮
-rpalite.click_text("+")
-
-# 点击数字 3
-rpalite.click_text("3")
-
-# 点击等号按钮
-rpalite.click_text("=")
-
-# 验证结果
-result = rpalite.get_text_from_coordinates(100, 100)  # 根据您的计算器调整坐标
-assert result == "8"
-```
-
-#### macOS 示例
-
-以下是使用 RPALite 操作 macOS 计算器的示例：
-
-```python
-from RPALite import RPALite
-rpalite = RPALite()
-
-# 启动计算器
-rpalite.run_command("Calculator")
-
-# 点击数字 5
-rpalite.click_text("5")
-
-# 点击加号按钮
-rpalite.click_text("+")
-
-# 点击数字 3
-rpalite.click_text("3")
-
-# 点击等号按钮
-rpalite.click_text("=")
-
-# 获取结果（由于元素检测有限，使用剪贴板）
-rpalite.click_text("编辑")
-rpalite.click_text("拷贝")
-result = rpalite.get_clipboard_text()
-assert result.strip() == "8"
 ```
 
 ### 高级键盘输入示例
@@ -482,3 +336,111 @@ RPALite 中最耗时的操作是图像识别和 OCR。这两种 OCR 引擎在具
 - GitHub 仓库：https://github.com/jieliu2000/RPALite
 - Gitee 仓库：https://gitee.com/jieliu2000/rpalite
 - Gitcode 仓库：https://gitcode.com/jieliu2000/rpalite
+
+## macOS 配置指南
+
+本节提供在 macOS 上使用 RPALite 的详细设置说明。
+
+### 系统要求
+
+- 推荐 macOS 10.14 或更高版本
+- Python 3.7 或更高版本
+- 所需系统依赖项（随 RPALite 自动安装）
+
+### 系统依赖项
+
+RPALite 需要以下 macOS 特定依赖项：
+
+- **pyobjc-core**：核心 Objective-C 绑定
+- **pyobjc-framework-Cocoa**：AppKit 和 Foundation 框架
+- **pyobjc-framework-Quartz**：屏幕捕获和图像处理
+- **pyobjc-framework-ApplicationServices**：辅助功能和用户输入
+
+这些依赖项在您通过 pip 安装 RPALite 时会自动安装。如果需要手动安装：
+
+```bash
+pip install pyobjc-core pyobjc-framework-Cocoa pyobjc-framework-Quartz pyobjc-framework-ApplicationServices
+```
+
+### 系统权限设置
+
+要在 macOS 上使用 RPALite，您需要在系统设置中授予必要的权限：
+
+#### 1. 屏幕录制权限
+
+- 前往系统设置 > 隐私与安全性 > 屏幕录制
+- 点击"+"按钮添加应用程序
+- 对于终端(Terminal)：
+  - 导航到 `/Applications/Utilities/Terminal.app`（应用程序/实用工具/终端）
+  - 选择终端并点击"打开"
+- 对于 VSCode：
+  - 导航到 `/Applications/Visual Studio Code.app`（或您的自定义安装位置）
+  - 选择 VSCode 并点击"打开"
+- 添加后重启终端或 VSCode
+- 此权限对于截图和 OCR 功能是必需的
+
+#### 2. 辅助功能权限
+
+- 前往系统设置 > 隐私与安全性 > 辅助功能
+- 点击"+"按钮添加应用程序
+- 对于终端(Terminal)：
+  - 导航到 `/Applications/Utilities/Terminal.app`（应用程序/实用工具/终端）
+  - 选择终端并点击"打开"
+- 对于 VSCode：
+  - 导航到 `/Applications/Visual Studio Code.app`
+  - 选择 VSCode 并点击"打开"
+- 确保终端和 VSCode 旁边的复选框已勾选
+- 此权限对于鼠标和键盘模拟是必需的
+
+#### 3. 自动化权限
+
+- 当您的脚本尝试控制应用程序时，系统会动态请求这些权限
+- 当系统提示时，点击"好"以允许您的脚本控制目标应用程序
+- 要预先批准应用程序（可选）：
+  - 前往系统设置 > 隐私与安全性 > 自动化
+  - 您将看到可以控制其他应用程序的应用程序列表
+  - 勾选您希望允许终端或 VSCode 控制的应用程序旁边的复选框
+
+#### 4. 直接添加 Python（替代方法）
+
+- 如果您直接使用 Python 运行脚本而不是通过终端/VSCode：
+  - 找到您的 Python 安装位置（通常在 `/usr/local/bin/python3` 或虚拟环境中）
+  - 将此 Python 可执行文件添加到屏幕录制和辅助功能权限中
+- 如果使用 Homebrew 安装的 Python：
+  - 添加 `/opt/homebrew/bin/python3`（对于 Apple Silicon）或 `/usr/local/bin/python3`（对于 Intel Mac）
+
+**注意**：根据您的 macOS 版本，这些设置的确切路径可能略有不同。在较旧的 macOS 版本中，这些设置在系统偏好设置 > 安全性与隐私 > 隐私中。
+
+### 问题排查指南
+
+如果您在 macOS 上运行 RPALite 时遇到问题：
+
+#### 权限错误
+
+- 确保您的终端/IDE 拥有所需的权限（参见上述系统权限设置）
+- 尝试使用管理员权限运行脚本：`sudo python your_script.py`
+- 如果系统提示应用程序控制权限，请始终点击"好"
+
+#### OCR 或截图问题
+
+- 验证是否为您的终端/IDE 授予了屏幕录制权限
+- 尝试使用不同的 OCR 引擎：`rpalite = RPALite(ocr_engine="paddleocr")`
+- 如果文本识别效果不佳，请调整屏幕分辨率或增加字体大小
+
+#### 鼠标/键盘控制问题
+
+- 验证是否授予了辅助功能权限
+- 如果基于文本的点击失败，请使用绝对坐标进行点击
+- 对于键盘输入问题，尝试使用 `send_keys()` 方法而不是 `input_text()`
+
+#### 应用程序启动问题
+
+- 如果 `run_command()` 失败，请指定应用程序的完整路径
+- 对于某些应用程序，使用带 `.app` 扩展名的完整名称：`"Calculator.app"`
+- 检查应用程序包名称是否正确
+
+### 已知限制
+
+- 尚未通过辅助功能框架实现 UI 元素识别
+- 对特定应用程序的自动化支持有限
+- 某些功能可能需要在系统设置 > 隐私与安全性中授予额外权限

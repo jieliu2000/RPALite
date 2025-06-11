@@ -25,8 +25,12 @@ if platform.system() == 'Windows':
     import mouse as mouselib
     from pywinauto import mouse, keyboard, findwindows, Application
 elif platform.system() == 'Darwin':  # macOS
-    from Quartz import *
-    from AppKit import *
+    try:
+        from Quartz import *
+        from AppKit import *
+    except ImportError:
+        # Handle case where pyobjc is not installed
+        pass
     # Use pyautogui for mouse and keyboard on macOS instead of mouse/keyboard modules
 elif platform.system() == 'Linux':
     import mouse as mouselib
@@ -67,7 +71,209 @@ class RPALite:
         self.step_pause_interval = step_pause_interval
         self.screen_recording_thread = None
         self.screen_recording_file = None
+        
+        # Initialize display scaling factors (universal for all platforms)
+        self._display_scale_factor_x = None  # X-axis scaling factor
+        self._display_scale_factor_y = None  # Y-axis scaling factor
+        self._detect_display_scaling()
 
+    @not_keyword
+    def _detect_display_scaling(self):
+        """
+        Universal display scaling detection for all platforms.
+        This detects when the screenshot resolution differs from the logical screen resolution
+        reported by pyautogui, which can happen on:
+        - Windows: High DPI displays (150%, 200% scaling)
+        - macOS: Retina displays (2x scaling)
+        - Linux: Fractional scaling in various desktop environments
+        """
+        try:
+            # Get logical screen size from pyautogui
+            logical_size = pyautogui.size()
+            
+            # Take a full screenshot to get actual pixel dimensions
+            full_screenshot = pyautogui.screenshot()
+            
+            if full_screenshot:
+                # Calculate the scaling factor
+                physical_width = full_screenshot.size[0]
+                physical_height = full_screenshot.size[1]
+                logical_width = logical_size.width
+                logical_height = logical_size.height
+                
+                # Calculate scaling factors for both dimensions
+                scale_x = physical_width / logical_width
+                scale_y = physical_height / logical_height
+                
+                # Store individual scaling factors
+                self._display_scale_factor_x = scale_x
+                self._display_scale_factor_y = scale_y
+                
+                # Check for X/Y scaling differences for diagnostic purposes
+                scaling_difference = abs(scale_x - scale_y)
+                difference_threshold = 0.01  # 1% difference threshold
+                
+                if scaling_difference > difference_threshold:
+                    # Significant difference detected - log warning
+                    if self.debug_mode:
+                        logger.warn(f"Significant X/Y scaling difference detected!")
+                        logger.warn(f"X-axis scaling: {scale_x:.6f}")
+                        logger.warn(f"Y-axis scaling: {scale_y:.6f}")
+                        logger.warn(f"Difference: {scaling_difference:.6f}")
+                        logger.warn(f"Using separate X/Y scaling factors for accuracy.")
+                
+                # Detect if scaling is significant (more than 1% difference from 1.0)
+                if abs(scale_x - 1.0) > 0.01 or abs(scale_y - 1.0) > 0.01:
+                    if self.debug_mode:
+                        logger.info(f"Display scaling detected:")
+                        logger.info(f"X-axis scaling: {scale_x:.6f}")
+                        logger.info(f"Y-axis scaling: {scale_y:.6f}")
+                        logger.info(f"Scaling difference: {scaling_difference:.6f}")
+                        logger.info(f"Logical size: {logical_size}")
+                        logger.info(f"Physical size: {full_screenshot.size}")
+                        logger.info(f"Platform: {self.platform}")
+                else:
+                    # No significant scaling detected, set to 1.0 for optimization
+                    self._display_scale_factor_x = 1.0
+                    self._display_scale_factor_y = 1.0
+                    if self.debug_mode:
+                        logger.info("No display scaling detected")
+            else:
+                self._display_scale_factor_x = 1.0
+                self._display_scale_factor_y = 1.0
+                if self.debug_mode:
+                    logger.warn("Could not detect display scaling, assuming 1.0x")
+                    
+        except Exception as e:
+            self._display_scale_factor_x = 1.0
+            self._display_scale_factor_y = 1.0
+            if self.debug_mode:
+                logger.warn(f"Error detecting display scaling, assuming 1.0x: {e}")
+
+    @not_keyword
+    def _scale_coordinates_to_physical(self, x, y):
+        """
+        Convert logical coordinates to physical coordinates for high-DPI displays.
+        Works across all platforms (Windows, macOS, Linux).
+        
+        Parameters
+        ----------
+        x : int
+            Logical X coordinate
+        y : int  
+            Logical Y coordinate
+            
+        Returns
+        -------
+        tuple
+            Physical coordinates (x, y) scaled for the display
+        """
+        if self._display_scale_factor_x and self._display_scale_factor_x != 1.0:
+            scaled_x = int(x * self._display_scale_factor_x)
+        else:
+            scaled_x = x
+            
+        if self._display_scale_factor_y and self._display_scale_factor_y != 1.0:
+            scaled_y = int(y * self._display_scale_factor_y)
+        else:
+            scaled_y = y
+            
+        return (scaled_x, scaled_y)
+
+    @not_keyword  
+    def _scale_coordinates_to_logical(self, x, y):
+        """
+        Convert physical coordinates to logical coordinates for high-DPI displays.
+        Works across all platforms (Windows, macOS, Linux).
+        
+        Parameters
+        ----------
+        x : int
+            Physical X coordinate (from screenshot analysis)
+        y : int
+            Physical Y coordinate (from screenshot analysis)
+            
+        Returns
+        -------
+        tuple
+            Logical coordinates (x, y) for pyautogui functions
+        """
+        if self._display_scale_factor_x and self._display_scale_factor_x != 1.0:
+            scaled_x = int(x / self._display_scale_factor_x)
+        else:
+            scaled_x = x
+            
+        if self._display_scale_factor_y and self._display_scale_factor_y != 1.0:
+            scaled_y = int(y / self._display_scale_factor_y)
+        else:
+            scaled_y = y
+            
+        return (scaled_x, scaled_y)
+
+    @not_keyword
+    def _scale_region_to_logical(self, x, y, width, height):
+        """
+        Convert physical region coordinates to logical coordinates for high-DPI displays.
+        Works across all platforms (Windows, macOS, Linux).
+        
+        Parameters
+        ----------
+        x, y, width, height : int
+            Physical region coordinates
+            
+        Returns
+        -------
+        tuple
+            Logical region coordinates (x, y, width, height)
+        """
+        if self._display_scale_factor_x and self._display_scale_factor_x != 1.0:
+            scaled_x = int(x / self._display_scale_factor_x)
+            scaled_width = int(width / self._display_scale_factor_x)
+        else:
+            scaled_x = x
+            scaled_width = width
+            
+        if self._display_scale_factor_y and self._display_scale_factor_y != 1.0:
+            scaled_y = int(y / self._display_scale_factor_y)
+            scaled_height = int(height / self._display_scale_factor_y)
+        else:
+            scaled_y = y
+            scaled_height = height
+            
+        return (scaled_x, scaled_y, scaled_width, scaled_height)
+    
+    @not_keyword
+    def _scale_region_to_physical(self, x, y, width, height):
+        """
+        Convert logical region coordinates to physical coordinates for high-DPI displays.
+        Works across all platforms (Windows, macOS, Linux).
+        
+        Parameters
+        ----------
+        x, y, width, height : int
+            Logical region coordinates
+            
+        Returns
+        -------
+        tuple
+            Physical region coordinates (x, y, width, height)
+        """
+        if self._display_scale_factor_x and self._display_scale_factor_x != 1.0:
+            scaled_x = int(x * self._display_scale_factor_x)
+            scaled_width = int(width * self._display_scale_factor_x)
+        else:
+            scaled_x = x
+            scaled_width = width
+            
+        if self._display_scale_factor_y and self._display_scale_factor_y != 1.0:
+            scaled_y = int(y * self._display_scale_factor_y)
+            scaled_height = int(height * self._display_scale_factor_y)
+        else:
+            scaled_y = y
+            scaled_height = height
+            
+        return (scaled_x, scaled_y, scaled_width, scaled_height)
+    
     @not_keyword
     def _add_chinese_support_if_needed(self, languages: List[str], ocr_engine: str) -> List[str]:
         """
@@ -371,7 +577,11 @@ class RPALite:
         '''
         position = self.find_control_by_label(label)
         if position is not None:
-            self.click_by_position(position[0] + int(position[2] / 2), position[1] + int(position[3] / 2), button, double_click)
+            # Convert physical coordinates from screenshot to logical coordinates for clicking
+            physical_x = position[0] + int(position[2] / 2)
+            physical_y = position[1] + int(position[3] / 2)
+            logical_x, logical_y = self._scale_coordinates_to_logical(physical_x, physical_y)
+            self.click_by_position(logical_x, logical_y, button, double_click)
 
     def click_control(self, app, class_name=None, title=None, automate_id=None, click_position='center-left', button='left', double_click=False):
         """
@@ -840,7 +1050,11 @@ class RPALite:
         '''         
         location = self.find_image_location(image)
         if(location is not None):
-                self.click_by_position(int(location[0]) + int(location[2]) // 2, int(location[1]) + int(location[3]) // 2, button, double_click)
+            # Convert physical coordinates from screenshot to logical coordinates for clicking
+            physical_x = int(location[0]) + int(location[2]) // 2
+            physical_y = int(location[1]) + int(location[3]) // 2
+            logical_x, logical_y = self._scale_coordinates_to_logical(physical_x, physical_y)
+            self.click_by_position(logical_x, logical_y, button, double_click)
 
     def find_image_on_screen(self, image):
         '''Find an image in the current screen. This function will return the location if the image exists, otherwise it will return None.
@@ -977,7 +1191,11 @@ class RPALite:
         logger.debug('Click by text:', text)
         location = self.wait_until_text_shown(text, filter_args_in_parent)
         if(location is not None and location[0]):
-            self.click_by_position(int(location[0]) + int(location[2]) // 2, int(location[1]) + int(location[3]) // 2, button, double_click)
+            # Convert physical coordinates from screenshot to logical coordinates for clicking
+            physical_x = int(location[0]) + int(location[2]) // 2
+            physical_y = int(location[1]) + int(location[3]) // 2
+            logical_x, logical_y = self._scale_coordinates_to_logical(physical_x, physical_y)
+            self.click_by_position(logical_x, logical_y, button, double_click)
         self.sleep()
 
 
@@ -1078,7 +1296,11 @@ class RPALite:
         Move mouse to the center position of a string on screen. 
         '''
         position = self.wait_until_text_shown(text, filter_args_in_parent, parent_control, search_in_image, timeout)
-        self.mouse_move(int(position[0]) + int(position[2]) // 2, int(position[1]) + int(position[3]) // 2)
+        # Convert physical coordinates from screenshot to logical coordinates for mouse movement
+        physical_x = int(position[0]) + int(position[2]) // 2
+        physical_y = int(position[1]) + int(position[3]) // 2
+        logical_x, logical_y = self._scale_coordinates_to_logical(physical_x, physical_y)
+        self.mouse_move(logical_x, logical_y)
 
     def click_by_position(self, x:int, y:int, button='left', double_click=False):
         '''
@@ -1263,6 +1485,7 @@ class RPALite:
         if self.platform == 'Darwin':
             pyautogui.write(text, interval=0.2)
         else:
+            import keyboard as keyboardlib
             keyboardlib.write(text, delay=0.2)
         self.sleep(seconds)
 

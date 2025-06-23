@@ -46,8 +46,10 @@ requests>=2.25.0
 github-release-downloader>=1.1.0
 
 # Linux specific dependencies (X11 required)
-xdotool>=3.0; sys_platform == 'linux'
-wmctrl>=1.0; sys_platform == 'linux'
+# Note: xdotool and wmctrl are system packages that need to be installed via package manager
+# For Ubuntu/Debian: sudo apt-get install xdotool wmctrl
+# For CentOS/RHEL: sudo yum install xdotool wmctrl  
+# For Arch: sudo pacman -S xdotool wmctrl
 python-xlib>=0.30; sys_platform == 'linux'
 paddlepaddle
 paddleocr

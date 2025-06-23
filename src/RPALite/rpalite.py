@@ -19,25 +19,58 @@ import subprocess
 import locale
 from typing import List
 
-# Import platform-specific dependencies
+# Import platform-specific dependencies with proper error handling
+_PLATFORM_IMPORTS_SUCCESS = {'Windows': False, 'Darwin': False, 'Linux': False}
+_MISSING_DEPENDENCIES = []
+
 if platform.system() == 'Windows':
-    import uiautomation as auto
-    import mouse as mouselib
-    from pywinauto import mouse, keyboard, findwindows, Application
+    try:
+        import uiautomation as auto
+        import mouse as mouselib
+        from pywinauto import mouse, keyboard, findwindows, Application
+        _PLATFORM_IMPORTS_SUCCESS['Windows'] = True
+    except ImportError as e:
+        _MISSING_DEPENDENCIES.append(f"Windows dependency missing: {e}")
+        
 elif platform.system() == 'Darwin':  # macOS
     try:
         from Quartz import *
         from AppKit import *
-    except ImportError:
-        # Handle case where pyobjc is not installed
-        pass
-    # Use pyautogui for mouse and keyboard on macOS instead of mouse/keyboard modules
+        _PLATFORM_IMPORTS_SUCCESS['Darwin'] = True
+    except ImportError as e:
+        _MISSING_DEPENDENCIES.append(f"macOS dependency missing: {e}")
+        # Use pyautogui as fallback for mouse and keyboard on macOS
+        
 elif platform.system() == 'Linux':
-    import mouse as mouselib
-    import keyboard
-    import Xlib
-    from Xlib import X, display, Xutil
-    from Xlib.ext import randr
+    # Linux dependency imports with detailed error messages and suggestions
+    import warnings
+    
+    try:
+        import mouse as mouselib
+    except ImportError as e:
+        _MISSING_DEPENDENCIES.append("mouse library missing: pip install mouse")
+        mouselib = None
+        
+    try:
+        import keyboard
+    except ImportError as e:
+        _MISSING_DEPENDENCIES.append("keyboard library missing: pip install keyboard")
+        keyboard = None
+        
+    try:
+        import Xlib
+        from Xlib import X, display, Xutil
+        from Xlib.ext import randr
+        _PLATFORM_IMPORTS_SUCCESS['Linux'] = True
+    except ImportError as e:
+        _MISSING_DEPENDENCIES.append("python-xlib library missing: pip install python-xlib")
+        
+    # Check system tools
+    import shutil
+    if not shutil.which('xdotool'):
+        _MISSING_DEPENDENCIES.append("xdotool tool missing: sudo apt-get install xdotool")
+    if not shutil.which('wmctrl'):
+        _MISSING_DEPENDENCIES.append("wmctrl tool missing: sudo apt-get install wmctrl")
 
 @library(scope='GLOBAL', auto_keywords=True)
 class RPALite:
@@ -54,28 +87,135 @@ class RPALite:
     '''
 
     def __init__(self, debug_mode: bool = False, ocr_engine: str = "easyocr", languages: List[str] = ['en'],
-                 step_pause_interval: int = 3):
+                 step_pause_interval: int = 3, strict_mode: bool = False):
         """
         Initialize the RPALite class.
-        :param debug_mode: Whether to enable debug mode
-        :param ocr_engine: OCR engine to use (easyocr or paddleocr)
-        :param languages: Languages for OCR
-        :param step_pause_interval: Time to wait between steps
+        
+        Parameters
+        ----------
+        debug_mode : bool
+            Whether to enable debug mode
+        ocr_engine : str
+            OCR engine to use (easyocr or paddleocr)
+        languages : List[str]
+            Languages for OCR
+        step_pause_interval : int
+            Time to wait between steps
+        strict_mode : bool
+            Whether to enforce strict dependency checking (raises exceptions on missing deps)
         """
         self.platform = platform.system()
         self.debug_mode = debug_mode
         self.ocr_engine = ocr_engine
+        self.strict_mode = strict_mode
+        
+        # Validate platform support
         if self.platform not in ['Windows', 'Linux', 'Darwin']:
-            raise Exception('This version currently only supports Windows, macOS and Linux. Other platforms will be supported in the future.')
-        self.image_handler = ImageHandler(debug_mode, ocr_engine, languages)
+            raise Exception(f'Platform {self.platform} is not supported. This version supports Windows, macOS and Linux.')
+        
+        # Check platform-specific dependencies
+        self._check_platform_dependencies()
+        
+        # Initialize core components
+        try:
+            self.image_handler = ImageHandler(debug_mode, ocr_engine, languages)
+        except Exception as e:
+            logger.error(f"Failed to initialize image handler: {e}")
+            if strict_mode:
+                raise
+            else:
+                logger.warn("Running in non-strict mode, some features may be unavailable")
+                self.image_handler = None
+        
         self.step_pause_interval = step_pause_interval
         self.screen_recording_thread = None
         self.screen_recording_file = None
+        self.keep_screen_recording = False
         
-        # Initialize display scaling factors (universal for all platforms)
-        self._display_scale_factor_x = None  # X-axis scaling factor
-        self._display_scale_factor_y = None  # Y-axis scaling factor
-        self._detect_display_scaling()
+        # Initialize display scaling factors
+        self._display_scale_factor_x = None
+        self._display_scale_factor_y = None
+        
+        # Linux-specific runtime environment checks and configuration
+        if self.platform == 'Linux':
+            self._check_linux_environment()
+            self._init_linux_config()
+        
+        # Detect display scaling
+        try:
+            self._detect_display_scaling()
+        except Exception as e:
+            logger.warn(f"Display scaling detection failed: {e}")
+            self._display_scale_factor_x = 1.0
+            self._display_scale_factor_y = 1.0
+        
+        if self.debug_mode:
+            logger.info(f"RPALite initialization completed - Platform: {self.platform}, OCR Engine: {ocr_engine}")
+
+    @not_keyword
+    def _check_platform_dependencies(self):
+        """Check platform-specific dependencies"""
+        current_platform = self.platform
+        
+        if _MISSING_DEPENDENCIES:
+            msg = "Missing dependencies found:\n" + "\n".join(_MISSING_DEPENDENCIES)
+            if self.strict_mode:
+                raise Exception(msg)
+            else:
+                logger.warn(msg)
+                if self.debug_mode:
+                    logger.info("Running in non-strict mode, recommend installing missing dependencies for full functionality")
+
+    @not_keyword
+    def _check_linux_environment(self):
+        """Linux environment specific checks"""
+        try:
+            # Check X11 environment
+            display_env = os.environ.get('DISPLAY')
+            if not display_env:
+                logger.warn("DISPLAY environment variable not detected, may not be running in X11 environment")
+            
+            # Check desktop session
+            desktop_session = os.environ.get('XDG_CURRENT_DESKTOP') or \
+                            os.environ.get('DESKTOP_SESSION') or \
+                            os.environ.get('GDMSESSION')
+            
+            if desktop_session:
+                if self.debug_mode:
+                    logger.info(f"Desktop environment detected: {desktop_session}")
+            else:
+                logger.warn("Unable to detect desktop environment, some features may be limited")
+            
+            # Check Wayland environment
+            wayland_display = os.environ.get('WAYLAND_DISPLAY')
+            if wayland_display:
+                logger.warn("Wayland environment detected, recommend setting GDK_BACKEND=x11 for best compatibility")
+            
+        except Exception as e:
+            if self.debug_mode:
+                logger.debug(f"Linux environment check exception: {e}")
+
+    @not_keyword
+    def _init_linux_config(self):
+        """Initialize Linux configuration"""
+        try:
+            from .linux_config import get_linux_config
+            self.linux_config = get_linux_config()
+            
+            if self.debug_mode:
+                logger.info("Linux configuration loaded successfully")
+                # If user wants to see tool suggestions
+                if self.linux_config.get_user_preference('show_tool_suggestions', True):
+                    missing_tools = [tool for tool, available in 
+                                   self.linux_config.available_tools.items() if not available]
+                    if missing_tools:
+                        logger.info(f"Recommend installing the following tools for full functionality: {', '.join(missing_tools)}")
+        except ImportError:
+            logger.warn("Unable to load Linux configuration module")
+            self.linux_config = None
+        except Exception as e:
+            logger.error(f"Failed to initialize Linux configuration: {e}")
+            self.linux_config = None
 
     @not_keyword
     def _detect_display_scaling(self):
@@ -516,23 +656,25 @@ class RPALite:
 
     def find_control(self, app, class_name=None, title=None, automate_id=None):
         '''
-        Finds a control by the parameters. This function uses uiautomation module (https://github.com/yinkaisheng/Python-UIAutomation-for-Windows) to find the control and returns the client rect of the element
-        You can use ClassName, Title, automateId to search for a control. You can use Windows' Inspect tool (https://learn.microsoft.com/en-us/windows/win32/winauto/inspect-objects) or Accessibility Insights (https://accessibilityinsights.io/) to get these properties of Apps.
-        In the parameters, app is mandatory. You can get the app object using 
-
+        Finds a control by the parameters. 
+        
+        For Windows: Uses uiautomation module to find the control and returns the client rect of the element.
+        For Linux: Falls back to text-based searching using OCR since Linux doesn't have equivalent UI automation.
+        For macOS: Uses Accessibility framework where available.
+        
         Parameters
         ----------
         app : 
             The application. It can be obtained by the "find_application" function.
         
         class_name : str
-            The class name of the control. Use Windows Inspect tool or Accessibility Insights to find the class name of the control. 
+            The class name of the control. (Windows only)
         
         title: str  
-            The title of the control. Use Windows Inspect tool or Accessibility Insights to find the title of the control.
+            The title of the control. For Linux, this will be used as text to search for.
         
         automate_id : str
-            The automation ID of the control. Use Windows Inspect tool or Accessibility Insights to find the automation ID of the control.
+            The automation ID of the control. (Windows only)
 
         
         Returns
@@ -543,23 +685,57 @@ class RPALite:
 
         if app is None:
             return None
-        app_control = self.find_control_by_process(app.process)
         
-        params = {}
-       
-        if(class_name is not None and class_name != ""):
-            params["ClassName"] = class_name
-        if(title is not None and title != ""):
-            params["Name"] = title
-        if(automate_id is not None and automate_id != ""):
-            params["AutomationId"] = automate_id
-     
-        control = app_control.Control(**params)
-        if control is None:
-            return None
-        rect = control.BoundingRectangle
+        if self.platform == 'Windows':
+            app_control = self.find_control_by_process(app.process)
+            
+            params = {}
+           
+            if(class_name is not None and class_name != ""):
+                params["ClassName"] = class_name
+            if(title is not None and title != ""):
+                params["Name"] = title
+            if(automate_id is not None and automate_id != ""):
+                params["AutomationId"] = automate_id
+         
+            control = app_control.Control(**params)
+            if control is None:
+                return None
+            rect = control.BoundingRectangle
 
-        return (rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
+            return (rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
+        
+        elif self.platform == 'Linux':
+            # Linux实现：由于缺乏类似Windows的UI自动化API，使用基于文本的搜索
+            if title:
+                # 使用OCR搜索指定的文本
+                screenshot = self.take_screenshot()
+                if screenshot:
+                    location = self.image_handler.find_texts_in_image(screenshot, title)
+                    if location and len(location) > 0:
+                        # 返回第一个匹配的文本位置
+                        return location[0][0]
+                    else:
+                        if self.debug_mode:
+                            logger.debug(f"在Linux上未找到文本控件: {title}")
+                        return None
+            else:
+                logger.warn("在Linux上，find_control方法需要title参数来搜索文本控件")
+                return None
+        
+        elif self.platform == 'Darwin':
+            # macOS实现：使用Accessibility API (需要进一步开发)
+            if title:
+                # 暂时使用文本搜索作为备用方案
+                screenshot = self.take_screenshot()
+                if screenshot:
+                    location = self.image_handler.find_texts_in_image(screenshot, title)
+                    if location and len(location) > 0:
+                        return location[0][0]
+            logger.warn("macOS上的find_control方法需要进一步开发以支持Accessibility API")
+            return None
+        
+        return None
     
     def click_control_by_label(self, label, button='left', double_click=False):
         '''Click on a control by the label text. The label text is the text displayed on the control or near the control.
@@ -878,21 +1054,79 @@ class RPALite:
                     }
             return None
         elif self.platform == 'Linux':
-            # Linux implementation using xdotool
+            # Linux implementation using xdotool and wmctrl
             try:
                 if title:
-                    # Search for window by title
-                    result = subprocess.run(['xdotool', 'search', '--name', title], 
-                                          capture_output=True, text=True)
-                    if result.returncode == 0 and result.stdout.strip():
-                        return {
-                            'window_id': result.stdout.strip(),
-                            'kill': lambda force=False: subprocess.run(['xdotool', 'windowkill', result.stdout.strip()])
-                        }
+                    # First try to use xdotool to search window title
+                    try:
+                        result = subprocess.run(['xdotool', 'search', '--name', title], 
+                                              capture_output=True, text=True, timeout=10)
+                        if result.returncode == 0 and result.stdout.strip():
+                            window_ids = result.stdout.strip().split('\n')
+                            # Use the first found window ID
+                            window_id = window_ids[0].strip()
+                            return {
+                                'window_id': window_id,
+                                'title': title,
+                                'kill': lambda force=False: self._kill_linux_window(window_id, force)
+                            }
+                    except (FileNotFoundError, subprocess.TimeoutExpired):
+                        if self.debug_mode:
+                            logger.debug(f"xdotool not found or timeout, trying other methods to find application: {title}")
+                    
+                    # Fallback method: use wmctrl to list windows
+                    try:
+                        result = subprocess.run(['wmctrl', '-l'], 
+                                              capture_output=True, text=True, timeout=10)
+                        if result.returncode == 0:
+                            lines = result.stdout.strip().split('\n')
+                            for line in lines:
+                                if title.lower() in line.lower():
+                                    # wmctrl output format: window_id desktop_id client_machine window_title
+                                    parts = line.split(None, 3)
+                                    if len(parts) >= 4:
+                                        window_id = parts[0]
+                                        return {
+                                            'window_id': window_id,
+                                            'title': title,
+                                            'kill': lambda force=False: self._kill_linux_window(window_id, force)
+                                        }
+                    except (FileNotFoundError, subprocess.TimeoutExpired):
+                        if self.debug_mode:
+                            logger.debug(f"wmctrl not found or timeout, unable to find application: {title}")
+                
                 return None
             except Exception as e:
                 logger.error(f"Failed to find application on Linux: {e}")
                 return None
+
+    @not_keyword
+    def _kill_linux_window(self, window_id, force=False):
+        """
+        Helper method to close specified window on Linux
+        
+        Parameters
+        ----------
+        window_id : str
+            Window ID
+        force : bool
+            Whether to force close
+        """
+        try:
+            if force:
+                # Force close window
+                subprocess.run(['xdotool', 'windowkill', window_id], timeout=5)
+            else:
+                # Graceful close: try to send close signal first
+                subprocess.run(['xdotool', 'windowclose', window_id], timeout=5)
+        except (FileNotFoundError, subprocess.TimeoutExpired, Exception) as e:
+            if self.debug_mode:
+                logger.debug(f"Failed to close window with xdotool, trying wmctrl: {e}")
+            try:
+                # Fallback method: use wmctrl to close window
+                subprocess.run(['wmctrl', '-ic', window_id], timeout=5)
+            except Exception as e2:
+                logger.error(f"Failed to close window on Linux: {e2}")
 
     @not_keyword
     def get_app(self, app_or_keyword):
@@ -912,10 +1146,7 @@ class RPALite:
             app['kill'](force_quit)
         elif self.platform == 'Linux':
             if app and 'window_id' in app:
-                try:
-                    subprocess.run(['xdotool', 'windowkill', app['window_id']])
-                except Exception as e:
-                    logger.error(f"Failed to close application on Linux: {e}")
+                self._kill_linux_window(app['window_id'], force_quit)
 
    
     def maximize_window(self, app_or_keyword, window_title_pattern = None):
@@ -962,12 +1193,35 @@ class RPALite:
         elif self.platform == 'Linux':
             app = self.get_app(app_or_keyword)
             if app and 'window_id' in app:
-                try:
-                    subprocess.run(['xdotool', 'windowactivate', app['window_id']])
-                    subprocess.run(['xdotool', 'windowsize', app['window_id'], '100%', '100%'])
+                window_id = app['window_id']
+                success = False
+                
+                # Try multiple ways to maximize window
+                maximize_commands = [
+                    # Use xdotool to activate and maximize window
+                    lambda: subprocess.run(['xdotool', 'windowactivate', '--sync', window_id], timeout=5),
+                    lambda: subprocess.run(['xdotool', 'windowsize', window_id, '100%', '100%'], timeout=5),
+                    # Fallback method: use wmctrl to maximize
+                    lambda: subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_horz'], timeout=5),
+                    # Another wmctrl method
+                    lambda: subprocess.run(['wmctrl', '-ia', window_id], timeout=5)
+                ]
+                
+                for cmd in maximize_commands:
+                    try:
+                        cmd()
+                        success = True
+                        if self.debug_mode:
+                            logger.info(f"Successfully operated window: {window_id}")
+                    except (FileNotFoundError, subprocess.TimeoutExpired, Exception) as e:
+                        if self.debug_mode:
+                            logger.debug(f"Window operation failed: {e}")
+                        continue
+                
+                if not success:
+                    logger.warn(f"Unable to maximize window {window_id} on Linux, please ensure xdotool or wmctrl is installed")
+                else:
                     self.sleep()
-                except Exception as e:
-                    logger.error(f"Failed to maximize window on Linux: {e}")
 
     
     def locate(self, location_description, parent_image = None, app = None):
@@ -1278,8 +1532,12 @@ class RPALite:
             # In pyautogui, positive values scroll up, and negative values scroll down
             # But we want the opposite, so we negate the value
             pyautogui.scroll(-times)
-        else:
+        elif self.platform == 'Linux':
             mouselib.wheel(times)
+        else:
+            # Windows
+            from pywinauto import mouse
+            mouse.wheel(times)
             
         sleep_seconds = sleep if sleep is not None else self.step_pause_interval
         self.sleep(sleep_seconds)
@@ -1287,7 +1545,11 @@ class RPALite:
     def mouse_move(self, x:int, y:int):
         if self.platform == 'Darwin':
             pyautogui.moveTo(x, y)
+        elif self.platform == 'Linux':
+            mouselib.move((x, y))
         else:
+            # Windows
+            from pywinauto import mouse
             mouse.move((x, y))
         self.sleep()
         
@@ -1309,6 +1571,7 @@ class RPALite:
         logger.debug('Click by position: {}, {}, {}, {}'.format(x, y, type(x), type(y)))
         
         if self.platform == 'Windows':
+            from pywinauto import mouse
             mouse.move((x, y))
             self.sleep(1)
             if double_click:
@@ -1324,12 +1587,12 @@ class RPALite:
                 pyautogui.click(button=button)
         else:
             # Linux
-            mouse.move((x, y))
+            mouselib.move((x, y))
             self.sleep(1)
             if double_click:
-                mouse.double_click(button, (x, y))
+                mouselib.double_click(button, (x, y))
             else:
-                mouse.click(button, (x,y))
+                mouselib.click(button, (x,y))
                 
         self.sleep()
 
@@ -1339,6 +1602,7 @@ class RPALite:
         
         For Windows, it uses pywinauto's send_keys format.
         For macOS, it converts the keys to pyautogui format.
+        For Linux, it converts the keys to keyboard library format.
         
         Parameters
         ----------
@@ -1468,6 +1732,124 @@ class RPALite:
             # Type any collected text
             if text_to_type:
                 pyautogui.write(text_to_type)
+                
+            self.sleep()
+        elif self.platform == 'Linux':
+            # Linux implementation using keyboard library
+            import keyboard as keyboardlib
+            
+            # Key mapping for Linux
+            key_mapping = {
+                # Special keys
+                '{ENTER}': 'enter',
+                '{ESC}': 'esc',
+                '{UP}': 'up',
+                '{DOWN}': 'down',
+                '{LEFT}': 'left', 
+                '{RIGHT}': 'right',
+                '{SPACE}': 'space',
+                '{TAB}': 'tab',
+                '{BACKSPACE}': 'backspace',
+                '{DELETE}': 'delete',
+                '{HOME}': 'home',
+                '{END}': 'end',
+                '{PAGEUP}': 'page up',
+                '{PAGEDOWN}': 'page down',
+                
+                # Modifier keys
+                '{VK_SHIFT}': 'shift',
+                '{VK_CONTROL}': 'ctrl',
+                '{VK_MENU}': 'alt',
+                '{VK_LWIN}': 'cmd',
+                
+                # Function keys
+                '{F1}': 'f1',
+                '{F2}': 'f2',
+                '{F3}': 'f3',
+                '{F4}': 'f4',
+                '{F5}': 'f5',
+                '{F6}': 'f6',
+                '{F7}': 'f7',
+                '{F8}': 'f8',
+                '{F9}': 'f9',
+                '{F10}': 'f10',
+                '{F11}': 'f11',
+                '{F12}': 'f12',
+            }
+            
+            # Handle modifiers for Linux
+            modifier_mapping = {
+                '^': 'ctrl',
+                '%': 'alt',
+                '+': 'shift',
+                '#': 'cmd'
+            }
+            
+            # Process the keys string
+            modifiers = []
+            text_to_type = ""
+            
+            i = 0
+            while i < len(keys):
+                # Check for modifiers
+                if i < len(keys) and keys[i] in modifier_mapping:
+                    mod = keys[i]
+                    mod_name = modifier_mapping[mod]
+                    
+                    # Check for parenthesized expression
+                    if i + 1 < len(keys) and keys[i + 1] == '(':
+                        # Find matching closing parenthesis
+                        close_paren = keys.find(')', i + 2)
+                        if close_paren != -1:
+                            # Get the keys inside parentheses
+                            keys_inside = keys[i + 2:close_paren]
+                            # Process keys inside with the modifiers
+                            for char in keys_inside:
+                                keyboardlib.send(f'{mod_name}+{char}')
+                                self.sleep(0.1)
+                            # Move past the closing parenthesis
+                            i = close_paren + 1
+                            continue
+                    else:
+                        # Single character with modifier - store for next character
+                        modifiers.append(mod_name)
+                        i += 1
+                        continue
+                
+                # Check for special key sequences in curly braces
+                if i < len(keys) and keys[i] == '{':
+                    end_brace = keys.find('}', i)
+                    if end_brace != -1:
+                        key_name = keys[i + 1:end_brace]
+                        if key_name in key_mapping:
+                            if modifiers:
+                                # Use hotkey for key combinations
+                                combo = '+'.join(modifiers + [key_mapping[key_name]])
+                                keyboardlib.send(combo)
+                                modifiers = []
+                            else:
+                                # Use press for single keys
+                                keyboardlib.send(key_mapping[key_name])
+                        i = end_brace + 1
+                        continue
+                
+                # Regular character
+                if modifiers:
+                    # Character with modifiers
+                    if i < len(keys):
+                        combo = '+'.join(modifiers + [keys[i]])
+                        keyboardlib.send(combo)
+                        modifiers = []
+                else:
+                    # Plain character, collect for efficiency
+                    if i < len(keys) and keys[i] not in modifier_mapping and keys[i] != '{':
+                        text_to_type += keys[i]
+                    
+                i += 1
+            
+            # Type any collected text
+            if text_to_type:
+                keyboardlib.write(text_to_type, delay=0.1)
                 
             self.sleep()
 
@@ -1652,7 +2034,33 @@ class RPALite:
             # Use Mission Control shortcut for macOS
             self.send_keys('^%{UP}')
         elif self.platform == 'Linux':
-            try:
-                subprocess.run(['wmctrl', '-k', 'on'])
-            except Exception as e:
-                logger.error(f"Failed to show desktop on Linux: {e}")
+            # 尝试多种方式显示桌面，适配不同的Linux桌面环境
+            desktop_commands = [
+                # wmctrl method - works with most window managers
+                ['wmctrl', '-k', 'on'],
+                # GNOME/Unity shortcut
+                ['xdotool', 'key', 'ctrl+alt+d'],
+                # KDE shortcut  
+                ['xdotool', 'key', 'ctrl+alt+d'],
+                # Alternative GNOME shortcut
+                ['xdotool', 'key', 'super+d'],
+                # Minimize all windows as fallback
+                ['wmctrl', '-k', 'off']
+            ]
+            
+            success = False
+            for cmd in desktop_commands:
+                try:
+                    result = subprocess.run(cmd, capture_output=True, timeout=5)
+                    if result.returncode == 0:
+                        success = True
+                        if self.debug_mode:
+                            logger.info(f"成功使用命令显示桌面: {' '.join(cmd)}")
+                        break
+                except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
+                    if self.debug_mode:
+                        logger.debug(f"命令失败 {' '.join(cmd)}: {e}")
+                    continue
+            
+            if not success:
+                logger.warn("无法在Linux上显示桌面，请确保安装了wmctrl或xdotool工具")
